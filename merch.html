@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tienda Oficial — Be Pro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="logo">
+    <div class="logo-text"><span class="logo-be">BE</span><span class="logo-pro">PRO</span></div>
+    <div class="logo-sub">EL ECOSISTEMA DEL TALENTO</div>
+  </a>
+        <ul class="nav-links">
+    <li><a href="events.html" data-i18n="nav_events">EVENTOS</a></li>
+    <li><a href="club.html" data-i18n="nav_club">CLUB</a></li>
+    <li><a href="ecosystem.html" data-i18n="nav_ecosystem">ECOSISTEMA</a></li>
+    <li><a href="about.html" data-i18n="nav_about">SOBRE NOSOTROS</a></li>
+    <li><a href="merch.html" class="active" data-i18n="nav_merch">TIENDA</a></li>
+    <li><a href="contact.html" data-i18n="nav_contact">CONTACTO</a></li>
+    <li><a href="contact.html" class="nav-cta" data-i18n="nav_join">ÚNETE A BE PRO FC</a></li>
+  </ul>
+  <div class="lang-toggle">
+    <button class="lang-btn active" data-lang="es">ES</button>
+    <button class="lang-btn" data-lang="en">EN</button>
+  </div>
+  <div class="hamburger" aria-label="Toggle menu"><span></span><span></span><span></span></div>
+</nav>
+
+<div class="mobile-nav">
+  <a href="events.html" data-i18n="nav_events">EVENTOS</a>
+  <a href="club.html" data-i18n="nav_club">CLUB</a>
+  <a href="ecosystem.html" data-i18n="nav_ecosystem">ECOSISTEMA</a>
+  <a href="about.html" data-i18n="nav_about">SOBRE NOSOTROS</a>
+  <a href="merch.html" class="active" data-i18n="nav_merch">TIENDA</a>
+  <a href="contact.html" data-i18n="nav_contact">CONTACTO</a>
+  <a href="contact.html" class="nav-cta" data-i18n="nav_join">ÚNETE A BE PRO FC</a>
+</div>
+
+<div class="page-hero">
+  <div class="breadcrumb">
+    <a href="index.html" data-i18n="nav_home">Inicio</a>
+    <span class="breadcrumb-sep">/</span>
+    <span data-i18n="footer_f_nw3">Tienda</span>
+  </div>
+  <h1 data-i18n-html="mch_hero_h1">TIENDA OFICIAL <span style="color:var(--orange);">BE PRO</span></h1>
+  <p data-i18n="mch_hero_p">Representa la marca que está construyendo la próxima generación de jugadores de fútbol. Úsalo. Significalo.</p>
+</div>
+
+<section>
+  <div class="merch-banner reveal">
+    <div>
+      <h2 data-i18n="mch_banner_h2">GEAR OFICIAL BE PRO</h2>
+      <p data-i18n="mch_banner_p">Calidad premium. Diseñado para jugadores que se toman el juego en serio.</p>
+    </div>
+    <div style="flex-shrink:0; text-align:right;">
+      <div style="font-family:var(--font-heading); font-size:1.8rem; letter-spacing:2px; color:var(--orange);" data-i18n="mch_ship">ENVÍO GRATIS</div>
+      <div style="font-size:0.78rem; color:var(--gray); letter-spacing:2px; text-transform:uppercase;" data-i18n="mch_ship_sub">En pedidos sobre $75</div>
+    </div>
+  </div>
+
+  <div style="display:flex; gap:0.8rem; flex-wrap:wrap; margin-bottom:2.5rem;" class="reveal">
+    <button onclick="filterMerch('all')" data-filter="all" class="filter-btn active" style="background:var(--orange);color:var(--white);border:none;padding:8px 18px;border-radius:5px;font-family:var(--font-body);font-size:0.78rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all 0.3s;" data-i18n="mch_all">Todo</button>
+    <button onclick="filterMerch('apparel')" data-filter="apparel" class="filter-btn" style="background:var(--navy-card);color:var(--gray-light);border:1px solid rgba(255,255,255,0.1);padding:8px 18px;border-radius:5px;font-family:var(--font-body);font-size:0.78rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all 0.3s;" data-i18n="mch_app">Ropa</button>
+    <button onclick="filterMerch('accessories')" data-filter="accessories" class="filter-btn" style="background:var(--navy-card);color:var(--gray-light);border:1px solid rgba(255,255,255,0.1);padding:8px 18px;border-radius:5px;font-family:var(--font-body);font-size:0.78rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all 0.3s;" data-i18n="mch_acc">Accesorios</button>
+    <button onclick="filterMerch('gear')" data-filter="gear" class="filter-btn" style="background:var(--navy-card);color:var(--gray-light);border:1px solid rgba(255,255,255,0.1);padding:8px 18px;border-radius:5px;font-family:var(--font-body);font-size:0.78rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all 0.3s;" data-i18n="mch_gear">Equipamiento</button>
+  </div>
+
+  <div class="merch-grid" id="merchGrid">
+    <div class="product-card reveal d1" data-category="apparel">
+      <div class="product-visual pv-jersey"><span style="position:relative;z-index:1;">👕</span></div>
+      <div class="product-info">
+        <div class="product-cat" data-i18n="mch_p1_cat">Ropa</div>
+        <h3 data-i18n="mch_p1_h3">Jersey Oficial Be Pro FC</h3>
+        <p data-i18n="mch_p1_p">Jersey oficial del equipo. Colorway navy/naranja. Tela de rendimiento ligera. Escudo bordado.</p>
+        <div class="product-price-row"><div class="product-price">$75</div></div>
+        <button class="add-to-cart" data-i18n="mch_cart">Agregar al Carrito</button>
+      </div>
+    </div>
+    <div class="product-card reveal d2" data-category="apparel">
+      <div class="product-visual pv-training"><span style="position:relative;z-index:1;">🎽</span></div>
+      <div class="product-info">
+        <div class="product-cat" data-i18n="mch_p2_cat">Ropa</div>
+        <h3 data-i18n="mch_p2_h3">Playera de Entrenamiento Be Pro</h3>
+        <p data-i18n="mch_p2_p">La misma playera que usan nuestros jugadores a diario. Absorbe la humedad. Durable. Para entrenamientos intensos.</p>
+        <div class="product-price-row"><div class="product-price">$45</div><div class="product-price-old">$55</div></div>
+        <button class="add-to-cart" data-i18n="mch_cart">Agregar al Carrito</button>
+      </div>
+    </div>
+    <div class="product-card reveal d3" data-category="apparel">
+      <div class="product-visual pv-hoodie"><span style="position:relative;z-index:1;">🧥</span></div>
+      <div class="product-info">
+        <div class="product-cat" data-i18n="mch_p3_cat">Ropa</div>
+        <h3 data-i18n="mch_p3_h3">Hoodie Premium Be Pro</h3>
+        <p data-i18n="mch_p3_p">Polar de alta calidad. Logo "BE PRO" bordado en naranja en el pecho. Perfecto para la banca o la calle.</p>
+        <div class="product-price-row"><div class="product-price">$85</div></div>
+        <button class="add-to-cart" data-i18n="mch_cart">Agregar al Carrito</button>
+      </div>
+    </div>
+    <div class="product-card reveal d4" data-category="apparel">
+      <div class="product-visual pv-shorts"><span style="position:relative;z-index:1;">🩳</span></div>
+      <div class="product-info">
+        <div class="product-cat" data-i18n="mch_p4_cat">Ropa</div>
+        <h3 data-i18n="mch_p4_h3">Shorts de Partido Be Pro</h3>
+        <p data-i18n="mch_p4_p">Shorts oficiales de partido. Tela de control de humedad. Navy con franja lateral naranja.</p>
+        <div class="product-price-row"><div class="product-price">$35</div></div>
+        <button class="add-to-cart" data-i18n="mch_cart">Agregar al Carrito</button>
+      </div>
+    </div>
+    <div class="product-card reveal d5" data-category="accessories">
+      <div class="product-visual pv-hat"><span style="position:relative;z-index:1;">🧢</span></div>
+      <div class="product-info">
+        <div class="product-cat" data-i18n="mch_p5_cat">Accesorios</div>
+        <h3 data-i18n="mch_p5_h3">Gorra Snapback Be Pro</h3>
+        <p data-i18n="mch_p5_p">Snapback estructurado en navy. "BE PRO" bordado en naranja al frente. Ajuste regulable.</p>
+        <div class="product-price-row"><div class="product-price">$30</div></div>
+        <button class="add-to-cart" data-i18n="mch_cart">Agregar al Carrito</button>
+      </div>
+    </div>
+    <div class="product-card reveal d6" data-category="gear">
+      <div class="product-visual pv-bag"><span style="position:relative;z-index:1;">🎒</span></div>
+      <div class="product-info">
+        <div class="product-cat" data-i18n="mch_p6_cat">Equipamiento</div>
+        <h3 data-i18n="mch_p6_h3">Mochila del Jugador Be Pro</h3>
+        <p data-i18n="mch_p6_p">Mochila de entrenamiento de gran capacidad. Compartimento para tachones, red para balón, múltiples bolsillos.</p>
+        <div class="product-price-row"><div class="product-price">$65</div></div>
+        <button class="add-to-cart" data-i18n="mch_cart">Agregar al Carrito</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section-alt dot-bg">
+  <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:2rem; max-width:900px; margin:0 auto;" class="reveal">
+    <div style="text-align:center;"><div style="font-size:2.5rem; margin-bottom:1rem;">🚚</div><h4 style="color:var(--white); font-size:1rem; letter-spacing:2px; margin-bottom:0.5rem;" data-i18n="mch_sh1">ENVÍO GRATIS</h4><p style="font-size:0.82rem; color:var(--gray);" data-i18n="mch_sh1d">En todos los pedidos sobre $75. Envío estándar 5–8 días hábiles.</p></div>
+    <div style="text-align:center;"><div style="font-size:2.5rem; margin-bottom:1rem;">↩️</div><h4 style="color:var(--white); font-size:1rem; letter-spacing:2px; margin-bottom:0.5rem;" data-i18n="mch_sh2">30 DÍAS DE DEVOLUCIÓN</h4><p style="font-size:0.82rem; color:var(--gray);" data-i18n="mch_sh2d">¿No satisfecho? Devuelve en 30 días para cambio completo o crédito en tienda.</p></div>
+    <div style="text-align:center;"><div style="font-size:2.5rem; margin-bottom:1rem;">🔒</div><h4 style="color:var(--white); font-size:1rem; letter-spacing:2px; margin-bottom:0.5rem;" data-i18n="mch_sh3">PAGO SEGURO</h4><p style="font-size:0.82rem; color:var(--gray);" data-i18n="mch_sh3d">Todas las transacciones procesadas de forma segura. Múltiples métodos de pago aceptados.</p></div>
+  </div>
+</section>
+
+<section>
+  <div class="cta-section reveal">
+    <span class="section-tag" style="justify-content:center;" data-i18n="mch_cta_tag">Pedidos Personalizados</span>
+    <h2 data-i18n-html="mch_cta_h2">¿NECESITAS UN <span style="color:var(--orange);">PEDIDO ESPECIAL?</span></h2>
+    <p data-i18n="mch_cta_p">Pedidos de equipo, kits de club o compras al por mayor. Contáctanos directamente para precios en pedidos personalizados y paquetes de equipo.</p>
+    <div class="cta-buttons">
+      <a href="contact.html" class="btn btn-primary btn-lg" data-i18n="mch_cta1">Contactar para Pedidos</a>
+      <a href="events.html" class="btn btn-secondary" data-i18n="mch_cta2">Ver Eventos</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <a href="index.html" class="logo">
+        <div class="logo-text"><span class="logo-be">BE</span><span class="logo-pro">PRO</span></div>
+        <div class="logo-sub" data-i18n="logo_sub">EL ECOSISTEMA DEL TALENTO</div>
+      </a>
+      <p data-i18n="footer_desc">Un ecosistema. Un solo propósito. Descubrir, formar y desarrollar el talento sin límites. Las Vegas, Nevada.</p>
+      <div class="socials-row">
+        <a href="https://instagram.com/beprofc" target="_blank" rel="noopener" class="social-pill"><span class="s-icon">📸</span> @beprofc</a>
+        <a href="https://tiktok.com/@bepro.scouting" target="_blank" rel="noopener" class="social-pill"><span class="s-icon">🎵</span> @bepro.scouting</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4 data-i18n="mch_footer_col">TIENDA</h4>
+      <div class="footer-links">
+        <a href="merch.html" data-i18n="mch_footer_l1">Todos los Productos</a>
+        <a href="merch.html" data-i18n="mch_footer_l2">Jerseys</a>
+        <a href="merch.html" data-i18n="mch_footer_l3">Ropa de Entrenamiento</a>
+        <a href="merch.html" data-i18n="mch_footer_l4">Hoodies</a>
+        <a href="contact.html" data-i18n="mch_footer_l5">Pedidos Personalizados</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4 data-i18n="footer_col2">RED GLOBAL</h4>
+      <div class="footer-links">
+        <a href="training.html" data-i18n="footer_f_nw1">Academy — Metodología Propia</a>
+        <a href="club.html">Be Pro FC</a>
+        <a href="events.html" data-i18n="nav_events">Eventos</a>
+        <a href="noticias.html" data-i18n="footer_f_nw4">Noticias</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4 data-i18n="footer_col3">CLUB</h4>
+      <div class="footer-links">
+        <a href="club.html" data-i18n="footer_f_cl1">Competencia y Desarrollo</a>
+        <a href="about.html" data-i18n="footer_f_cl2">Sobre Nosotros</a>
+        <a href="contact.html" data-i18n="footer_f_cl3">Contacto</a>
+        <a href="https://instagram.com/beprofc" target="_blank" rel="noopener">@beprofc</a>
+      </div>
+    </div>
+  </div>
+  <hr class="footer-divider" />
+  <div class="footer-bottom">
+    <p data-i18n="footer_copy">© 2025 Be Pro Scouting / Be Pro FC / Be Pro Academy — Las Vegas, Nevada. Todos los derechos reservados.</p>
+    <div class="footer-tagline" data-i18n="footer_tagline">BE PART OF THE PROCESS.</div>
+  </div>
+</footer>
+
+<script src="js/i18n.js"></script>
+<script src="js/main.js"></script>
+<script>
+  function filterMerch(cat) {
+    const btns  = document.querySelectorAll('.filter-btn');
+    const cards = document.querySelectorAll('#merchGrid .product-card');
+    btns.forEach(b => {
+      const active = b.dataset.filter === cat;
+      b.style.background  = active ? 'var(--orange)' : 'var(--navy-card)';
+      b.style.color       = active ? 'var(--white)' : 'var(--gray-light)';
+      b.style.borderColor = active ? 'var(--orange)' : 'rgba(255,255,255,0.1)';
+    });
+    cards.forEach(c => {
+      const show = cat === 'all' || c.dataset.category === cat;
+      c.style.display = show ? '' : 'none';
+    });
+  }
+</script>
+</body>
+</html>

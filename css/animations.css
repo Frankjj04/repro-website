@@ -1,0 +1,164 @@
+/* =========================================
+   BE PRO SOCCER — Animations
+   ========================================= */
+
+/* ===================== KEYFRAMES ===================== */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInLeft {
+  from { opacity: 0; transform: translateX(-32px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes fadeInRight {
+  from { opacity: 0; transform: translateX(32px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.88); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes dotPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%       { transform: scale(1.5); opacity: 0.6; }
+}
+@keyframes scrollBarAnim {
+  0%   { opacity: 1; transform: scaleY(0); transform-origin: top; }
+  50%  { opacity: 1; transform: scaleY(1); transform-origin: top; }
+  51%  { opacity: 1; transform: scaleY(1); transform-origin: bottom; }
+  100% { opacity: 0; transform: scaleY(0); transform-origin: bottom; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-10px); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+@keyframes borderGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 26, 0); }
+  50%       { box-shadow: 0 0 20px 4px rgba(255, 107, 26, 0.3); }
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes countUp {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes orangePulseRing {
+  0%   { box-shadow: 0 0 0 0   rgba(255, 107, 26, 0.4); }
+  70%  { box-shadow: 0 0 0 12px rgba(255, 107, 26, 0); }
+  100% { box-shadow: 0 0 0 0   rgba(255, 107, 26, 0); }
+}
+
+/* ===================== HERO ENTRANCE ===================== */
+.hero-eyebrow  { animation: fadeInUp 0.6s ease 0.2s both; }
+.hero h1       { animation: fadeInUp 0.8s ease 0.4s both; }
+.hero-subtitle { animation: fadeInUp 0.8s ease 0.6s both; }
+.hero-ctas     { animation: fadeInUp 0.8s ease 0.8s both; }
+.hero-scroll-indicator { animation: fadeIn 1s ease 1.2s both; }
+
+/* ===================== SCROLL REVEAL CLASSES ===================== */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.65s ease, transform 0.65s ease;
+}
+.reveal.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-28px);
+  transition: opacity 0.65s ease, transform 0.65s ease;
+}
+.reveal-left.in-view {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.reveal-right {
+  opacity: 0;
+  transform: translateX(28px);
+  transition: opacity 0.65s ease, transform 0.65s ease;
+}
+.reveal-right.in-view {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.reveal-scale {
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.65s ease, transform 0.65s ease;
+}
+.reveal-scale.in-view {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Stagger delays */
+.d1  { transition-delay: 0.05s; }
+.d2  { transition-delay: 0.12s; }
+.d3  { transition-delay: 0.19s; }
+.d4  { transition-delay: 0.26s; }
+.d5  { transition-delay: 0.33s; }
+.d6  { transition-delay: 0.40s; }
+.d7  { transition-delay: 0.47s; }
+.d8  { transition-delay: 0.54s; }
+
+/* ===================== UTILITY ANIMATIONS ===================== */
+.anim-float { animation: float 4s ease-in-out infinite; }
+.anim-spin  { animation: spin  8s linear infinite; }
+.anim-pulse-ring { animation: orangePulseRing 2s ease-out infinite; }
+
+.shimmer-bg {
+  background: linear-gradient(
+    90deg,
+    var(--navy-card) 0%,
+    var(--navy-light) 50%,
+    var(--navy-card) 100%
+  );
+  background-size: 200% auto;
+  animation: shimmer 2s linear infinite;
+}
+
+/* ===================== NAVBAR SLIDE IN ===================== */
+.navbar { animation: slideDown 0.5s ease both; }
+
+/* ===================== PAGE HERO ENTRANCE ===================== */
+.page-hero .breadcrumb { animation: fadeIn     0.5s ease 0.1s both; }
+.page-hero h1          { animation: fadeInUp   0.7s ease 0.2s both; }
+.page-hero p           { animation: fadeInUp   0.7s ease 0.35s both; }
+
+/* ===================== STEP CARD HOVER ICON ===================== */
+.step-card:hover .step-num { animation: orangePulseRing 1s ease-out; }
+
+/* ===================== MOBILE NAV LINKS STAGGER ===================== */
+.mobile-nav.open a:nth-child(1) { animation: fadeInLeft 0.3s ease 0.05s both; }
+.mobile-nav.open a:nth-child(2) { animation: fadeInLeft 0.3s ease 0.10s both; }
+.mobile-nav.open a:nth-child(3) { animation: fadeInLeft 0.3s ease 0.15s both; }
+.mobile-nav.open a:nth-child(4) { animation: fadeInLeft 0.3s ease 0.20s both; }
+.mobile-nav.open a:nth-child(5) { animation: fadeInLeft 0.3s ease 0.25s both; }
+.mobile-nav.open a:nth-child(6) { animation: fadeInLeft 0.3s ease 0.30s both; }
+
+/* ===================== HOVER EFFECTS ===================== */
+.testimonial-card:hover {
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+.product-card:hover .product-visual { transition: transform 0.3s ease; }
+.product-card:hover .product-visual { transform: scale(1.03); }

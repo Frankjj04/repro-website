@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Be Pro — El Ecosistema del Talento</title>
+  <meta name="description" content="BE PRO: El ecosistema del talento. Scouting, FC y Academy unidos para descubrir, desarrollar y formar jugadores sin límites. Las Vegas, Nevada." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+</head>
+<body>
+
+<!-- ========== NAVBAR ========== -->
+<nav class="navbar">
+  <a href="index.html" class="logo">
+    <div class="logo-text"><span class="logo-be">BE</span><span class="logo-pro">PRO</span></div>
+    <div class="logo-sub">EL ECOSISTEMA DEL TALENTO</div>
+  </a>
+        <ul class="nav-links">
+    <li><a href="events.html" data-i18n="nav_events">EVENTOS</a></li>
+    <li><a href="club.html" data-i18n="nav_club">CLUB</a></li>
+    <li><a href="ecosystem.html" data-i18n="nav_ecosystem">ECOSISTEMA</a></li>
+    <li><a href="about.html" data-i18n="nav_about">SOBRE NOSOTROS</a></li>
+    <li><a href="merch.html" data-i18n="nav_merch">TIENDA</a></li>
+    <li><a href="contact.html" data-i18n="nav_contact">CONTACTO</a></li>
+    <li><a href="contact.html" class="nav-cta" data-i18n="nav_join">ÚNETE A BE PRO FC</a></li>
+  </ul>
+  <div class="lang-toggle">
+    <button class="lang-btn active" data-lang="es">ES</button>
+    <button class="lang-btn" data-lang="en">EN</button>
+  </div>
+  <div class="hamburger" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<div class="mobile-nav">
+  <a href="events.html" data-i18n="nav_events">EVENTOS</a>
+  <a href="club.html" data-i18n="nav_club">CLUB</a>
+  <a href="ecosystem.html" data-i18n="nav_ecosystem">ECOSISTEMA</a>
+  <a href="about.html" data-i18n="nav_about">SOBRE NOSOTROS</a>
+  <a href="merch.html" data-i18n="nav_merch">TIENDA</a>
+  <a href="contact.html" data-i18n="nav_contact">CONTACTO</a>
+  <a href="contact.html" class="nav-cta" data-i18n="nav_join">ÚNETE A BE PRO FC</a>
+</div>
+
+<!-- ========== HERO ========== -->
+<section class="hero">
+  <canvas id="heroCanvas"></canvas>
+  <div class="hero-overlay"></div>
+
+  <div class="hero-content">
+    <div class="hero-eyebrow">
+      <span class="dot"></span>
+      <span data-i18n-html="idx_eyebrow">Las Vegas, Nevada &nbsp;·&nbsp; El Ecosistema del Talento</span>
+    </div>
+
+    <h1 data-i18n-html="idx_hero_h1">
+      CREAMOS<br>
+      <span class="accent">OPORTUNIDADES</span><br>
+      REALES.
+    </h1>
+
+    <p class="hero-subtitle" data-i18n="idx_hero_sub">
+      Desarrollando atletas. Creando oportunidades. El puente entre el talento extraordinario y el fútbol profesional mundial.
+    </p>
+
+    <div class="hero-ctas">
+      <a href="events.html" class="btn btn-primary btn-lg" data-i18n="idx_cta1">Ver Eventos de Scouting</a>
+      <a href="club.html" class="btn btn-secondary btn-lg" data-i18n="idx_cta2">Únete a Be Pro FC</a>
+    </div>
+  </div>
+
+  <div class="hero-scroll-indicator">
+    <span data-i18n="idx_scroll">Desliza</span>
+    <div class="scroll-bar"></div>
+  </div>
+</section>
+
+<!-- ========== STATS BAR ========== -->
+<div class="stats-bar">
+  <div class="stat-item">
+    <span class="stat-number">+300K</span>
+    <span class="stat-label" data-i18n="stat_l1">Jugadores Alcanzados</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-number">+100</span>
+    <span class="stat-label" data-i18n="stat_l2">Eventos y Visorías</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-number">+50</span>
+    <span class="stat-label" data-i18n="stat_l3">Aliados Internacionales</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-number">+1,000</span>
+    <span class="stat-label" data-i18n="stat_l4">Oportunidades Generadas</span>
+  </div>
+</div>
+
+<!-- ========== WHO WE ARE ========== -->
+<section class="section-alt" id="who-we-are">
+  <div class="mission-grid max-1200">
+    <div class="mission-text reveal-left">
+      <span class="section-tag" data-i18n="hw_tag">Quiénes Somos</span>
+      <h2 data-i18n-html="hw_h2">EL PUENTE ENTRE <span style="color:var(--orange);">TALENTO Y OPORTUNIDAD</span></h2>
+      <p data-i18n="hw_p1">Be Pro es un ecosistema de desarrollo de jugadores con base en Las Vegas, Nevada. Organizamos eventos de scouting en todo EE.UU. y operamos un club competitivo — conectando jugadores directamente con clubes profesionales, programas NCAA y academias internacionales.</p>
+      <p data-i18n="hw_p2">No solo exponemos talento. Construimos el camino desde tu primera visoría hasta tu primer contrato profesional.</p>
+      <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:2rem;">
+        <a href="about.html" class="btn btn-outline" data-i18n="hw_cta">Conoce Más Sobre Nosotros</a>
+      </div>
+    </div>
+    <div class="mission-visual reveal-right">
+      <div class="photo-placeholder-main">
+        <div class="ph-inner">
+          <div class="ph-icon-lg">📸</div>
+          <div class="ph-label-main">Be Pro — Team Photo</div>
+          <div class="ph-sub">Photo coming soon</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ========== PHOTO GRID ========== -->
+<section class="dot-bg">
+  <div class="section-header center reveal">
+    <span class="section-tag" data-i18n="gal_tag">Nuestro Mundo</span>
+    <h2 data-i18n-html="gal_h2">DENTRO DE <span style="color:var(--orange);">BE PRO</span></h2>
+  </div>
+  <div class="photo-grid max-1200 reveal">
+    <div class="photo-item ph-tall">
+      <div class="ph-inner"><div class="ph-icon-lg">⚽</div><div class="ph-label-main">Evento en Acción</div></div>
+    </div>
+    <div class="photo-item">
+      <div class="ph-inner"><div class="ph-icon-lg">🏆</div><div class="ph-label-main">Finales Las Vegas</div></div>
+    </div>
+    <div class="photo-item">
+      <div class="ph-inner"><div class="ph-icon-lg">👥</div><div class="ph-label-main">Entrenamiento</div></div>
+    </div>
+    <div class="photo-item ph-wide">
+      <div class="ph-inner"><div class="ph-icon-lg">🌟</div><div class="ph-label-main">Spotlight del Jugador</div></div>
+    </div>
+    <div class="photo-item">
+      <div class="ph-inner"><div class="ph-icon-lg">🎯</div><div class="ph-label-main">Día de Scouting</div></div>
+    </div>
+  </div>
+  <p style="text-align:center; margin-top:2rem; font-size:0.83rem; color:var(--gray);" data-i18n="gal_sub">Síguenos en Instagram para las últimas fotos y videos de nuestros eventos y club.</p>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ========== SUCCESS STORIES ========== -->
+<section class="section-alt">
+  <div class="section-header center reveal">
+    <span class="section-tag" data-i18n="stories_tag">Historias de Éxito</span>
+    <h2 data-i18n-html="stories_h2">JUGADORES QUE <span style="color:var(--orange);">LO LOGRARON</span></h2>
+  </div>
+  <div class="stories-grid max-1200 reveal">
+    <div class="story-card">
+      <div class="story-photo"><div class="ph-icon-lg">👤</div></div>
+      <div class="story-body">
+        <div class="story-name">— / —</div>
+        <div class="story-result" style="color:var(--orange);">Coming Soon</div>
+        <p class="story-quote" data-i18n="stories_coming">Historias reales de jugadores próximamente. Vuelve después de nuestro próximo evento.</p>
+      </div>
+    </div>
+    <div class="story-card">
+      <div class="story-photo"><div class="ph-icon-lg">👤</div></div>
+      <div class="story-body">
+        <div class="story-name">— / —</div>
+        <div class="story-result" style="color:var(--orange);">Coming Soon</div>
+        <p class="story-quote" data-i18n="stories_coming">Historias reales de jugadores próximamente. Vuelve después de nuestro próximo evento.</p>
+      </div>
+    </div>
+    <div class="story-card">
+      <div class="story-photo"><div class="ph-icon-lg">👤</div></div>
+      <div class="story-body">
+        <div class="story-name">— / —</div>
+        <div class="story-result" style="color:var(--orange);">Coming Soon</div>
+        <p class="story-quote" data-i18n="stories_coming">Historias reales de jugadores próximamente. Vuelve después de nuestro próximo evento.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ========== UPCOMING EVENTS ========== -->
+<section class="dot-bg">
+  <div class="section-header center reveal">
+    <span class="section-tag" data-i18n="upcoming_tag">Lo Que Viene</span>
+    <h2 data-i18n-html="upcoming_h2">PRÓXIMOS <span style="color:var(--orange);">EVENTOS</span></h2>
+    <p data-i18n="upcoming_p">Regístrate temprano — los lugares se llenan rápido. Encuentra el evento más cercano a ti.</p>
+  </div>
+  <div class="upcoming-grid max-1200 reveal">
+    <div class="upcoming-card">
+      <div class="uc-type" data-i18n="prelim_lbl">Evento Preliminar</div>
+      <div class="uc-city">PHOENIX</div>
+      <div class="uc-location">Arizona, USA</div>
+      <div class="uc-date" data-i18n="upcoming_tbd">Fecha: Por Confirmar 2026</div>
+      <a href="events.html" class="btn btn-outline btn-sm" style="margin-top:1.5rem;" data-i18n="learn_more">Más Info</a>
+    </div>
+    <div class="upcoming-card featured-event">
+      <div class="uc-type" style="color:var(--orange);" data-i18n="final_lbl">Evento Final — Las Vegas</div>
+      <div class="uc-city">LAS VEGAS</div>
+      <div class="uc-location">Nevada, USA</div>
+      <div class="uc-date" data-i18n="upcoming_tbd">Fecha: Por Confirmar 2026</div>
+      <a href="events.html" class="btn btn-primary btn-sm" style="margin-top:1.5rem;" data-i18n="learn_more">Más Info</a>
+    </div>
+    <div class="upcoming-card">
+      <div class="uc-type" data-i18n="prelim_lbl">Evento Preliminar</div>
+      <div class="uc-city">DENVER</div>
+      <div class="uc-location">Colorado, USA</div>
+      <div class="uc-date" data-i18n="upcoming_tbd">Fecha: Por Confirmar 2026</div>
+      <a href="events.html" class="btn btn-outline btn-sm" style="margin-top:1.5rem;" data-i18n="learn_more">Más Info</a>
+    </div>
+  </div>
+  <div style="text-align:center; margin-top:3rem;">
+    <a href="events.html" class="btn btn-secondary btn-lg" data-i18n="view_all_evt">Ver Todos los Eventos</a>
+  </div>
+</section>
+
+<!-- ========== CTA ========== -->
+<section class="section-alt">
+  <div class="cta-section reveal">
+    <span class="section-tag" style="justify-content:center;" data-i18n="transform_tag">Nuestra Misión</span>
+    <h2 data-i18n-html="transform_h2">MÁS QUE FÚTBOL,<br><span style="color:var(--orange);">TRANSFORMAMOS VIDAS.</span></h2>
+    <p data-i18n="transform_p">En BE PRO creemos en el talento sin límites y trabajamos cada día para crear el camino que te lleve a cumplir tus sueños.</p>
+    <div class="cta-buttons">
+      <a href="contact.html" class="btn btn-primary btn-lg" data-i18n="nav_join">Únete a Be Pro FC</a>
+      <a href="events.html" class="btn btn-secondary btn-lg" data-i18n="idx_cta1">Ver Eventos de Scouting</a>
+    </div>
+  </div>
+</section>
+
+<!-- ========== FOOTER ========== -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <a href="index.html" class="logo">
+        <div class="logo-text"><span class="logo-be">BE</span><span class="logo-pro">PRO</span></div>
+        <div class="logo-sub" data-i18n="logo_sub">EL ECOSISTEMA DEL TALENTO</div>
+      </a>
+      <p data-i18n="footer_desc">Un ecosistema. Un solo propósito. Descubrir, formar y desarrollar el talento sin límites. Las Vegas, Nevada.</p>
+      <div class="socials-row">
+        <a href="https://instagram.com/beprofc" target="_blank" rel="noopener" class="social-pill"><span class="s-icon">📸</span> @beprofc</a>
+        <a href="https://tiktok.com/@bepro.scouting" target="_blank" rel="noopener" class="social-pill"><span class="s-icon">🎵</span> @bepro.scouting</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4 data-i18n="footer_col1">EVENTOS</h4>
+      <div class="footer-links">
+        <a href="events.html" data-i18n="footer_f_ev1">Nacionales e Internacionales</a>
+        <a href="events.html" data-i18n="footer_f_ev2">Eventos Preliminares</a>
+        <a href="events.html" data-i18n="footer_f_ev3">Eventos Finales Las Vegas</a>
+        <a href="contact.html" data-i18n="footer_f_ev4">Registrarse</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4 data-i18n="footer_col2">RED GLOBAL</h4>
+      <div class="footer-links">
+        <a href="training.html" data-i18n="footer_f_nw1">Academy — Metodología Propia</a>
+        <a href="club.html">Be Pro FC</a>
+        <a href="merch.html" data-i18n="footer_f_nw3">Tienda</a>
+        <a href="noticias.html" data-i18n="footer_f_nw4">Noticias</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4 data-i18n="footer_col3">CLUB</h4>
+      <div class="footer-links">
+        <a href="club.html" data-i18n="footer_f_cl1">Competencia y Desarrollo</a>
+        <a href="about.html" data-i18n="footer_f_cl2">Sobre Nosotros</a>
+        <a href="contact.html" data-i18n="footer_f_cl3">Contacto</a>
+        <a href="https://instagram.com/beprofc" target="_blank" rel="noopener">@beprofc</a>
+      </div>
+    </div>
+  </div>
+  <hr class="footer-divider" />
+  <div class="footer-bottom">
+    <p data-i18n="footer_copy">© 2025 Be Pro Scouting / Be Pro FC / Be Pro Academy — Las Vegas, Nevada. Todos los derechos reservados.</p>
+    <div class="footer-tagline" data-i18n="footer_tagline">BE PART OF THE PROCESS.</div>
+  </div>
+</footer>
+
+<script src="js/i18n.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

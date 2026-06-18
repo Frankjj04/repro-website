@@ -1,0 +1,109 @@
+BE PRO SOCCER — WEBSITE PROJECT NOTES
+======================================
+
+LIVE URL
+--------
+https://bepro-website.vercel.app
+
+To update the live site after any change:
+  Open Terminal → type:
+  cd /Users/franklopez/bepro-website && vercel deploy --prod
+
+
+FILE STRUCTURE
+--------------
+/bepro-website/
+  index.html        → Homepage (hero, stats, mission, how it works, events, testimonials)
+  events.html       → 2025 scouting events calendar (12 prelim + 4 final)
+  club.html         → Be Pro FC & Be Pro Elite teams, NISA costs, gallery
+  training.html     → Online training programs + 3 pricing tiers
+  merch.html        → Store (6 products)
+  contact.html      → Contact form + FAQ
+  css/
+    style.css       → All styles
+    animations.css  → Scroll animations & keyframes
+  js/
+    main.js         → Particles, mobile nav, scroll reveal, counters
+    i18n.js         → EN/ES bilingual toggle (all translations)
+  assets/
+    logo_*.png      → Logo files extracted from PDF (various versions)
+
+
+BRAND
+-----
+Colors:   Navy #0A0E2A | Orange #FF6B1A | Electric Blue #00D4FF
+Fonts:    Bebas Neue (headings) | DM Sans (body) — loaded from Google Fonts
+Logos:    PDF source → /Users/franklopez/Downloads/BEPRO_logos_rgb (1).pdf
+
+
+SOCIALS (used throughout site)
+-------------------------------
+Instagram: @bepro.fc | @bepro.soccer | @bepro.scouting | @jrivera.fut
+TikTok:    @bepro.scouting
+
+
+KEY STATS (update these when numbers change)
+---------------------------------------------
+39+  Pro Contracts Signed
+149+ Players Sent
+26+  Las Vegas Players Placed
+6    Countries (Mexico, USA, Spain, Finland, Slovakia, Hungary)
+
+To update stats: edit index.html → search "data-count"
+
+
+2025 EVENTS CALENDAR
+--------------------
+Prelim #1  Dallas          Jan 21-22
+Prelim #2  Salt Lake City  Feb 25-26
+Prelim #3  San Francisco   Mar 25-26
+FINAL      Las Vegas (MX)  Apr 8-9
+Prelim #4  Miami/Europa    Apr 22-23
+Prelim #5  LA/Europa       May 20-21
+Prelim #6  KC/Europa       Jun 10-11
+FINAL      Las Vegas (EU)  Jul 15-16
+Prelim #7  New York        Aug 26-27
+Prelim #8  Denver          Sep 23-24
+Prelim #9  Seattle         Oct 21-22
+FINAL      Las Vegas (USA) Nov 25-26
+
+
+FEATURES BUILT
+--------------
+- 6-page fully responsive website
+- EN/ES language toggle (persists across pages via localStorage)
+- Animated particle canvas on homepage hero
+- Scroll-reveal entrance animations
+- Animated stat counters
+- Mobile hamburger menu
+- Contact form (UI only — does not send emails yet)
+- Merch store with category filter (UI only — no real checkout)
+- Vercel deployment (free hosting)
+
+
+TO-DO / FUTURE UPDATES
+-----------------------
+[ ] Add real photos to gallery (club.html)
+[ ] Replace placeholder testimonials with real player quotes
+[ ] Make contact form send real emails (use Formspree.io — free)
+[ ] Add real event registration links (Google Form)
+[ ] Connect merch to real store (Shopify, Gumroad, etc.)
+[ ] Get a custom domain (e.g. beprosoccer.com)
+[ ] Verify exact club list (removed Ajax — confirm others)
+
+
+HOW TO MAKE CHANGES
+-------------------
+1. Open any .html file in a text editor to edit content
+2. Edit css/style.css to change colors, fonts, spacing
+3. Edit js/i18n.js to update translations (both EN and ES sections)
+4. After changes, run in Terminal:
+     cd /Users/franklopez/bepro-website && vercel deploy --prod
+5. Hard refresh browser/phone to see updates
+
+
+VERCEL PROJECT
+--------------
+Project:  bepro-website
+Account:  frankjj04
+Dashboard: https://vercel.com/frankjj04s-projects/bepro-website
