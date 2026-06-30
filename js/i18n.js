@@ -318,6 +318,18 @@ const BEPRO_TRANSLATIONS = {
     about_cta_h2:   'BE PART OF <span style="color:var(--orange);">THE PROCESS.</span>',
     about_cta_p:    'The BE PRO ecosystem is growing. Join as a player, coach, partner, or sponsor and be part of something bigger than soccer.',
 
+    /* ── COACHING STAFF ── */
+    about_staff_tag:   'Our Team',
+    about_staff_h2:    'THE COACHING <span style="color:var(--orange);">STAFF</span>',
+    about_staff_p:     'The people behind the ecosystem. Coaches with real experience, professional backgrounds, and one goal: developing your talent.',
+    about_jose_title:  'Founder & Head Coach',
+    about_jose_bio:    'Founder of Be Pro Soccer and creator of the most important talent ecosystem in Las Vegas. Years of experience in scouting and player development at the professional and international level.',
+    about_coach2_title: 'Assistant Coach',
+    about_coach2_bio:   'Coach information coming soon.',
+    about_coach3_title: 'Assistant Coach',
+    about_coach3_bio:   'Coach information coming soon.',
+    about_exp_pending:  'Experience to be added',
+
     /* ── NEWS PAGE ── */
     news_hero_h1:  'BE PRO <span style="color:var(--orange);">NEWS</span>',
     news_hero_p:   'The latest from the ecosystem. Events, placements, players, and everything happening at BE PRO.',
@@ -903,6 +915,18 @@ const BEPRO_TRANSLATIONS = {
     about_vis_l2: 'PLATAFORMA #1',
     about_vis_l3: 'DE EXPOSICIÓN DE TALENTO<br>PARA JUGADORES DE NORTEAMÉRICA.',
     about_vis_p:  'Un ecosistema completo que conecta a cada jugador con la oportunidad que merece. Scouting + FC + Academy = el camino completo.',
+
+    /* ── CUERPO TÉCNICO ── */
+    about_staff_tag:   'Nuestro Equipo',
+    about_staff_h2:    'EL CUERPO <span style="color:var(--orange);">TÉCNICO</span>',
+    about_staff_p:     'Las personas detrás del ecosistema. Entrenadores con experiencia real, trayectoria profesional y un solo objetivo: desarrollar tu talento.',
+    about_jose_title:  'Fundador & Head Coach',
+    about_jose_bio:    'Fundador de Be Pro Soccer y creador del ecosistema de talento más importante de Las Vegas. Con años de experiencia en scouting y desarrollo de jugadores a nivel profesional e internacional.',
+    about_coach2_title: 'Asistente Técnico',
+    about_coach2_bio:   'Información del entrenador próximamente.',
+    about_coach3_title: 'Asistente Técnico',
+    about_coach3_bio:   'Información del entrenador próximamente.',
+    about_exp_pending:  'Experiencia por agregar',
 
     /* ── EVENTS — tarjetas y grid de oferta ── */
     evt_tag_p1:    'Preliminar #1',
