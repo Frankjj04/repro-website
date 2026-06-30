@@ -1749,23 +1749,22 @@ footer {
 /* ===================== PHOTO GRID ===================== */
 .photo-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: 220px 220px;
-  gap: 1rem;
+  grid-template-columns: 1.1fr 1fr 1fr;
+  grid-template-rows: 260px 260px;
+  gap: 6px;
 }
 .photo-item {
   background: var(--navy-card);
-  border: 1px dashed rgba(255,107,26,0.2);
   border-radius: var(--radius);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  transition: border-color 0.3s;
+  transition: transform 0.3s;
 }
-.photo-item:hover { border-color: rgba(255,107,26,0.5); }
+.photo-item:hover { transform: scale(1.01); }
 .ph-tall { grid-row: span 2; }
-.ph-wide { grid-column: span 2; }
+.ph-wide { grid-column: span 1; }
 
 /* ===================== STORY CARDS ===================== */
 .stories-grid {
@@ -1783,12 +1782,13 @@ footer {
 .story-card:hover { transform: translateY(-4px); border-color: rgba(255,107,26,0.3); }
 .story-photo {
   width: 100%;
-  height: 180px;
+  height: 320px;
   background: var(--navy-dark);
   display: flex;
   align-items: center;
   justify-content: center;
   border-bottom: 1px solid rgba(255,255,255,0.06);
+  overflow: hidden;
 }
 .story-body { padding: 1.5rem; }
 .story-name {
@@ -1863,9 +1863,8 @@ footer {
 
 /* ===================== RESPONSIVE — NEW SECTIONS ===================== */
 @media (max-width: 900px) {
-  .photo-grid { grid-template-columns: 1fr 1fr; grid-template-rows: auto; }
-  .ph-tall { grid-row: span 1; }
-  .ph-wide { grid-column: span 2; }
+  .photo-grid { grid-template-columns: 1fr 1fr; grid-template-rows: 200px 200px 200px; }
+  .ph-tall { grid-row: span 2; }
   .stories-grid { grid-template-columns: 1fr; }
   .upcoming-grid { grid-template-columns: 1fr; }
 }
