@@ -82,7 +82,7 @@
 }
 .ad-row:hover { border-color: rgba(255,107,26,0.5); }
 .ad-row-selected { border-left-color: #6EE7A0; }
-.ad-row-not_selected { border-left-color: rgba(255,255,255,0.15); opacity: 0.75; }
+.ad-row-not_selected { border-left-color: #FF5A5F; }
 .ad-row-open {
   display: flex; align-items: center; gap: 0.9rem;
   flex: 1 1 auto; min-width: 0;
@@ -110,8 +110,8 @@
 .ad-quick button:disabled { opacity: 0.5; cursor: wait; }
 .ad-quick .ad-quick-selected:hover, .ad-quick .ad-quick-selected.active { border-color: #6EE7A0; color: #6EE7A0; }
 .ad-quick .ad-quick-selected.active { background: rgba(110,231,160,0.14); }
-.ad-quick .ad-quick-not_selected:hover, .ad-quick .ad-quick-not_selected.active { border-color: var(--gray-light); color: var(--white); }
-.ad-quick .ad-quick-not_selected.active { background: rgba(255,255,255,0.1); }
+.ad-quick .ad-quick-not_selected:hover, .ad-quick .ad-quick-not_selected.active { border-color: #FF5A5F; color: #FF7A7E; }
+.ad-quick .ad-quick-not_selected.active { background: rgba(255,90,95,0.15); }
 .ad-row-main { min-width: 0; }
 .ad-row-name { font-weight: 600; font-size: 1rem; }
 .ad-row-sub { font-size: 0.82rem; color: var(--gray-light); margin-top: 2px; }
@@ -128,7 +128,7 @@ a.ad-chip-video:hover { background: rgba(0,212,255,0.1); }
 .ad-chip-muted { color: var(--gray); border-color: rgba(255,255,255,0.1); }
 .ad-st-pending { color: #FFD27A; background: rgba(255,210,122,0.1); }
 .ad-st-selected { color: #6EE7A0; background: rgba(110,231,160,0.12); }
-.ad-st-not_selected { color: var(--gray-light); background: rgba(255,255,255,0.06); }
+.ad-st-not_selected { color: #FF7A7E; background: rgba(255,90,95,0.12); }
 
 /* panel */
 .ad-overlay {
@@ -173,7 +173,7 @@ a.ad-chip-video:hover { background: rgba(0,212,255,0.1); }
 }
 .ad-status button.active[data-status="pending"] { border-color: #FFD27A; color: #FFD27A; background: rgba(255,210,122,0.1); }
 .ad-status button.active[data-status="selected"] { border-color: #6EE7A0; color: #6EE7A0; background: rgba(110,231,160,0.12); }
-.ad-status button.active[data-status="not_selected"] { border-color: var(--gray-light); color: var(--white); background: rgba(255,255,255,0.08); }
+.ad-status button.active[data-status="not_selected"] { border-color: #FF5A5F; color: #FF7A7E; background: rgba(255,90,95,0.14); }
 
 .ad-facts {
   display: grid; grid-template-columns: minmax(120px, 40%) 1fr;
