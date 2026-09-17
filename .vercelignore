@@ -1,3 +1,5 @@
-.vercel
 PRIVATE-DO-NOT-SHARE.txt
+NOTES.txt
 .DS_Store
+.git
+.vercel
