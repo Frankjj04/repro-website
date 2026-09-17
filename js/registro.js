@@ -41,7 +41,8 @@ if (typeof document !== 'undefined') init();
 function init() {
   const form = document.getElementById('rgForm');
   const $ = (id) => document.getElementById(id);
-  const lang = () => (window.I18N && I18N.current) || 'es';
+  // i18n.js declares these with const, so they are globals but not window properties.
+  const lang = () => (typeof I18N !== 'undefined' && I18N.current) || 'es';
   const t = (key) => (BEPRO_TRANSLATIONS[lang()] || {})[key] || key;
 
   let lastError = null;          // [field, key] — re-translated on language change
@@ -210,12 +211,15 @@ function init() {
     if (g) g.classList.remove('rg-invalid');
   });
 
-  // i18n.js switches the static text on the same click; this runs after it.
+  // i18n.js switches the language on the same click, but its listener is added
+  // after this one, so wait for it before redrawing.
   document.addEventListener('click', (e) => {
     if (!e.target.closest('.lang-btn')) return;
-    renderOptions();
-    if (lastError) $('rgError').textContent = t(lastError[1]);
-    if (!sending) $('rgSubmit').textContent = t('rg_submit');
+    setTimeout(() => {
+      renderOptions();
+      if (lastError) $('rgError').textContent = t(lastError[1]);
+      if (!sending) $('rgSubmit').textContent = t('rg_submit');
+    });
   });
 
   renderOptions();

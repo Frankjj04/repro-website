@@ -197,6 +197,13 @@ function find(id) {
   return active.find((a) => a.id === id) || archived.find((a) => a.id === id);
 }
 
+/* wa.me needs the country code. A 10-digit number typed without + is taken
+   as a US number, since most players without one are local. */
+function waNumber(phone) {
+  const d = phone.replace(/\D/g, '');
+  return !phone.startsWith('+') && d.length === 10 ? '1' + d : d;
+}
+
 function fmtDate(iso) {
   return new Date(iso).toLocaleString('es-US', { dateStyle: 'medium', timeStyle: 'short' });
 }
@@ -223,7 +230,7 @@ function openPanel(id) {
     ['Lugar de nacimiento', a.birthplace],
     ['Nacionalidad(es)', a.nationalities],
     ['Teléfono', a.phone, 'tel:' + a.phone],
-    ['WhatsApp', 'Abrir chat', 'https://wa.me/' + a.phone.replace(/\D/g, '')],
+    ['WhatsApp', 'Abrir chat', 'https://wa.me/' + waNumber(a.phone)],
     ['Email', a.email, 'mailto:' + a.email],
     ['Estatura', a.height],
     ['Peso', a.weight],
