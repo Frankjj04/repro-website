@@ -2,7 +2,7 @@
 
 import { query, isConfigured } from '../lib/db.js';
 import { validateApplication, decodePhoto, clean } from '../lib/validate.js';
-import { WAIVER_VERSION } from '../js/registro-config.js';
+import { WAIVER_VERSION, CONSENT_VERSION } from '../js/registro-config.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -28,6 +28,9 @@ export default async function handler(req, res) {
   if (photo.code) return res.status(400).json({ error: 'invalid', code: photo.code, message: 'The headshot could not be used.' });
 
   const ip = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || null;
+  const userAgent = clean(req.headers['user-agent'], 300);
+  const lang = req.body.lang === 'en' ? 'en' : 'es';
+  const now = new Date();          // our clock, not the browser's
 
   try {
     const { rows } = await query(
@@ -35,15 +38,17 @@ export default async function handler(req, res) {
          (event, name, dob, birthplace, nationalities, phone, email, height, weight,
           mls_next, strong_leg, position_primary, position_secondary, video_url,
           emergency_name, emergency_phone, emergency_relationship, guardian_name,
-          waiver_version, waiver_accepted_at, ip, photo, photo_type)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)
+          waiver_version, waiver_accepted_at, ip, photo, photo_type,
+          signature_name, consent_share, consent_share_at, consent_version, form_lang, user_agent)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,
+               $24,$25,$26,$27,$28,$29)
        RETURNING id`,
       [a.event, a.name, a.dob, a.birthplace, a.nationalities, a.phone, a.email, a.height, a.weight,
        a.mlsNext, a.strongLeg, a.positionPrimary, a.positionSecondary, a.videoUrl,
        a.emergencyName, a.emergencyPhone, a.emergencyRelationship, a.guardianName,
-       WAIVER_VERSION,
-       new Date(),           // our clock, not the browser's
-       ip, photo.buf, photo.type]
+       WAIVER_VERSION, now, ip, photo.buf, photo.type,
+       a.signatureName, a.consentShare, a.consentShare ? now : null,
+       a.consentShare ? CONSENT_VERSION : '', lang, userAgent]
     );
     return res.status(201).json({ ok: true, id: Number(rows[0].id) });
   } catch (err) {

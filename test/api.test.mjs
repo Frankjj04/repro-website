@@ -58,6 +58,7 @@ const adult = () => ({
   emergencyPhone: '702-555-0100',
   emergencyRelationship: 'Mother',
   waiverAccepted: true,
+  signatureName: 'Jugador De Prueba',
   website: '',
 });
 
@@ -79,6 +80,12 @@ await test('a complete adult application is valid and normalised', () => {
   assert.equal(a.videoUrl, 'https://youtu.be/abc123');
   assert.equal(a.isMinor, false);
   assert.equal(a.guardianName, '');
+  assert.equal(a.consentShare, false);
+});
+
+await test('permission to share only counts as an explicit true', () => {
+  assert.equal(validateApplication({ ...adult(), consentShare: 'true' }).application.consentShare, false);
+  assert.equal(validateApplication({ ...adult(), consentShare: true }).application.consentShare, true);
 });
 
 await test('video link is optional', () => {
@@ -118,21 +125,20 @@ for (const [field, value, code] of [
   ['emergencyPhone', '', 'emergency_phone'],
   ['emergencyRelationship', '', 'emergency_relationship'],
   ['waiverAccepted', 'true', 'waiver'],
+  ['signatureName', '  ', 'signature'],
 ]) {
   await test(`refuses bad ${field} with code ${code}`, () => {
     assert.equal(validateApplication({ ...adult(), [field]: value }).code, code);
   });
 }
 
-await test('a minor needs a parent or guardian name', () => {
-  const minor = { ...adult(), dob: yearsAgo(15) };
-  assert.equal(validateApplication(minor).code, 'guardian_name');
-  const ok = validateApplication({ ...minor, guardianName: 'Ana Pérez' });
+await test('for a minor, the person signing is recorded as the guardian', () => {
+  const ok = validateApplication({ ...adult(), dob: yearsAgo(15), signatureName: 'Ana Pérez' });
   assert.equal(ok.application.isMinor, true);
   assert.equal(ok.application.guardianName, 'Ana Pérez');
 });
 
-await test('an adult\'s stray guardian name is dropped', () => {
+await test('an adult signs for themselves; no guardian is recorded', () => {
   assert.equal(validateApplication({ ...adult(), guardianName: 'X' }).application.guardianName, '');
 });
 
@@ -216,6 +222,55 @@ await test('signed in: a bad status is refused before touching the database', as
   const res = mockRes();
   await applicant({ method: 'PATCH', headers: { cookie }, query: { id: '1' }, body: { status: 'maybe' } }, res);
   assert.equal(res.statusCode, 400);
+});
+
+console.log('sharing');
+
+const { default: shares } = await import('../api/shares.js');
+const { default: share } = await import('../api/share.js');
+const { default: sharePhoto } = await import('../api/share-photo.js');
+const { scoutProfile, isToken } = await import('../lib/scout.js');
+
+await test('managing share links needs the password', async () => {
+  for (const method of ['GET', 'POST', 'DELETE']) {
+    const res = mockRes();
+    await shares({ method, headers: {}, query: {}, body: {} }, res);
+    assert.equal(res.statusCode, 401, method);
+  }
+});
+
+await test('the coach cannot grant permission on a player\'s behalf', async () => {
+  const cookie = auth.issueCookie().split(';')[0];
+  const res = mockRes();
+  await applicant({ method: 'PATCH', headers: { cookie }, query: { id: '1' }, body: { consentShare: true } }, res);
+  assert.equal(res.statusCode, 400);
+});
+
+await test('a malformed share token is refused before touching the database', async () => {
+  for (const t of [undefined, '', 'abc', 'x'.repeat(43) + '!', "' OR 1=1 --"]) {
+    const res = mockRes();
+    await share({ method: 'GET', headers: {}, query: { t } }, res);
+    assert.equal(res.statusCode, 404);
+    const res2 = mockRes();
+    await sharePhoto({ method: 'GET', headers: {}, query: { t, id: '1' } }, res2);
+    assert.equal(res2.statusCode, 404);
+  }
+  assert.ok(isToken('A'.repeat(43)));
+});
+
+await test('a scout profile never carries contact, emergency, guardian, notes or exact birth date', () => {
+  const row = {
+    id: 7, name: 'X', dob: new Date('2008-05-04T00:00:00Z'), birthplace: 'B', nationalities: 'N',
+    height: 'h', weight: 'w', mls_next: true, strong_leg: 'left', position_primary: 'ST',
+    position_secondary: 'LW', video_url: 'https://v.example', status: 'selected', has_photo: true,
+    phone: '+1', email: 'e@x.com', emergency_name: 'E', emergency_phone: '1', guardian_name: 'G', coach_note: 'secret',
+  };
+  const p = scoutProfile(row, 'A'.repeat(43));
+  const json = JSON.stringify(p);
+  for (const leak of ['+1', 'e@x.com', 'secret', '2008-05-04', '"G"', '"E"', 'selected']) assert.ok(!json.includes(leak), leak);
+  assert.equal(p.birthYear, '2008');
+  assert.deepEqual(Object.keys(p).sort(), ['age', 'birthYear', 'birthplace', 'height', 'id', 'mlsNext',
+    'name', 'nationalities', 'photo', 'positionPrimary', 'positionSecondary', 'strongLeg', 'videoUrl', 'weight']);
 });
 
 console.log('sign-up page');

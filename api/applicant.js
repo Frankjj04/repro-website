@@ -1,6 +1,6 @@
 /* Managing one applicant from the admin page. All behind the password.
 
-   PATCH  /api/applicant?id=N   { status } | { note } | { restore: true }
+   PATCH  /api/applicant?id=N   { status } | { note } | { restore: true } | { consentShare: false }
    DELETE /api/applicant?id=N   { confirmName } — archive (recoverable)
 
    Archiving requires the applicant's exact name, checked here on the server,
@@ -54,6 +54,15 @@ async function patch(req, res, id) {
     ({ rows } = await query(
       `UPDATE applicants SET status = $2, updated_at = NOW()
         WHERE id = $1 AND deleted_at IS NULL RETURNING ${COLUMNS}`, [id, b.status]));
+  } else if (b.consentShare === false) {
+    // The coach can take a player's permission away (they asked him to), but
+    // can never grant it on their behalf — there is deliberately no true path.
+    ({ rows } = await query(
+      `UPDATE applicants SET consent_share = false, consent_withdrawn_at = NOW(), updated_at = NOW()
+        WHERE id = $1 AND consent_share = true RETURNING ${COLUMNS}`, [id]));
+    if (!rows.length) {
+      ({ rows } = await query(`SELECT ${COLUMNS} FROM applicants WHERE id = $1`, [id]));
+    }
   } else if (b.note !== undefined) {
     // The note keeps its line breaks, unlike the form fields.
     const note = String(b.note == null ? '' : b.note).slice(0, 2000);

@@ -115,6 +115,31 @@
 .rg-photo-clear { background: none; border: 0; padding: 0; color: var(--gray-light); font-size: 0.8rem; text-decoration: underline; cursor: pointer; }
 .rg-invalid .rg-photo-preview { border-color: #FF4D4F; }
 
+.rg-consent {
+  background: rgba(0,212,255,0.04);
+  border: 1px solid rgba(0,212,255,0.18);
+  border-radius: 6px;
+  padding: 1rem 1.25rem 0.25rem;
+  margin: 0.75rem 0 1rem;
+}
+.rg-consent p, .rg-consent li { font-size: 0.86rem; line-height: 1.65; color: var(--gray-light); }
+.rg-consent p { margin-bottom: 0.75rem; }
+.rg-consent ul { list-style: disc; margin: 0 0 0.75rem 1.1rem; padding: 0; }
+.rg-consent li::marker { color: var(--orange); }
+.rg-consent strong { color: var(--white); }
+.rg-agree span { line-height: 1.45; text-transform: none; letter-spacing: 0; font-weight: 600; }
+.rg-agree input { flex: 0 0 auto; }
+
+.rg-signature {
+  font-family: 'Brush Script MT', 'Segoe Script', cursive !important;
+  font-size: 1.5rem !important;
+  padding: 10px 16px !important;
+}
+.rg-sign-meta { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; }
+.rg-sign-date { flex: 0 0 auto; font-size: 0.78rem; color: var(--gray-light); }
+
+.rg-privacy { font-size: 0.78rem; color: var(--gray); text-align: center; margin: 1rem 0 0; }
+
 .rg-closed { text-align: center; font-size: 1.05rem; }
 
 .rg-done { text-align: center; padding: 3.5rem 2rem; }
@@ -128,6 +153,7 @@
 .rg-done p { max-width: 460px; margin: 0 auto 2rem; }
 
 @media (max-width: 600px) {
+  .rg-sign-meta { flex-direction: column; gap: 0.35rem; }
   .rg-section { padding-left: 16px; padding-right: 16px; }
   .rg-form.contact-form-box { padding: 1.5rem 1.1rem; }
   .rg-waiver { max-height: 260px; }

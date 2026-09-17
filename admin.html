@@ -19,7 +19,10 @@
     <div class="logo-text"><span class="logo-be">BE</span><span class="logo-pro">PRO</span></div>
     <div class="logo-sub">REGISTROS</div>
   </a>
-  <button type="button" class="ad-link" id="adLogout" hidden>Salir</button>
+  <div class="ad-top-actions">
+    <button type="button" class="btn btn-secondary btn-sm" id="adSharesOpen" hidden>Links compartidos</button>
+    <button type="button" class="ad-link" id="adLogout" hidden>Salir</button>
+  </div>
 </header>
 
 <!-- Sign in -->
@@ -47,6 +50,7 @@
       <input type="search" id="adSearch" placeholder="Nombre, email, país, posición…" />
     </div>
     <div class="ad-actions">
+      <button type="button" class="btn btn-primary btn-sm" id="adShareList">Compartir esta lista</button>
       <button type="button" class="btn btn-secondary btn-sm" id="adCsv">Descargar CSV</button>
     </div>
   </div>
@@ -91,6 +95,8 @@
       <button type="button" data-status="not_selected">✕ No seleccionado</button>
     </div>
 
+    <div class="ad-consent" id="adPConsent"></div>
+
     <dl class="ad-facts" id="adPFacts"></dl>
 
     <div class="form-group">
@@ -114,6 +120,62 @@
     <div class="ad-danger" id="adPRestoreBox" hidden>
       <button type="button" class="btn btn-secondary btn-sm" id="adPRestore">Recuperar registro</button>
     </div>
+  </div>
+</div>
+
+<!-- Create a share link -->
+<div class="ad-overlay ad-modal-wrap" id="adShareModal" hidden>
+  <div class="ad-modal" role="dialog" aria-modal="true" aria-labelledby="adSmTitle">
+    <button type="button" class="ad-close" data-close aria-label="Cerrar">×</button>
+    <h2 id="adSmTitle">COMPARTIR CON UN SCOUT</h2>
+
+    <div id="adSmForm">
+      <p class="ad-sm-count" id="adSmCount"></p>
+      <p class="rg-help" id="adSmSkipped" hidden></p>
+      <div class="form-group">
+        <label for="adSmRecipient">¿Para quién es?</label>
+        <input type="text" id="adSmRecipient" maxlength="120" placeholder="Ej. Scout de Club Tijuana — Juan Pérez" />
+      </div>
+      <div class="form-group">
+        <label for="adSmDays">El link funciona por</label>
+        <select id="adSmDays">
+          <option value="7">7 días</option>
+          <option value="30" selected>30 días</option>
+          <option value="90">90 días</option>
+        </select>
+      </div>
+      <div class="ad-sm-what">
+        <strong>Lo que verá:</strong> nombre, foto, categoría, edad, lugar de nacimiento, nacionalidad, estatura, peso, posiciones, pierna hábil, MLS NEXT y video.<br />
+        <strong>Nunca verá:</strong> teléfono, email, contacto de emergencia, padres, fecha exacta de nacimiento, tus notas ni si está invitado.
+      </div>
+      <p class="rg-error" id="adSmError" hidden></p>
+      <button type="button" class="btn btn-primary rg-submit" id="adSmCreate">CREAR LINK</button>
+    </div>
+
+    <div id="adSmDone" hidden>
+      <p class="ad-sm-count" id="adSmDoneText"></p>
+      <div class="ad-danger-row">
+        <input type="text" id="adSmLink" readonly />
+        <button type="button" class="btn btn-primary btn-sm" id="adSmCopy">Copiar</button>
+      </div>
+      <div class="ad-sm-buttons">
+        <a class="btn btn-sm ad-btn-whatsapp" id="adSmWhatsapp" target="_blank" rel="noopener noreferrer">Enviar por WhatsApp</a>
+        <a class="btn btn-secondary btn-sm" id="adSmPreview" target="_blank" rel="noopener noreferrer">Ver como el scout</a>
+      </div>
+      <p class="rg-help" id="adSmExpires"></p>
+    </div>
+  </div>
+</div>
+
+<!-- Every share link -->
+<div class="ad-overlay" id="adShares" hidden>
+  <div class="ad-panel" role="dialog" aria-modal="true" aria-labelledby="adShTitle">
+    <button type="button" class="ad-close" data-close aria-label="Cerrar">×</button>
+    <h2 id="adShTitle">LINKS COMPARTIDOS</h2>
+    <p class="rg-help">Cada link muestra solo a los jugadores que autorizaron compartir. Si desactivas un link, deja de funcionar al instante.</p>
+    <p class="rg-error" id="adShError" hidden></p>
+    <p class="ad-empty" id="adShEmpty" hidden>Todavía no has compartido ningún link.</p>
+    <div class="ad-shares" id="adShList"></div>
   </div>
 </div>
 

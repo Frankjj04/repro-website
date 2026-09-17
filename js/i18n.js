@@ -600,8 +600,6 @@ const BEPRO_TRANSLATIONS = {
     rg_ph_rel: 'e.g. Mother',
     rg_s5: '5 · Waiver',
     rg_waiver_note: '',
-    rg_guardian: 'Parent or legal guardian full name *',
-    rg_guardian_help: 'The player is under 18: a parent or legal guardian accepts the waiver.',
     rg_agree: 'I AGREE',
     rg_submit: 'SUBMIT REGISTRATION',
     rg_sending: 'SENDING…',
@@ -629,7 +627,6 @@ const BEPRO_TRANSLATIONS = {
     rg_err_emergency_name: 'Enter the emergency contact\'s name.',
     rg_err_emergency_phone: 'Enter a valid phone for the emergency contact.',
     rg_err_emergency_relationship: 'Enter the relationship.',
-    rg_err_guardian_name: 'Enter the parent or guardian\'s name.',
     rg_err_waiver: 'You must accept the waiver to register.',
     rg_err_duplicate: 'This email is already registered for this event. If you need to change something, message us on WhatsApp.',
     rg_err_server_error: 'We couldn\'t save your registration. Please try again.',
@@ -648,6 +645,20 @@ const BEPRO_TRANSLATIONS = {
     rg_err_photo_bad: 'We couldn\'t read that photo. Try another one.',
     rg_err_photo_big: 'That photo is too large. Try another one.',
     rg_err_photo_type: 'That file isn\'t a photo.',
+
+    /* ── REGISTRATION: permission to share + signature ── */
+    rg_s6: '6 · Permission to share',
+    rg_consent_html: '<p>Be Pro Soccer connects players with clubs, coaches, scouts, universities and agencies. With your permission, we can share your <strong>player profile</strong> with them:</p><ul><li>Name and photo</li><li>Birth year, age, place of birth and nationality</li><li>Height, weight, positions, strong leg and whether you played MLS NEXT</li><li>Your video</li></ul><p><strong>We never share</strong> your phone, your email, your emergency contact or your parents\' information. If a club or scout is interested in you, they contact us and we contact you.</p><p>We only share profiles through private links that expire. You can withdraw this permission at any time by messaging us on WhatsApp at +1 702-831-9474; from then on your profile is no longer shown.</p>',
+    rg_consent_agree: 'I authorize Be Pro Soccer to share the player profile described above with clubs, coaches, scouts and agencies.',
+    rg_consent_optional: 'Optional. If you don\'t, you can still register, but only Be Pro Soccer will see your information.',
+    rg_s7: '7 · Signature',
+    rg_sign: 'Signature: type your full name *',
+    rg_sign_minor: 'Parent or legal guardian signature: full name *',
+    rg_sign_help: 'Typing your name signs the waiver and, if you checked it, the permission to share.',
+    rg_sign_help_minor: 'The player is under 18, so a parent or legal guardian signs. Typing their name signs the waiver and, if checked, the permission to share.',
+    rg_sign_date: 'Date',
+    rg_err_signature: 'Type the full name of the person signing.',
+    rg_privacy: '🔒 Your information is seen only by Be Pro Soccer and, if you allow it, the clubs and scouts we share your profile with.',
   },
 
   /* ═══════════════════════════════════════
@@ -1242,8 +1253,6 @@ const BEPRO_TRANSLATIONS = {
     rg_ph_rel: 'Ej. Mamá',
     rg_s5: '5 · Descargo de responsabilidad',
     rg_waiver_note: 'El descargo está en inglés.',
-    rg_guardian: 'Nombre del padre, madre o tutor legal *',
-    rg_guardian_help: 'El jugador es menor de 18 años: un padre, madre o tutor legal acepta el descargo.',
     rg_agree: 'ACEPTO / I AGREE',
     rg_submit: 'ENVIAR REGISTRO',
     rg_sending: 'ENVIANDO…',
@@ -1271,7 +1280,6 @@ const BEPRO_TRANSLATIONS = {
     rg_err_emergency_name: 'Escribe el nombre del contacto de emergencia.',
     rg_err_emergency_phone: 'Escribe un teléfono válido para el contacto de emergencia.',
     rg_err_emergency_relationship: 'Escribe el parentesco.',
-    rg_err_guardian_name: 'Escribe el nombre del padre, madre o tutor.',
     rg_err_waiver: 'Tienes que aceptar el descargo para registrarte.',
     rg_err_duplicate: 'Este email ya está registrado para este evento. Si necesitas cambiar algo, escríbenos por WhatsApp.',
     rg_err_server_error: 'No pudimos guardar tu registro. Inténtalo otra vez.',
@@ -1290,6 +1298,20 @@ const BEPRO_TRANSLATIONS = {
     rg_err_photo_bad: 'No pudimos leer esa foto. Prueba con otra.',
     rg_err_photo_big: 'Esa foto pesa demasiado. Prueba con otra.',
     rg_err_photo_type: 'Ese archivo no es una foto.',
+
+    /* ── REGISTRATION: permission to share + signature ── */
+    rg_s6: '6 · Autorización para compartir',
+    rg_consent_html: '<p>Be Pro Soccer conecta jugadores con clubes, entrenadores, scouts, universidades y agencias. Si lo autorizas, podemos compartir con ellos tu <strong>perfil de jugador</strong>:</p><ul><li>Nombre y foto</li><li>Año de nacimiento, edad, lugar de nacimiento y nacionalidad</li><li>Estatura, peso, posiciones, pierna hábil y si jugaste MLS NEXT</li><li>Tu video</li></ul><p><strong>Nunca compartimos</strong> tu teléfono, tu email, tu contacto de emergencia ni los datos de tus padres. Si un club o scout se interesa en ti, nos contacta a nosotros y nosotros te contactamos a ti.</p><p>Compartimos los perfiles solo con links privados que vencen. Puedes retirar esta autorización cuando quieras escribiéndonos por WhatsApp al +1 702-831-9474; desde ese momento tu perfil deja de mostrarse.</p>',
+    rg_consent_agree: 'Autorizo a Be Pro Soccer a compartir el perfil de jugador descrito arriba con clubes, entrenadores, scouts y agencias.',
+    rg_consent_optional: 'Opcional. Si no lo autorizas, igual puedes registrarte, pero solo Be Pro Soccer verá tu información.',
+    rg_s7: '7 · Firma',
+    rg_sign: 'Firma: escribe tu nombre completo *',
+    rg_sign_minor: 'Firma del padre, madre o tutor legal: nombre completo *',
+    rg_sign_help: 'Al escribir tu nombre firmas el descargo y, si la marcaste, la autorización para compartir.',
+    rg_sign_help_minor: 'El jugador es menor de 18 años, así que firma su padre, madre o tutor legal. Al escribir su nombre firma el descargo y, si la marcó, la autorización para compartir.',
+    rg_sign_date: 'Fecha',
+    rg_err_signature: 'Escribe el nombre completo de quien firma.',
+    rg_privacy: '🔒 Tu información la ve solo Be Pro Soccer y, si lo autorizas, los clubes y scouts con los que compartimos tu perfil.',
   }
 };
 

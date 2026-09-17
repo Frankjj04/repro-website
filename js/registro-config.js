@@ -34,4 +34,11 @@ export const STRONG_LEG = ['right', 'left', 'both'];
    applicant's record shows which version they agreed to. */
 export const WAIVER_VERSION = '2026-09';
 
+/* Same for the permission to share a player's profile with clubs and scouts
+   (the rg_consent_text key in js/i18n.js, in both languages). */
+export const CONSENT_VERSION = '2026-09';
+
+/* How long a link the coach shares with a scout can stay open, in days. */
+export const SHARE_LINK_DAYS = [7, 30, 90];
+
 export const MINOR_AGE = 18;

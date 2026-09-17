@@ -34,6 +34,7 @@ export const COLUMNS = `id, event, name, dob, birthplace, nationalities, phone, 
   mls_next, strong_leg, position_primary, position_secondary, video_url,
   emergency_name, emergency_phone, emergency_relationship, guardian_name,
   waiver_version, waiver_accepted_at, status, coach_note, created_at, deleted_at,
+  signature_name, consent_share, consent_share_at, consent_version, consent_withdrawn_at, form_lang,
   (photo IS NOT NULL) AS has_photo`;
 
 export function toJson(r) {
@@ -60,6 +61,12 @@ export function toJson(r) {
     waiverVersion: r.waiver_version,
     waiverAcceptedAt: r.waiver_accepted_at,
     photo: r.has_photo ? '/api/photo?id=' + r.id : '',
+    signatureName: r.signature_name,
+    consentShare: r.consent_share,
+    consentShareAt: r.consent_share_at,
+    consentVersion: r.consent_version,
+    consentWithdrawnAt: r.consent_withdrawn_at,
+    formLang: r.form_lang,
     status: r.status,
     note: r.coach_note,
     createdAt: r.created_at,

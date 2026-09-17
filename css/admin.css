@@ -9,6 +9,7 @@
   border-bottom: 1px solid rgba(255,255,255,0.07);
   background: var(--navy-deep);
 }
+.ad-top-actions { display: flex; align-items: center; gap: 1rem; }
 .ad-link {
   background: none; border: 0; padding: 0; cursor: pointer;
   color: var(--gray-light); font-size: 0.85rem; text-decoration: underline;
@@ -25,7 +26,7 @@
 .ad-bar .form-group { margin-bottom: 1rem; }
 .ad-event { flex: 1 1 220px; }
 .ad-search { flex: 2 1 260px; }
-.ad-actions { margin-bottom: 1rem; }
+.ad-actions { margin-bottom: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
 
 .ad-tabs { display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.25rem; margin-bottom: 1rem; }
 .ad-tabs button {
@@ -204,4 +205,57 @@ a.ad-chip-video:hover { background: rgba(0,212,255,0.1); }
   .ad-facts { grid-template-columns: 1fr; gap: 0.1rem; }
   .ad-facts dd { margin-bottom: 0.6rem; }
   .ad-tabs .ad-tab-archived { margin-left: 0; }
+}
+
+/* permission to share */
+.ad-chip-share { color: #7DD3FC; border-color: rgba(125,211,252,0.3); }
+.ad-chip-private { color: var(--gray); border-color: rgba(255,255,255,0.1); }
+
+.ad-consent { border-radius: 8px; padding: 0.9rem 1rem; margin-bottom: 1.5rem; border: 1px solid; }
+.ad-consent-yes { border-color: rgba(125,211,252,0.35); background: rgba(125,211,252,0.06); }
+.ad-consent-no { border-color: rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); }
+.ad-consent-title { font-weight: 700; font-size: 0.92rem; color: var(--white); }
+.ad-consent-yes .ad-consent-title { color: #7DD3FC; }
+.ad-consent-sub { font-size: 0.8rem; color: var(--gray-light); margin-top: 3px; }
+.ad-consent-actions { display: flex; align-items: center; gap: 1rem; margin-top: 0.75rem; flex-wrap: wrap; }
+
+/* share modal */
+.ad-modal-wrap { justify-content: center; align-items: center; padding: 16px; z-index: 2100; }
+.ad-modal {
+  position: relative; width: 100%; max-width: 520px; max-height: 100%; overflow-y: auto;
+  background: var(--navy-light); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-lg); padding: 2rem clamp(16px, 4vw, 2rem);
+}
+.ad-modal h2 { margin: 0 2.5rem 1rem 0; }
+.ad-sm-count { color: var(--white); font-weight: 600; margin-bottom: 0.75rem; }
+.ad-sm-what {
+  font-size: 0.8rem; line-height: 1.6; color: var(--gray-light);
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px; padding: 0.75rem 1rem; margin-bottom: 1.25rem;
+}
+.ad-sm-what strong { color: var(--white); }
+.ad-sm-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 1rem 0 0.75rem; }
+.ad-btn-whatsapp { background: #25D366; color: #fff; border: 0; }
+#adSmLink { font-size: 0.8rem; }
+
+/* shares list */
+#adShares { z-index: 2050; }
+#adShares h2 { margin-right: 2.5rem; margin-bottom: 0.5rem; }
+.ad-shares { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 1.25rem; }
+.ad-share {
+  background: var(--navy-card); border: 1px solid rgba(255,255,255,0.08);
+  border-left: 3px solid #7DD3FC; border-radius: var(--radius); padding: 0.9rem 1rem;
+}
+.ad-share-expired, .ad-share-off { border-left-color: rgba(255,255,255,0.15); opacity: 0.7; }
+.ad-share-head { display: flex; justify-content: space-between; gap: 0.75rem; align-items: flex-start; }
+.ad-share-name { font-weight: 700; color: var(--white); overflow-wrap: anywhere; }
+.ad-share-state { flex: 0 0 auto; }
+.ad-share-live .ad-share-state { color: #7DD3FC; border-color: rgba(125,211,252,0.3); }
+.ad-share-expired .ad-share-state, .ad-share-off .ad-share-state { color: var(--gray); border-color: rgba(255,255,255,0.12); }
+.ad-share-sub { font-size: 0.8rem; color: var(--gray-light); margin-top: 3px; }
+.ad-share-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.75rem; }
+
+@media (max-width: 600px) {
+  .ad-top-actions { gap: 0.75rem; }
+  .ad-top-actions .btn { padding: 8px 12px; font-size: 0.72rem; }
 }

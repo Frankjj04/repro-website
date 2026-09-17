@@ -32,8 +32,8 @@ export const REFUSALS = {
   emergency_name: ['emergency_name', 'rg_err_emergency_name'],
   emergency_phone: ['emergency_phone', 'rg_err_emergency_phone'],
   emergency_relationship: ['emergency_relationship', 'rg_err_emergency_relationship'],
-  guardian_name: ['guardian_name', 'rg_err_guardian_name'],
   waiver: ['waiver', 'rg_err_waiver'],
+  signature: ['signature', 'rg_err_signature'],
   duplicate: ['email', 'rg_err_duplicate'],
   server_error: [null, 'rg_err_server_error'],
   not_configured: [null, 'rg_err_not_configured'],
@@ -75,7 +75,7 @@ function init() {
     });
   }
 
-  /* ---------- under 18: a parent or guardian accepts the waiver ---------- */
+  /* ---------- signature: under 18, a parent or guardian signs ---------- */
   function isMinor() {
     const v = $('rgDob').value;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return false;
@@ -86,8 +86,20 @@ function init() {
         (now.getMonth() === d.getMonth() && now.getDate() < d.getDate())) age--;
     return age >= 0 && age < MINOR_AGE;
   }
+  // Switching the data-i18n key (not just the text) keeps the right wording
+  // when i18n.js re-translates the page on a language change.
+  function setKey(el, key) {
+    el.dataset.i18n = key;
+    el.textContent = t(key);
+  }
   function updateGuardian() {
-    $('rgGuardian').hidden = !isMinor();
+    const minor = isMinor();
+    setKey($('rgSignLabel'), minor ? 'rg_sign_minor' : 'rg_sign');
+    setKey($('rgSignHelp'), minor ? 'rg_sign_help_minor' : 'rg_sign_help');
+  }
+  function updateDate() {
+    $('rgSignDate').textContent = new Date().toLocaleDateString(lang() === 'en' ? 'en-US' : 'es-MX',
+      { day: 'numeric', month: 'long', year: 'numeric' });
   }
 
   /* ---------- headshot ----------
@@ -188,8 +200,10 @@ function init() {
       emergencyName: v('emergencyName'),
       emergencyPhone: v('emergencyPhone'),
       emergencyRelationship: v('emergencyRelationship'),
-      guardianName: isMinor() ? v('guardianName') : '',
       waiverAccepted: $('rgWaiver').checked,
+      consentShare: $('rgConsent').checked,
+      signatureName: v('signatureName'),
+      lang: lang(),
       photo: photoUrl,
       website: v('website'),
     };
@@ -213,8 +227,8 @@ function init() {
     if (!b.emergencyName) return 'emergency_name';
     if (digits(b.emergencyPhone) < 7 || digits(b.emergencyPhone) > 15) return 'emergency_phone';
     if (!b.emergencyRelationship) return 'emergency_relationship';
-    if (isMinor() && !b.guardianName) return 'guardian_name';
     if (!b.waiverAccepted) return 'waiver';
+    if (!b.signatureName) return 'signature';
     return null;
   }
 
@@ -264,10 +278,12 @@ function init() {
 
   $('rgDob').addEventListener('change', updateGuardian);
   $('rgDob').addEventListener('input', updateGuardian);
-  form.addEventListener('input', (e) => {
-    const g = e.target.closest('.rg-invalid');
-    if (g) g.classList.remove('rg-invalid');
-  });
+  // Fixing the highlighted field clears its message straight away.
+  const clearIfFixed = (e) => {
+    if (e.target.closest('.rg-invalid')) clearError();
+  };
+  form.addEventListener('input', clearIfFixed);
+  form.addEventListener('change', clearIfFixed);
 
   // i18n.js switches the language on the same click, but its listener is added
   // after this one, so wait for it before redrawing.
@@ -278,10 +294,12 @@ function init() {
       if (lastError) $('rgError').textContent = t(lastError[1]);
       if (!sending) $('rgSubmit').textContent = t('rg_submit');
       photoLabels();
+      updateDate();
     });
   });
 
   renderOptions();
   updateGuardian();
+  updateDate();
   resetPhoto();
 }

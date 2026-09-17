@@ -223,12 +223,6 @@
           <p><strong>By signing below, I acknowledge that I have read, understood, and voluntarily agree to this waiver and release of liability.</strong></p>
         </div>
 
-        <div class="form-group rg-guardian" id="rgGuardian" data-field="guardian_name" hidden>
-          <label for="rgGuardianName" data-i18n="rg_guardian">Nombre del padre, madre o tutor legal *</label>
-          <input type="text" id="rgGuardianName" name="guardianName" maxlength="100" />
-          <small class="rg-help" data-i18n="rg_guardian_help">El jugador es menor de 18 años: un padre, madre o tutor legal acepta el descargo.</small>
-        </div>
-
         <div class="form-group" data-field="waiver">
           <label class="rg-agree">
             <input type="checkbox" id="rgWaiver" name="waiverAccepted" />
@@ -237,9 +231,36 @@
         </div>
       </fieldset>
 
+      <fieldset class="rg-block">
+        <legend data-i18n="rg_s6">6 · Autorización para compartir</legend>
+        <div class="rg-consent" data-i18n-html="rg_consent_html">
+          <p>Be Pro Soccer conecta jugadores con clubes, entrenadores, scouts, universidades y agencias.</p>
+        </div>
+        <div class="form-group" data-field="consent">
+          <label class="rg-agree">
+            <input type="checkbox" id="rgConsent" name="consentShare" />
+            <span data-i18n="rg_consent_agree">Autorizo a Be Pro Soccer a compartir el perfil de jugador descrito arriba con clubes, entrenadores, scouts y agencias.</span>
+          </label>
+          <small class="rg-help" data-i18n="rg_consent_optional">Opcional. Si no lo autorizas, igual puedes registrarte, pero solo Be Pro Soccer verá tu información.</small>
+        </div>
+      </fieldset>
+
+      <fieldset class="rg-block">
+        <legend data-i18n="rg_s7">7 · Firma</legend>
+        <div class="form-group" data-field="signature">
+          <label for="rgSignature" id="rgSignLabel" data-i18n="rg_sign">Firma: escribe tu nombre completo *</label>
+          <input type="text" id="rgSignature" name="signatureName" class="rg-signature" maxlength="100" autocomplete="off" required />
+          <div class="rg-sign-meta">
+            <small class="rg-help" id="rgSignHelp" data-i18n="rg_sign_help">Al escribir tu nombre firmas el descargo y, si la marcaste, la autorización para compartir.</small>
+            <small class="rg-sign-date"><span data-i18n="rg_sign_date">Fecha</span>: <span id="rgSignDate"></span></small>
+          </div>
+        </div>
+      </fieldset>
+
       <p class="rg-error" id="rgError" role="alert" hidden></p>
 
       <button type="submit" class="btn btn-primary rg-submit" id="rgSubmit" data-i18n="rg_submit">ENVIAR REGISTRO</button>
+      <p class="rg-privacy" data-i18n="rg_privacy">🔒 Tu información la ve solo Be Pro Soccer y, si lo autorizas, los clubes y scouts con los que compartimos tu perfil.</p>
     </form>
 
     <div class="contact-form-box rg-done" id="rgDone" hidden>
