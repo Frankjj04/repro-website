@@ -110,7 +110,6 @@ for (const [field, value, code] of [
   ['name', '', 'name'],
   ['dob', '', 'dob'],
   ['dob', '1800-01-01', 'dob_bad'],
-  ['dob', '2013-01-01', 'event_age'],
   ['birthplace', '', 'birthplace'],
   ['nationalities', ' ', 'nationalities'],
   ['phone', '12', 'phone'],
@@ -133,17 +132,20 @@ for (const [field, value, code] of [
   });
 }
 
-await test('each event only takes its own birth years', () => {
-  // 2010 belongs to Nov 17-18 (2008-2011), not to Nov 10-11 (2003-2008).
-  assert.equal(validateApplication({ ...adult(), dob: '2010-06-01' }).code, 'event_age');
-  assert.equal(validateApplication({ ...adult(), event: 'nov-17-18', dob: '2010-06-01' }).error, undefined);
-  assert.equal(validateApplication({ ...adult(), event: 'nov-24-25', dob: '2013-05-05', signatureName: 'Ana Pérez' }).error, undefined);
-  // The coach's ranges overlap at 2008 on purpose: that year fits two dates.
-  assert.equal(validateApplication({ ...adult(), dob: '2008-09-09', signatureName: 'A B' }).error, undefined);
-  assert.equal(validateApplication({ ...adult(), event: 'nov-17-18', dob: '2008-09-09', signatureName: 'A B' }).error, undefined);
-  // Nov 10-11 starts at 2003, so 2003 is in and 2002 is out.
-  assert.equal(validateApplication({ ...adult(), dob: '2003-12-31' }).error, undefined);
-  assert.equal(validateApplication({ ...adult(), dob: '2002-12-31' }).code, 'event_age');
+await test('the first date is open to every age', () => {
+  // The coach wants Nov 10-11 to take anyone who shows up.
+  for (const dob of ['1998-01-01', '2003-12-31', '2008-06-06', '2013-04-04'])
+    assert.equal(validateApplication({ ...adult(), dob, signatureName: 'A B' }).error, undefined, dob);
+});
+
+await test('the other dates take younger players but not older ones', () => {
+  // Nov 17-18 is 2008-2011.
+  assert.equal(validateApplication({ ...adult(), event: 'nov-17-18', dob: '2007-12-31', signatureName: 'A B' }).code, 'event_age');
+  assert.equal(validateApplication({ ...adult(), event: 'nov-17-18', dob: '2008-01-01', signatureName: 'A B' }).error, undefined);
+  assert.equal(validateApplication({ ...adult(), event: 'nov-17-18', dob: '2013-01-01', signatureName: 'A B' }).error, undefined);
+  // Nov 24-25 is 2012-2014.
+  assert.equal(validateApplication({ ...adult(), event: 'nov-24-25', dob: '2011-12-31', signatureName: 'A B' }).code, 'event_age');
+  assert.equal(validateApplication({ ...adult(), event: 'nov-24-25', dob: '2014-05-05', signatureName: 'A B' }).error, undefined);
 });
 
 await test('for a minor, the person signing is recorded as the guardian', () => {

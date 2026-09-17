@@ -81,7 +81,8 @@ function init() {
 
       const years = document.createElement('div');
       years.className = 'rg-event-years';
-      years.textContent = t('rg_ev_born') + ' ' + e.years[0] + '-' + e.years[1];
+      years.textContent = t('rg_ev_born') + ' ' + e.years[0] + '-' + e.years[1] +
+        ' · ' + t(e.rule === 'any' ? 'rg_ev_any' : 'rg_ev_younger');
 
       const pick = document.createElement('span');
       pick.className = 'rg-event-pick';
@@ -227,13 +228,12 @@ function init() {
     }
   }
 
-  /* The wrong event for their birth year: say which one is theirs. */
+  /* Too old for that date: say so, and point at the date that takes everyone. */
   function eventAgeMessage() {
     const chosen = openEvents.find((e) => e.id === $('rgEvent').value);
-    const mine = eventFor($('rgDob').value);
-    let msg = t('rg_err_event_age');
-    if (chosen) msg = msg.replace('{years}', chosen.years[0] + '-' + chosen.years[1]);
-    if (mine && mine !== chosen) msg += ' ' + t('rg_err_event_yours').replace('{event}', mine.label[lang()]);
+    const open = openEvents.find((e) => e.rule === 'any');
+    let msg = t('rg_err_event_age').replace('{year}', chosen ? chosen.years[0] : '');
+    if (open && open !== chosen) msg += ' ' + t('rg_err_event_yours').replace('{event}', open.label[lang()]);
     return msg;
   }
 
@@ -273,10 +273,12 @@ function init() {
     const digits = (s) => s.replace(/\D/g, '').length;
     if (!b.name) return 'name';
     if (!b.dob) return 'dob';
-    // Only the chosen event's own range matters — 2008 fits two of them.
+    // Younger players may always play up; only the limited dates turn away
+    // players who are older than that date's range.
     const chosen = openEvents.find((e) => e.id === b.event);
+    if (!chosen) return 'event_age';
     const born = Number(String(b.dob).slice(0, 4));
-    if (!chosen || born < chosen.years[0] || born > chosen.years[1]) return 'event_age';
+    if (chosen.rule === 'no_older' && born < chosen.years[0]) return 'event_age';
     if (!b.birthplace) return 'birthplace';
     if (!b.nationalities) return 'nationalities';
     if (digits(b.phone) < 7 || digits(b.phone) > 15) return 'phone';

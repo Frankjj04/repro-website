@@ -664,9 +664,11 @@ const BEPRO_TRANSLATIONS = {
     rg_events_title: 'NOVEMBER SCOUTING <span style="color:var(--orange);">MADNESS</span>',
     rg_events_sub: 'Three dates, three age groups. Pick the one for your birth year.',
     rg_ev_born: 'Born',
+    rg_ev_any: 'open to all ages',
+    rg_ev_younger: 'or younger',
     rg_ev_pick: 'Pick this date',
-    rg_err_event_age: 'That date is for players born in {years}.',
-    rg_err_event_yours: 'Yours is: {event}.',
+    rg_err_event_age: 'That date is for players born in {year} or later.',
+    rg_err_event_yours: 'If you are older, sign up for: {event}.',
   },
 
   /* ═══════════════════════════════════════
@@ -1325,9 +1327,11 @@ const BEPRO_TRANSLATIONS = {
     rg_events_title: 'NOVEMBER SCOUTING <span style="color:var(--orange);">MADNESS</span>',
     rg_events_sub: 'Tres fechas, tres grupos de edad. Elige la que te toca por tu año de nacimiento.',
     rg_ev_born: 'Nacidos',
+    rg_ev_any: 'abierto a todas las edades',
+    rg_ev_younger: 'o menores',
     rg_ev_pick: 'Elegir esta fecha',
-    rg_err_event_age: 'Esa fecha es para jugadores nacidos en {years}.',
-    rg_err_event_yours: 'La tuya es: {event}.',
+    rg_err_event_age: 'Esa fecha es para jugadores nacidos en {year} o después.',
+    rg_err_event_yours: 'Si eres mayor, regístrate en: {event}.',
   }
 };
 
