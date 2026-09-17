@@ -1,5 +1,8 @@
 User-agent: *
 Allow: /
+Disallow: /merch.html
+Disallow: /noticias.html
+Disallow: /training.html
 Disallow: /admin.html
 Disallow: /scout.html
 Sitemap: https://bepro.futbol/sitemap.xml

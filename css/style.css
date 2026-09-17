@@ -1872,3 +1872,6 @@ footer {
   .photo-grid { grid-template-columns: 1fr; }
   .ph-wide { grid-column: span 1; }
 }
+
+/* A pillar with no photo beside it should not leave half the row empty. */
+.pillar-full-body.pillar-solo { grid-template-columns: 1fr; max-width: 860px; }
