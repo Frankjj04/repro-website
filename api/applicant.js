@@ -9,7 +9,7 @@
 import { query, isConfigured } from '../lib/db.js';
 import { requireAdmin } from '../lib/auth.js';
 import { clean } from '../lib/validate.js';
-import { toJson } from './applicants.js';
+import { toJson, COLUMNS } from './applicants.js';
 
 const STATUSES = ['pending', 'selected', 'not_selected'];
 
@@ -40,7 +40,7 @@ async function patch(req, res, id) {
     try {
       ({ rows } = await query(
         `UPDATE applicants SET deleted_at = NULL, updated_at = NOW()
-          WHERE id = $1 AND deleted_at IS NOT NULL RETURNING *`, [id]));
+          WHERE id = $1 AND deleted_at IS NOT NULL RETURNING ${COLUMNS}`, [id]));
     } catch (err) {
       // Restoring would collide with a newer application from the same email.
       if (err && err.code === '23505') {
@@ -53,13 +53,13 @@ async function patch(req, res, id) {
     if (!STATUSES.includes(b.status)) return res.status(400).json({ error: 'bad_status' });
     ({ rows } = await query(
       `UPDATE applicants SET status = $2, updated_at = NOW()
-        WHERE id = $1 AND deleted_at IS NULL RETURNING *`, [id, b.status]));
+        WHERE id = $1 AND deleted_at IS NULL RETURNING ${COLUMNS}`, [id, b.status]));
   } else if (b.note !== undefined) {
     // The note keeps its line breaks, unlike the form fields.
     const note = String(b.note == null ? '' : b.note).slice(0, 2000);
     ({ rows } = await query(
       `UPDATE applicants SET coach_note = $2, updated_at = NOW()
-        WHERE id = $1 AND deleted_at IS NULL RETURNING *`, [id, note]));
+        WHERE id = $1 AND deleted_at IS NULL RETURNING ${COLUMNS}`, [id, note]));
   } else {
     return res.status(400).json({ error: 'nothing_to_change' });
   }

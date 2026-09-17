@@ -7,7 +7,7 @@ import { EVENTS, POSITIONS } from './registro-config.js';
 
 const $ = (id) => document.getElementById(id);
 
-const STATUS_LABEL = { pending: 'Por revisar', selected: 'Seleccionado', not_selected: 'No seleccionado' };
+const STATUS_LABEL = { pending: 'Por revisar', selected: 'Invitado', not_selected: 'No seleccionado' };
 const LEG_LABEL = { right: 'Derecha', left: 'Izquierda', both: 'Ambas' };
 const POS = Object.fromEntries(POSITIONS.map((p) => [p.id, p.es]));
 const eventLabel = (id) => (EVENTS.find((e) => e.id === id) || { label: { es: id } }).label.es;
@@ -15,6 +15,7 @@ const eventLabel = (id) => (EVENTS.find((e) => e.id === id) || { label: { es: id
 let active = [];        // applicants not archived
 let archived = [];
 let tab = 'all';
+let year = '';          // birth year filter; '' = every year
 let openId = null;
 
 /* ---------- api ---------- */
@@ -116,11 +117,17 @@ function matches(a, q) {
   return q.split(/\s+/).every((w) => hay.includes(w));
 }
 
+const birthYear = (a) => a.dob.slice(0, 4);
+const inYear = (list) => (year ? list.filter((a) => birthYear(a) === year) : list);
+
+/* What is on screen: event → birth year → status tab → search. Sorted oldest
+   birth year first, then by name, so each age group reads as one block. */
 function current() {
   const q = $('adSearch').value.trim().toLowerCase();
-  const base = tab === 'archived' ? inEvent(archived)
-    : inEvent(active).filter((a) => tab === 'all' || a.status === tab);
-  return base.filter((a) => matches(a, q));
+  const base = tab === 'archived' ? inYear(inEvent(archived))
+    : inYear(inEvent(active)).filter((a) => tab === 'all' || a.status === tab);
+  return base.filter((a) => matches(a, q))
+    .sort((x, y) => birthYear(x).localeCompare(birthYear(y)) || x.name.localeCompare(y.name, 'es'));
 }
 
 function el(tag, cls, text) {
@@ -139,14 +146,49 @@ function videoLink(url, cls) {
   return a;
 }
 
+function photoThumb(a, cls) {
+  const box = el('div', cls);
+  if (a.photo) {
+    const img = el('img');
+    img.src = a.photo;
+    img.alt = '';
+    img.loading = 'lazy';
+    box.append(img);
+  } else {
+    box.classList.add('ad-nophoto');
+    box.textContent = a.name.trim().charAt(0).toUpperCase();
+  }
+  return box;
+}
+
+function renderYears() {
+  // Years come from the whole event (active + archived), so a group does not
+  // vanish from the bar just because a tab or search emptied it.
+  const evAll = inEvent(tab === 'archived' ? archived : active);
+  const counts = {};
+  evAll.forEach((a) => { counts[birthYear(a)] = (counts[birthYear(a)] || 0) + 1; });
+  const years = Object.keys(counts).sort();
+  if (year && !counts[year]) year = '';
+
+  const chip = (value, label, n) => {
+    const b = el('button', 'ad-year' + (year === value ? ' active' : ''));
+    b.type = 'button';
+    b.dataset.year = value;
+    b.append(document.createTextNode(label + ' '), el('span', null, String(n)));
+    return b;
+  };
+  $('adYears').replaceChildren(chip('', 'Todos', evAll.length), ...years.map((y) => chip(y, y, counts[y])));
+}
+
 function render() {
-  const evList = inEvent(active);
+  renderYears();
+  const evList = inYear(inEvent(active));
   const counts = {
     all: evList.length,
     pending: evList.filter((a) => a.status === 'pending').length,
     selected: evList.filter((a) => a.status === 'selected').length,
     not_selected: evList.filter((a) => a.status === 'not_selected').length,
-    archived: inEvent(archived).length,
+    archived: inYear(inEvent(archived)).length,
   };
   $('adTabs').querySelectorAll('button').forEach((b) => {
     b.classList.toggle('active', b.dataset.status === tab);
@@ -157,11 +199,23 @@ function render() {
   const rows = current();
   $('adEmpty').hidden = rows.length > 0;
 
-  $('adList').replaceChildren(...rows.map((a) => {
-    const row = el('button', 'ad-row');
-    row.type = 'button';
+  const out = [];
+  let lastYear = null;
+  rows.forEach((a) => {
+    const y = birthYear(a);
+    if (y !== lastYear) {
+      const n = rows.filter((r) => birthYear(r) === y).length;
+      const head = el('h3', 'ad-group');
+      head.append(document.createTextNode('Categoría ' + y + ' '), el('span', null, n + (n === 1 ? ' jugador' : ' jugadores')));
+      out.push(head);
+      lastYear = y;
+    }
+
+    const row = el('div', 'ad-row ad-row-' + a.status);
     row.dataset.id = a.id;
 
+    const open = el('button', 'ad-row-open');
+    open.type = 'button';
     const main = el('div', 'ad-row-main');
     main.append(
       el('div', 'ad-row-name', a.name),
@@ -169,19 +223,60 @@ function render() {
         [age(a.dob) + ' años', a.positionPrimary + ' / ' + a.positionSecondary,
          a.nationalities, a.mlsNext ? 'MLS NEXT' : null].filter(Boolean).join(' · ')),
     );
+    open.append(photoThumb(a, 'ad-thumb'), main);
 
     const side = el('div', 'ad-row-side');
-    side.append(a.videoUrl ? el('span', 'ad-chip ad-chip-video', '▶ Video') : el('span', 'ad-chip ad-chip-muted', 'Sin video'));
-    if (tab !== 'archived') side.append(el('span', 'ad-chip ad-st-' + a.status, STATUS_LABEL[a.status]));
+    const video = videoLink(a.videoUrl, 'ad-chip ad-chip-video');
+    if (video) video.textContent = '▶ Video';
+    side.append(video || el('span', 'ad-chip ad-chip-muted', 'Sin video'));
 
-    row.append(main, side);
-    return row;
-  }));
+    if (tab !== 'archived') {
+      const quick = el('div', 'ad-quick');
+      [['selected', '✓ Invitado'], ['not_selected', '✕ No']].forEach(([st, label]) => {
+        const b = el('button', 'ad-quick-' + st + (a.status === st ? ' active' : ''), label);
+        b.type = 'button';
+        b.dataset.status = st;
+        b.title = a.status === st ? 'Quitar (volver a Por revisar)' : STATUS_LABEL[st];
+        quick.append(b);
+      });
+      side.append(quick);
+    }
+
+    row.append(open, side);
+    out.push(row);
+  });
+  $('adList').replaceChildren(...out);
 }
 
-$('adList').addEventListener('click', (e) => {
+$('adList').addEventListener('click', async (e) => {
   const row = e.target.closest('.ad-row');
-  if (row) openPanel(Number(row.dataset.id));
+  if (!row) return;
+  const id = Number(row.dataset.id);
+
+  // Quick invite / not selected, straight from the list. Tapping the active
+  // one again puts the player back to "Por revisar".
+  const quick = e.target.closest('.ad-quick button');
+  if (quick) {
+    const a = active.find((x) => x.id === id);
+    const status = a && a.status === quick.dataset.status ? 'pending' : quick.dataset.status;
+    quick.disabled = true;
+    flash($('adError'), '');
+    try {
+      replaceActive(await api('PATCH', '/api/applicant?id=' + id, { status }));
+      render();
+    } catch (err) {
+      quick.disabled = false;
+      flash($('adError'), err.message);
+    }
+    return;
+  }
+  if (e.target.closest('.ad-row-open')) openPanel(id);
+});
+$('adYears').addEventListener('click', (e) => {
+  const b = e.target.closest('.ad-year');
+  if (!b) return;
+  year = b.dataset.year;
+  render();
 });
 $('adTabs').addEventListener('click', (e) => {
   const b = e.target.closest('button');
@@ -216,7 +311,9 @@ function openPanel(id) {
 
   $('adPEvent').textContent = eventLabel(a.event);
   $('adPName').textContent = a.name;
-  $('adPSub').textContent = [age(a.dob) + ' años', POS[a.positionPrimary] || a.positionPrimary].join(' · ');
+  $('adPPhoto').replaceWith(photoThumb(a, 'ad-p-photo'));
+  $('adOverlay').querySelector('.ad-p-photo').id = 'adPPhoto';
+  $('adPSub').textContent = ['Categoría ' + birthYear(a), age(a.dob) + ' años', POS[a.positionPrimary] || a.positionPrimary].join(' · ');
 
   const v = videoLink(a.videoUrl, 'btn btn-primary ad-video');
   $('adPVideoWrap').replaceChildren(v || el('p', 'ad-novideo', 'No mandó video.'));
@@ -348,6 +445,7 @@ $('adCsv').addEventListener('click', () => {
   const rows = current();
   const cols = [
     ['Evento', (a) => eventLabel(a.event)],
+    ['Año de nacimiento', (a) => birthYear(a)],
     ['Estado', (a) => (a.deletedAt ? 'Archivado' : STATUS_LABEL[a.status])],
     ['Nombre', (a) => a.name],
     ['Fecha de nacimiento', (a) => a.dob],

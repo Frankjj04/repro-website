@@ -16,7 +16,7 @@ export default async function handler(req, res) {
 
   try {
     const { rows } = await query(
-      `SELECT * FROM applicants
+      `SELECT ${COLUMNS} FROM applicants
         WHERE deleted_at IS ${archived ? 'NOT NULL' : 'NULL'}
         ORDER BY ${archived ? 'deleted_at DESC' : 'created_at DESC'}`
     );
@@ -27,6 +27,14 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'server_error' });
   }
 }
+
+/* Everything except the photo bytes, which are fetched one at a time from
+   /api/photo — inlining them would make the list enormous. */
+export const COLUMNS = `id, event, name, dob, birthplace, nationalities, phone, email, height, weight,
+  mls_next, strong_leg, position_primary, position_secondary, video_url,
+  emergency_name, emergency_phone, emergency_relationship, guardian_name,
+  waiver_version, waiver_accepted_at, status, coach_note, created_at, deleted_at,
+  (photo IS NOT NULL) AS has_photo`;
 
 export function toJson(r) {
   return {
@@ -51,6 +59,7 @@ export function toJson(r) {
     guardianName: r.guardian_name,
     waiverVersion: r.waiver_version,
     waiverAcceptedAt: r.waiver_accepted_at,
+    photo: r.has_photo ? '/api/photo?id=' + r.id : '',
     status: r.status,
     note: r.coach_note,
     createdAt: r.created_at,

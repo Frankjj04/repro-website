@@ -635,6 +635,19 @@ const BEPRO_TRANSLATIONS = {
     rg_err_server_error: 'We couldn\'t save your registration. Please try again.',
     rg_err_not_configured: 'Registration isn\'t available yet. Message us on WhatsApp.',
     rg_err_connection: 'No connection. Check your internet and try again.',
+
+    /* ── REGISTRATION: headshot ── */
+    rg_photo: 'Headshot *',
+    rg_photo_btn: 'Upload photo',
+    rg_photo_change: 'Change photo',
+    rg_photo_clear: 'Remove',
+    rg_photo_help: 'A clear photo of your face, from the front. You can take it now with your phone.',
+    rg_photo_working: 'Preparing photo…',
+    rg_photo_ready: 'Photo ready.',
+    rg_err_photo_missing: 'Upload a photo of your face.',
+    rg_err_photo_bad: 'We couldn\'t read that photo. Try another one.',
+    rg_err_photo_big: 'That photo is too large. Try another one.',
+    rg_err_photo_type: 'That file isn\'t a photo.',
   },
 
   /* ═══════════════════════════════════════
@@ -1264,6 +1277,19 @@ const BEPRO_TRANSLATIONS = {
     rg_err_server_error: 'No pudimos guardar tu registro. Inténtalo otra vez.',
     rg_err_not_configured: 'El registro todavía no está disponible. Escríbenos por WhatsApp.',
     rg_err_connection: 'No hay conexión. Revisa tu internet e inténtalo otra vez.',
+
+    /* ── REGISTRATION: headshot ── */
+    rg_photo: 'Foto de tu cara *',
+    rg_photo_btn: 'Subir foto',
+    rg_photo_change: 'Cambiar foto',
+    rg_photo_clear: 'Quitar',
+    rg_photo_help: 'Una foto clara de tu cara, de frente. Puedes tomarla ahora con tu teléfono.',
+    rg_photo_working: 'Preparando la foto…',
+    rg_photo_ready: 'Foto lista.',
+    rg_err_photo_missing: 'Sube una foto de tu cara.',
+    rg_err_photo_bad: 'No pudimos leer esa foto. Prueba con otra.',
+    rg_err_photo_big: 'Esa foto pesa demasiado. Prueba con otra.',
+    rg_err_photo_type: 'Ese archivo no es una foto.',
   }
 };
 

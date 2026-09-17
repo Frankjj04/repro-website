@@ -1,7 +1,7 @@
 /* POST /api/register — a player applying to a scouting event. */
 
 import { query, isConfigured } from '../lib/db.js';
-import { validateApplication, clean } from '../lib/validate.js';
+import { validateApplication, decodePhoto, clean } from '../lib/validate.js';
 import { WAIVER_VERSION } from '../js/registro-config.js';
 
 export default async function handler(req, res) {
@@ -22,6 +22,11 @@ export default async function handler(req, res) {
   const { application: a, code, error } = validateApplication(req.body);
   if (error) return res.status(400).json({ error: 'invalid', code, message: error });
 
+  // Every player sends a headshot so the coach can put a face to the name.
+  if (!req.body.photo) return res.status(400).json({ error: 'invalid', code: 'photo_missing', message: 'A headshot is required.' });
+  const photo = decodePhoto(req.body.photo);
+  if (photo.code) return res.status(400).json({ error: 'invalid', code: photo.code, message: 'The headshot could not be used.' });
+
   const ip = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || null;
 
   try {
@@ -30,15 +35,15 @@ export default async function handler(req, res) {
          (event, name, dob, birthplace, nationalities, phone, email, height, weight,
           mls_next, strong_leg, position_primary, position_secondary, video_url,
           emergency_name, emergency_phone, emergency_relationship, guardian_name,
-          waiver_version, waiver_accepted_at, ip)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
+          waiver_version, waiver_accepted_at, ip, photo, photo_type)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)
        RETURNING id`,
       [a.event, a.name, a.dob, a.birthplace, a.nationalities, a.phone, a.email, a.height, a.weight,
        a.mlsNext, a.strongLeg, a.positionPrimary, a.positionSecondary, a.videoUrl,
        a.emergencyName, a.emergencyPhone, a.emergencyRelationship, a.guardianName,
        WAIVER_VERSION,
        new Date(),           // our clock, not the browser's
-       ip]
+       ip, photo.buf, photo.type]
     );
     return res.status(201).json({ ok: true, id: Number(rows[0].id) });
   } catch (err) {

@@ -149,6 +149,36 @@ await test('honeypot answers 200 without saving', async () => {
   assert.equal(res.statusCode, 200);
 });
 
+// A real 1x1 JPEG, so the magic-byte check sees genuine bytes.
+const JPEG_1PX = 'data:image/jpeg;base64,' +
+  '/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0a' +
+  'HBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAA' +
+  'AAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==';
+
+await test('a headshot is required', async () => {
+  const res = await post({ ...adult() });
+  assert.equal(res.statusCode, 400);
+  assert.equal(res.body.code, 'photo_missing');
+});
+
+await test('a file that is not an image is refused as the headshot', async () => {
+  const fake = 'data:image/jpeg;base64,' + Buffer.from('<html>not a photo</html>').toString('base64');
+  const res = await post({ ...adult(), photo: fake });
+  assert.equal(res.body.code, 'photo_type');
+});
+
+await test('a real JPEG passes the photo check', async () => {
+  const { decodePhoto } = await import('../lib/validate.js');
+  assert.equal(decodePhoto(JPEG_1PX).type, 'image/jpeg');
+});
+
+await test('photos need the password', async () => {
+  const { default: photo } = await import('../api/photo.js');
+  const res = mockRes();
+  await photo({ method: 'GET', headers: {}, query: { id: '1' } }, res);
+  assert.equal(res.statusCode, 401);
+});
+
 await test('refusals carry a code', async () => {
   const res = await post({ ...adult(), waiverAccepted: false });
   assert.equal(res.statusCode, 400);
@@ -192,6 +222,7 @@ console.log('sign-up page');
 
 const validateSrc = readFileSync(new URL('../lib/validate.js', import.meta.url), 'utf8');
 const serverCodes = new Set([...validateSrc.matchAll(/fail\('([a-z_]+)'/g)].map((m) => m[1]));
+['photo_missing', 'photo_bad', 'photo_big', 'photo_type'].forEach((c) => serverCodes.add(c));
 serverCodes.add('duplicate').add('server_error').add('not_configured');
 
 await test('every server refusal code has a message on the sign-up page', () => {

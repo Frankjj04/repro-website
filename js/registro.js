@@ -18,6 +18,10 @@ export const REFUSALS = {
   nationalities: ['nationalities', 'rg_err_nationalities'],
   phone: ['phone', 'rg_err_phone'],
   email: ['email', 'rg_err_email'],
+  photo_missing: ['photo', 'rg_err_photo_missing'],
+  photo_bad: ['photo', 'rg_err_photo_bad'],
+  photo_big: ['photo', 'rg_err_photo_big'],
+  photo_type: ['photo', 'rg_err_photo_type'],
   height: ['height', 'rg_err_height'],
   weight: ['weight', 'rg_err_weight'],
   mls_next: ['mls_next', 'rg_err_mls_next'],
@@ -86,6 +90,58 @@ function init() {
     $('rgGuardian').hidden = !isMinor();
   }
 
+  /* ---------- headshot ----------
+     Shrunk in the browser before upload: a phone photo can be 5 MB, and the
+     coach only needs a clear face. 600px on the long side ≈ 60–120 KB. */
+  const PHOTO_MAX_PX = 600;
+  const PHOTO_QUALITY = 0.82;
+  let photoUrl = null;
+  let photoBusy = false;
+
+  function photoLabels() {
+    $('rgPhotoBtn').textContent = t(photoUrl ? 'rg_photo_change' : 'rg_photo_btn');
+    $('rgPhotoStatus').textContent = t(photoBusy ? 'rg_photo_working' : photoUrl ? 'rg_photo_ready' : 'rg_photo_help');
+  }
+  function resetPhoto() {
+    photoUrl = null;
+    photoBusy = false;
+    $('rgPhoto').value = '';
+    $('rgPhotoPreview').style.backgroundImage = '';
+    $('rgPhotoPreview').classList.remove('has-photo');
+    $('rgPhotoClear').hidden = true;
+    photoLabels();
+  }
+  $('rgPhotoClear').addEventListener('click', resetPhoto);
+
+  $('rgPhoto').addEventListener('change', () => {
+    const file = $('rgPhoto').files && $('rgPhoto').files[0];
+    if (!file) return;
+    if (file.type && !/^image\//.test(file.type)) { resetPhoto(); return showError('photo', 'rg_err_photo_type'); }
+    if (file.size > 40 * 1024 * 1024) { resetPhoto(); return showError('photo', 'rg_err_photo_big'); }
+
+    photoBusy = true;
+    photoLabels();
+    const src = URL.createObjectURL(file);
+    const img = new Image();
+    img.onerror = () => { URL.revokeObjectURL(src); resetPhoto(); showError('photo', 'rg_err_photo_bad'); };
+    img.onload = () => {
+      URL.revokeObjectURL(src);
+      const scale = Math.min(1, PHOTO_MAX_PX / Math.max(img.naturalWidth, img.naturalHeight));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+      canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      photoUrl = canvas.toDataURL('image/jpeg', PHOTO_QUALITY);
+      photoBusy = false;
+      $('rgPhotoPreview').style.backgroundImage = 'url("' + photoUrl + '")';
+      $('rgPhotoPreview').classList.add('has-photo');
+      $('rgPhotoClear').hidden = false;
+      photoLabels();
+      if (lastError && lastError[0] === 'photo') clearError();
+    };
+    img.src = src;
+  });
+
   /* ---------- errors ---------- */
   function clearError() {
     lastError = null;
@@ -102,7 +158,7 @@ function init() {
     if (group) {
       group.classList.add('rg-invalid');
       group.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      const input = group.querySelector('input:not([type=radio]), select, input[type=radio]');
+      const input = group.querySelector('input:not([type=radio]):not([type=file]), select, input[type=radio], .rg-photo-btn');
       if (input) input.focus({ preventScroll: true });
     } else {
       box.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -134,6 +190,7 @@ function init() {
       emergencyRelationship: v('emergencyRelationship'),
       guardianName: isMinor() ? v('guardianName') : '',
       waiverAccepted: $('rgWaiver').checked,
+      photo: photoUrl,
       website: v('website'),
     };
   }
@@ -146,6 +203,7 @@ function init() {
     if (!b.nationalities) return 'nationalities';
     if (digits(b.phone) < 7 || digits(b.phone) > 15) return 'phone';
     if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(b.email)) return 'email';
+    if (!b.photo) return 'photo_missing';
     if (!b.height) return 'height';
     if (!b.weight) return 'weight';
     if (b.mlsNext === null) return 'mls_next';
@@ -219,9 +277,11 @@ function init() {
       renderOptions();
       if (lastError) $('rgError').textContent = t(lastError[1]);
       if (!sending) $('rgSubmit').textContent = t('rg_submit');
+      photoLabels();
     });
   });
 
   renderOptions();
   updateGuardian();
+  resetPhoto();
 }
