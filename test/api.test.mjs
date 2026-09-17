@@ -134,13 +134,16 @@ for (const [field, value, code] of [
 }
 
 await test('each event only takes its own birth years', () => {
-  // 2010 belongs to Nov 17-18 (2008-2011), not to Nov 10-11 (2004-2008).
+  // 2010 belongs to Nov 17-18 (2008-2011), not to Nov 10-11 (2003-2008).
   assert.equal(validateApplication({ ...adult(), dob: '2010-06-01' }).code, 'event_age');
   assert.equal(validateApplication({ ...adult(), event: 'nov-17-18', dob: '2010-06-01' }).error, undefined);
   assert.equal(validateApplication({ ...adult(), event: 'nov-24-25', dob: '2013-05-05', signatureName: 'Ana Pérez' }).error, undefined);
   // The coach's ranges overlap at 2008 on purpose: that year fits two dates.
   assert.equal(validateApplication({ ...adult(), dob: '2008-09-09', signatureName: 'A B' }).error, undefined);
   assert.equal(validateApplication({ ...adult(), event: 'nov-17-18', dob: '2008-09-09', signatureName: 'A B' }).error, undefined);
+  // Nov 10-11 starts at 2003, so 2003 is in and 2002 is out.
+  assert.equal(validateApplication({ ...adult(), dob: '2003-12-31' }).error, undefined);
+  assert.equal(validateApplication({ ...adult(), dob: '2002-12-31' }).code, 'event_age');
 });
 
 await test('for a minor, the person signing is recorded as the guardian', () => {

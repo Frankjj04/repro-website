@@ -15,9 +15,9 @@ export const EVENTS = [
     id: 'nov-10-11',
     dates: { es: '10 y 11 de noviembre', en: 'November 10 & 11' },
     leagues: ['Liga de Expansión', '2da Premier', 'USL'],
-    years: [2004, 2008],
-    label: { es: '10 y 11 nov — Liga de Expansión, 2da Premier, USL (2004-2008)',
-             en: 'Nov 10 & 11 — Liga de Expansión, 2da Premier, USL (2004-2008)' },
+    years: [2003, 2008],
+    label: { es: '10 y 11 nov — Liga de Expansión, 2da Premier, USL (2003-2008)',
+             en: 'Nov 10 & 11 — Liga de Expansión, 2da Premier, USL (2003-2008)' },
     open: true,
   },
   {
