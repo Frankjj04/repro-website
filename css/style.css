@@ -1875,3 +1875,52 @@ footer {
 
 /* A pillar with no photo beside it should not leave half the row empty. */
 .pillar-full-body.pillar-solo { grid-template-columns: 1fr; max-width: 860px; }
+
+/* ===================== NOVEMBER 2026 EVENTS ===================== */
+.ev26-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.ev26-card {
+  display: flex; flex-direction: column; gap: 0.75rem;
+  background: var(--navy-card); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius-lg); padding: 1.75rem 1.5rem;
+}
+.ev26-featured { border-color: rgba(255,107,26,0.45); background: linear-gradient(160deg, var(--navy-card), rgba(255,107,26,0.07)); }
+.ev26-date { font-family: var(--font-heading); font-size: 2rem; letter-spacing: 1px; color: var(--orange); line-height: 1; }
+.ev26-years { font-size: 0.82rem; color: var(--gray-light); }
+.ev26-leagues { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.ev26-leagues li { font-size: 0.95rem; font-weight: 600; color: var(--white); }
+.ev26-card .btn { margin-top: auto; align-self: flex-start; }
+.ev26-note { text-align: center; margin: 2rem auto 0; max-width: 620px; font-size: 0.85rem; color: var(--gray); }
+
+.ev26-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+.ev26-step { background: var(--navy-card); border: 1px solid rgba(255,255,255,0.07); border-radius: var(--radius); padding: 1.5rem 1.25rem; }
+.ev26-step-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 1px solid var(--electric-blue); color: var(--electric-blue);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-heading); font-size: 1.1rem; margin-bottom: 0.9rem;
+}
+.ev26-step h3 { font-size: 1.1rem; margin-bottom: 0.4rem; }
+.ev26-step p { font-size: 0.85rem; margin: 0; }
+
+@media (max-width: 900px) {
+  .ev26-grid, .ev26-steps { grid-template-columns: 1fr; }
+}
+
+/* ===================== CONTACT — DIRECT LINKS ===================== */
+.cnt-big {
+  display: flex; align-items: center; gap: 14px;
+  padding: 1rem 1.25rem; margin-bottom: 0.75rem;
+  border-radius: var(--radius); text-decoration: none;
+  transition: var(--transition);
+}
+.cnt-wa { background: #25D366; color: #fff; }
+.cnt-wa:hover { opacity: 0.9; }
+.cnt-ig { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); color: var(--white); }
+.cnt-ig:hover { border-color: var(--orange); }
+.cnt-big-icon { font-size: 1.5rem; }
+.cnt-big span span { display: block; }
+.cnt-big-label { font-size: 0.72rem; letter-spacing: 1.5px; text-transform: uppercase; opacity: 0.85; }
+.cnt-big-value { font-size: 1.05rem; font-weight: 700; }
+.cnt-register { margin-top: 2rem; padding-top: 1.75rem; border-top: 1px solid rgba(255,255,255,0.08); }
+.cnt-register h4 { font-size: 0.95rem; letter-spacing: 2px; color: var(--white); margin-bottom: 0.5rem; }
+.cnt-register p { font-size: 0.85rem; margin-bottom: 1.25rem; }

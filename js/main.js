@@ -205,33 +205,6 @@ function initSmoothScroll() {
   });
 }
 
-/* ===================== CONTACT FORM ===================== */
-function initContactForm() {
-  const form = document.getElementById('contactForm');
-  if (!form) return;
-
-  form.addEventListener('submit', e => {
-    e.preventDefault();
-    const btn  = form.querySelector('button[type="submit"]');
-    const orig = btn.textContent;
-    btn.textContent = 'SENDING...';
-    btn.disabled    = true;
-
-    setTimeout(() => {
-      btn.textContent       = 'MESSAGE SENT ✓';
-      btn.style.background  = '#22c55e';
-      btn.style.borderColor = '#22c55e';
-      setTimeout(() => {
-        btn.textContent       = orig;
-        btn.style.background  = '';
-        btn.style.borderColor = '';
-        btn.disabled          = false;
-        form.reset();
-      }, 3000);
-    }, 1400);
-  });
-}
-
 /* ===================== ADD TO CART (UI) ===================== */
 function initCart() {
   document.querySelectorAll('.add-to-cart').forEach(btn => {
@@ -267,6 +240,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initReveal();
   initCounters();
   initSmoothScroll();
-  initContactForm();
   initCart();
 });
