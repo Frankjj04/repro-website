@@ -11,6 +11,7 @@ import { EVENTS, POSITIONS, MINOR_AGE } from './registro-config.js';
 export const REFUSALS = {
   event: ['event', 'rg_err_event'],
   event_closed: ['event', 'rg_err_event_closed'],
+  event_age: ['event', 'rg_err_event_age'],
   name: ['name', 'rg_err_name'],
   dob: ['dob', 'rg_err_dob'],
   dob_bad: ['dob', 'rg_err_dob_bad'],
@@ -58,6 +59,54 @@ function init() {
     return;
   }
 
+  /* ---------- the three events, above the form ---------- */
+  function renderEventCards() {
+    $('rgEventCards').replaceChildren(...openEvents.map((e) => {
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'rg-event-card' + ($('rgEvent').value === e.id ? ' active' : '');
+      card.dataset.event = e.id;
+
+      const dates = document.createElement('div');
+      dates.className = 'rg-event-dates';
+      dates.textContent = e.dates[lang()];
+
+      const leagues = document.createElement('ul');
+      leagues.className = 'rg-event-leagues';
+      e.leagues.forEach((l) => {
+        const li = document.createElement('li');
+        li.textContent = l;
+        leagues.append(li);
+      });
+
+      const years = document.createElement('div');
+      years.className = 'rg-event-years';
+      years.textContent = t('rg_ev_born') + ' ' + e.years[0] + '-' + e.years[1];
+
+      const pick = document.createElement('span');
+      pick.className = 'rg-event-pick';
+      pick.textContent = t('rg_ev_pick');
+
+      card.append(dates, leagues, years, pick);
+      return card;
+    }));
+  }
+
+  // Tapping a card is the same as choosing it in the dropdown.
+  $('rgEventCards').addEventListener('click', (e) => {
+    const card = e.target.closest('.rg-event-card');
+    if (!card) return;
+    $('rgEvent').value = card.dataset.event;
+    renderEventCards();
+    clearError();
+  });
+  $('rgEvent').addEventListener('change', () => { renderEventCards(); });
+
+  const eventFor = (dob) => {
+    const y = Number(String(dob).slice(0, 4));
+    return openEvents.find((e) => y >= e.years[0] && y <= e.years[1]);
+  };
+
   /* ---------- dropdowns, in the current language ---------- */
   function renderOptions() {
     const ev = $('rgEvent');
@@ -66,6 +115,7 @@ function init() {
     if (keepEv) ev.value = keepEv;
     // With one open event there is nothing to choose; the dropdown just shows it.
     ev.disabled = openEvents.length === 1;
+    renderEventCards();
 
     document.querySelectorAll('.rg-position').forEach((sel) => {
       const keep = sel.value;
@@ -164,7 +214,7 @@ function init() {
     clearError();
     lastError = [field, key];
     const box = $('rgError');
-    box.textContent = t(key);
+    box.textContent = key === 'rg_err_event_age' ? eventAgeMessage() : t(key);
     box.hidden = false;
     const group = field && form.querySelector(`[data-field="${field}"]`);
     if (group) {
@@ -175,6 +225,16 @@ function init() {
     } else {
       box.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
+  }
+
+  /* The wrong event for their birth year: say which one is theirs. */
+  function eventAgeMessage() {
+    const chosen = openEvents.find((e) => e.id === $('rgEvent').value);
+    const mine = eventFor($('rgDob').value);
+    let msg = t('rg_err_event_age');
+    if (chosen) msg = msg.replace('{years}', chosen.years[0] + '-' + chosen.years[1]);
+    if (mine && mine !== chosen) msg += ' ' + t('rg_err_event_yours').replace('{event}', mine.label[lang()]);
+    return msg;
   }
 
   /* ---------- collect + quick checks (the server has the final word) ---------- */
@@ -213,6 +273,10 @@ function init() {
     const digits = (s) => s.replace(/\D/g, '').length;
     if (!b.name) return 'name';
     if (!b.dob) return 'dob';
+    // Only the chosen event's own range matters — 2008 fits two of them.
+    const chosen = openEvents.find((e) => e.id === b.event);
+    const born = Number(String(b.dob).slice(0, 4));
+    if (!chosen || born < chosen.years[0] || born > chosen.years[1]) return 'event_age';
     if (!b.birthplace) return 'birthplace';
     if (!b.nationalities) return 'nationalities';
     if (digits(b.phone) < 7 || digits(b.phone) > 15) return 'phone';
@@ -291,7 +355,7 @@ function init() {
     if (!e.target.closest('.lang-btn')) return;
     setTimeout(() => {
       renderOptions();
-      if (lastError) $('rgError').textContent = t(lastError[1]);
+      if (lastError) showError(...lastError);
       if (!sending) $('rgSubmit').textContent = t('rg_submit');
       photoLabels();
       updateDate();

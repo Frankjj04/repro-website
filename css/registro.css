@@ -158,3 +158,35 @@
   .rg-form.contact-form-box { padding: 1.5rem 1.1rem; }
   .rg-waiver { max-height: 260px; }
 }
+
+/* The three events, above the form */
+.rg-events { margin-bottom: 2.5rem; }
+.rg-events-title { text-align: center; font-size: clamp(1.8rem, 5vw, 2.6rem); margin-bottom: 0.4rem; }
+.rg-events-sub { text-align: center; font-size: 0.88rem; margin: 0 auto 1.5rem; max-width: 460px; }
+.rg-events-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
+.rg-event-card {
+  display: flex; flex-direction: column; gap: 0.5rem; text-align: left;
+  background: var(--navy-card); border: 1px solid rgba(255,255,255,0.09);
+  border-radius: var(--radius); padding: 1.1rem 1rem; cursor: pointer;
+  color: var(--white); font-family: var(--font-body);
+}
+.rg-event-card:hover { border-color: rgba(255,107,26,0.5); }
+.rg-event-card.active { border-color: var(--orange); background: var(--orange-subtle); }
+.rg-event-dates { font-family: var(--font-heading); font-size: 1.35rem; letter-spacing: 1px; color: var(--orange); line-height: 1.1; }
+.rg-event-leagues { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.rg-event-leagues li { font-size: 0.86rem; font-weight: 600; }
+.rg-event-years { font-size: 0.78rem; color: var(--gray-light); }
+.rg-event-pick {
+  margin-top: auto; font-size: 0.72rem; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--gray);
+}
+.rg-event-card.active .rg-event-pick { color: var(--orange); }
+
+@media (max-width: 700px) {
+  .rg-events-grid { grid-template-columns: 1fr; }
+  .rg-event-card { flex-direction: row; align-items: center; flex-wrap: wrap; gap: 0.25rem 1rem; }
+  .rg-event-dates { flex: 1 1 100%; }
+  .rg-event-leagues { flex-direction: row; flex-wrap: wrap; gap: 0 0.5rem; }
+  .rg-event-leagues li:not(:last-child)::after { content: ' ·'; color: var(--gray); }
+  .rg-event-pick { flex: 1 1 100%; margin-top: 0.35rem; }
+}

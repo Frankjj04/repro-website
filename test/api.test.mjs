@@ -40,9 +40,9 @@ const yearsAgo = (n) => {
 };
 
 const adult = () => ({
-  event: 'final-oct-2026',
+  event: 'nov-10-11',
   name: '  Jugador   De Prueba ',
-  dob: yearsAgo(20),
+  dob: '2006-04-10',
   birthplace: 'Guadalajara, México',
   nationalities: 'México, USA',
   phone: '+52 33 1234 5678',
@@ -110,6 +110,7 @@ for (const [field, value, code] of [
   ['name', '', 'name'],
   ['dob', '', 'dob'],
   ['dob', '1800-01-01', 'dob_bad'],
+  ['dob', '2013-01-01', 'event_age'],
   ['birthplace', '', 'birthplace'],
   ['nationalities', ' ', 'nationalities'],
   ['phone', '12', 'phone'],
@@ -132,8 +133,18 @@ for (const [field, value, code] of [
   });
 }
 
+await test('each event only takes its own birth years', () => {
+  // 2010 belongs to Nov 17-18 (2008-2011), not to Nov 10-11 (2004-2008).
+  assert.equal(validateApplication({ ...adult(), dob: '2010-06-01' }).code, 'event_age');
+  assert.equal(validateApplication({ ...adult(), event: 'nov-17-18', dob: '2010-06-01' }).error, undefined);
+  assert.equal(validateApplication({ ...adult(), event: 'nov-24-25', dob: '2013-05-05', signatureName: 'Ana Pérez' }).error, undefined);
+  // The coach's ranges overlap at 2008 on purpose: that year fits two dates.
+  assert.equal(validateApplication({ ...adult(), dob: '2008-09-09', signatureName: 'A B' }).error, undefined);
+  assert.equal(validateApplication({ ...adult(), event: 'nov-17-18', dob: '2008-09-09', signatureName: 'A B' }).error, undefined);
+});
+
 await test('for a minor, the person signing is recorded as the guardian', () => {
-  const ok = validateApplication({ ...adult(), dob: yearsAgo(15), signatureName: 'Ana Pérez' });
+  const ok = validateApplication({ ...adult(), event: 'nov-17-18', dob: '2010-03-02', signatureName: 'Ana Pérez' });
   assert.equal(ok.application.isMinor, true);
   assert.equal(ok.application.guardianName, 'Ana Pérez');
 });

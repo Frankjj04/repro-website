@@ -7,10 +7,35 @@
    open: false — its applicants stay on the admin page, but nobody new can
    apply to it. Never change an event's id once people have applied. */
 
+/* November Scouting Madness 2026 — the coach's three events.
+   `years` is the birth years that event is for: a player outside the range is
+   turned away with a message naming the event that does fit them. */
 export const EVENTS = [
   {
-    id: 'final-oct-2026',
-    label: { es: 'Evento Final — Octubre 2026', en: 'Final Event — October 2026' },
+    id: 'nov-10-11',
+    dates: { es: '10 y 11 de noviembre', en: 'November 10 & 11' },
+    leagues: ['Liga de Expansión', '2da Premier', 'USL'],
+    years: [2004, 2008],
+    label: { es: '10 y 11 nov — Liga de Expansión, 2da Premier, USL (2004-2008)',
+             en: 'Nov 10 & 11 — Liga de Expansión, 2da Premier, USL (2004-2008)' },
+    open: true,
+  },
+  {
+    id: 'nov-17-18',
+    dates: { es: '17 y 18 de noviembre', en: 'November 17 & 18' },
+    leagues: ['Liga MX'],
+    years: [2008, 2011],
+    label: { es: '17 y 18 nov — Liga MX (2008-2011)',
+             en: 'Nov 17 & 18 — Liga MX (2008-2011)' },
+    open: true,
+  },
+  {
+    id: 'nov-24-25',
+    dates: { es: '24 y 25 de noviembre', en: 'November 24 & 25' },
+    leagues: ['MLS'],
+    years: [2012, 2014],
+    label: { es: '24 y 25 nov — MLS (2012-2014)',
+             en: 'Nov 24 & 25 — MLS (2012-2014)' },
     open: true,
   },
 ];

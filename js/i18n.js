@@ -659,6 +659,14 @@ const BEPRO_TRANSLATIONS = {
     rg_sign_date: 'Date',
     rg_err_signature: 'Type the full name of the person signing.',
     rg_privacy: '🔒 Your information is seen only by Be Pro Soccer and, if you allow it, the clubs and scouts we share your profile with.',
+
+    /* ── REGISTRATION: the three events ── */
+    rg_events_title: 'NOVEMBER SCOUTING <span style="color:var(--orange);">MADNESS</span>',
+    rg_events_sub: 'Three dates, three age groups. Pick the one for your birth year.',
+    rg_ev_born: 'Born',
+    rg_ev_pick: 'Pick this date',
+    rg_err_event_age: 'That date is for players born in {years}.',
+    rg_err_event_yours: 'Yours is: {event}.',
   },
 
   /* ═══════════════════════════════════════
@@ -1312,6 +1320,14 @@ const BEPRO_TRANSLATIONS = {
     rg_sign_date: 'Fecha',
     rg_err_signature: 'Escribe el nombre completo de quien firma.',
     rg_privacy: '🔒 Tu información la ve solo Be Pro Soccer y, si lo autorizas, los clubes y scouts con los que compartimos tu perfil.',
+
+    /* ── REGISTRATION: the three events ── */
+    rg_events_title: 'NOVEMBER SCOUTING <span style="color:var(--orange);">MADNESS</span>',
+    rg_events_sub: 'Tres fechas, tres grupos de edad. Elige la que te toca por tu año de nacimiento.',
+    rg_ev_born: 'Nacidos',
+    rg_ev_pick: 'Elegir esta fecha',
+    rg_err_event_age: 'Esa fecha es para jugadores nacidos en {years}.',
+    rg_err_event_yours: 'La tuya es: {event}.',
   }
 };
 
