@@ -259,3 +259,44 @@ a.ad-chip-video:hover { background: rgba(0,212,255,0.1); }
   .ad-top-actions { gap: 0.75rem; }
   .ad-top-actions .btn { padding: 8px 12px; font-size: 0.72rem; }
 }
+
+/* The printable sheet — hidden on screen, and the only thing that prints. */
+.ad-print { display: none; }
+
+@media print {
+  /* The page's dark background would print as a full page of ink. */
+  html, body { background: #fff !important; height: auto !important; }
+  body > *:not(.ad-print) { display: none !important; }
+  .ad-print { display: block; color: #000; background: #fff; font-family: var(--font-body); }
+
+  .ad-print-head { border-bottom: 3px solid #FF6B1A; padding-bottom: 8px; margin-bottom: 14px; }
+  .ad-print-brand { font-family: var(--font-heading); font-size: 20pt; letter-spacing: 2px; color: #FF6B1A; }
+  .ad-print h1 { font-family: var(--font-heading); font-size: 24pt; letter-spacing: 1px; color: #000; margin: 2px 0; }
+  .ad-print-sub { font-size: 9pt; color: #444; }
+
+  .ad-print-group {
+    font-family: var(--font-heading); font-size: 15pt; letter-spacing: 1px; color: #000;
+    margin: 16px 0 6px; border-bottom: 1px solid #bbb; padding-bottom: 3px;
+    break-after: avoid; page-break-after: avoid;
+  }
+  .ad-print-group span { font-family: var(--font-body); font-size: 8.5pt; color: #666; margin-left: 8px; letter-spacing: 0; }
+
+  .ad-print-table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+  .ad-print-table th {
+    text-align: left; font-size: 7.5pt; text-transform: uppercase; letter-spacing: 0.5px;
+    color: #555; border-bottom: 1px solid #999; padding: 3px 6px;
+  }
+  .ad-print-table td { padding: 5px 6px; border-bottom: 1px solid #ddd; vertical-align: middle; }
+  .ad-print-table tr { break-inside: avoid; page-break-inside: avoid; }
+  .ad-print-photo { width: 34px; }
+  .ad-print-photo img { width: 34px; height: 42px; object-fit: cover; border-radius: 3px; display: block; }
+  .ad-print-name { font-weight: 700; }
+  .ad-print-box { width: 34px; }
+  .ad-print-box::after {
+    content: ''; display: block; width: 15px; height: 15px; border: 1.2px solid #333; border-radius: 2px;
+  }
+
+  .ad-print-foot { margin-top: 18px; padding-top: 6px; border-top: 1px solid #ccc; font-size: 7.5pt; color: #666; }
+
+  @page { margin: 14mm; }
+}

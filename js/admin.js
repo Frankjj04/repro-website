@@ -641,6 +641,108 @@ async function loadShares() {
   }));
 }
 
+/* ---------- the list on screen, as a sheet or as text ----------
+   Both follow the filters, so "Invitados · 2008" prints and copies exactly
+   those players and nothing else. */
+function listTitle() {
+  const parts = [];
+  parts.push({ all: 'Registros', pending: 'Por revisar', selected: 'Invitados',
+    not_selected: 'No seleccionados', archived: 'Archivados' }[tab]);
+  if (year) parts.push('Categoría ' + year);
+  const q = $('adSearch').value.trim();
+  if (q) parts.push('Búsqueda: ' + q);
+  return parts.join(' · ');
+}
+
+function groupByYear(rows) {
+  const out = new Map();
+  rows.forEach((a) => {
+    const y = birthYear(a);
+    if (!out.has(y)) out.set(y, []);
+    out.get(y).push(a);
+  });
+  return out;
+}
+
+$('adPrintBtn').addEventListener('click', async () => {
+  const rows = current();
+  if (!rows.length) return flash($('adError'), 'No hay jugadores en esta lista.');
+  flash($('adError'), '');
+
+  const sheet = $('adPrint');
+  const head = el('div', 'ad-print-head');
+  head.append(
+    el('div', 'ad-print-brand', 'BE PRO SOCCER'),
+    el('h1', null, listTitle()),
+    el('div', 'ad-print-sub', ($('adEvent').value ? eventLabel($('adEvent').value) : 'Todos los eventos') +
+      ' · ' + plural(rows.length, 'jugador', 'jugadores') + ' · ' + fmtDay(new Date().toISOString())),
+  );
+  sheet.replaceChildren(head);
+
+  groupByYear(rows).forEach((group, y) => {
+    const h2 = el('h2', 'ad-print-group');
+    h2.append(document.createTextNode('Categoría ' + y + ' '), el('span', null, plural(group.length, 'jugador', 'jugadores')));
+    sheet.append(h2);
+
+    const table = el('table', 'ad-print-table');
+    const thead = el('tr');
+    ['', 'Jugador', 'Edad', 'Posiciones', 'Pierna', 'Estatura / Peso', 'Nacionalidad', 'Asistió'].forEach((t) => thead.append(el('th', null, t)));
+    table.append(thead);
+
+    group.forEach((a) => {
+      const tr = el('tr');
+      const photoCell = el('td', 'ad-print-photo');
+      if (a.photo) {
+        const img = el('img');
+        img.src = a.photo; img.alt = '';
+        photoCell.append(img);
+      }
+      tr.append(
+        photoCell,
+        el('td', 'ad-print-name', a.name),
+        el('td', null, age(a.dob) + ''),
+        el('td', null, a.positionPrimary + ' / ' + a.positionSecondary),
+        el('td', null, (LEG_LABEL[a.strongLeg] || a.strongLeg).charAt(0)),
+        el('td', null, a.height + ' · ' + a.weight),
+        el('td', null, a.nationalities),
+        el('td', 'ad-print-box', ''),
+      );
+      table.append(tr);
+    });
+    sheet.append(table);
+  });
+
+  sheet.append(el('div', 'ad-print-foot',
+    'Be Pro Soccer · Las Vegas, Nevada · Documento interno con datos personales — no compartir.'));
+
+  // A photo that has not arrived yet prints as a blank square.
+  const btn = $('adPrintBtn');
+  const label = btn.textContent;
+  btn.textContent = 'Preparando…';
+  await Promise.all([...sheet.querySelectorAll('img')].map((img) =>
+    img.decode().catch(() => {})));
+  btn.textContent = label;
+
+  window.print();
+});
+
+$('adCopy').addEventListener('click', () => {
+  const rows = current();
+  if (!rows.length) return flash($('adError'), 'No hay jugadores en esta lista.');
+  flash($('adError'), '');
+
+  const lines = [listTitle().toUpperCase() + ' — ' +
+    ($('adEvent').value ? eventLabel($('adEvent').value) : 'Todos los eventos'),
+    plural(rows.length, 'jugador', 'jugadores') + ' · ' + fmtDay(new Date().toISOString()), ''];
+  groupByYear(rows).forEach((group, y) => {
+    lines.push('CATEGORÍA ' + y + ' (' + group.length + ')');
+    group.forEach((a) => lines.push('• ' + a.name + ' — ' + age(a.dob) + ' años · ' +
+      a.positionPrimary + '/' + a.positionSecondary));
+    lines.push('');
+  });
+  copyText(lines.join('\n').trim(), $('adCopy'));
+});
+
 /* ---------- CSV of what is on screen ---------- */
 $('adCsv').addEventListener('click', () => {
   const rows = current();

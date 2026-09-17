@@ -51,6 +51,8 @@
     </div>
     <div class="ad-actions">
       <button type="button" class="btn btn-primary btn-sm" id="adShareList">Compartir esta lista</button>
+      <button type="button" class="btn btn-secondary btn-sm" id="adPrintBtn">Imprimir lista</button>
+      <button type="button" class="btn btn-secondary btn-sm" id="adCopy">Copiar lista</button>
       <button type="button" class="btn btn-secondary btn-sm" id="adCsv">Descargar CSV</button>
     </div>
   </div>
@@ -122,6 +124,9 @@
     </div>
   </div>
 </div>
+
+<!-- The printable sheet: hidden on screen, the only thing printed -->
+<div class="ad-print" id="adPrint" aria-hidden="true"></div>
 
 <!-- Create a share link -->
 <div class="ad-overlay ad-modal-wrap" id="adShareModal" hidden>
