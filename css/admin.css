@@ -1,0 +1,145 @@
+/* Coach admin page. Loaded after style.css and registro.css. */
+
+.ad-body { min-height: 100vh; background: var(--navy); }
+.ad-noscroll { overflow: hidden; }
+
+.ad-top {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem clamp(16px, 4vw, 2.5rem);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  background: var(--navy-deep);
+}
+.ad-link {
+  background: none; border: 0; padding: 0; cursor: pointer;
+  color: var(--gray-light); font-size: 0.85rem; text-decoration: underline;
+}
+.ad-link:hover { color: var(--orange); }
+
+.ad-login { display: flex; justify-content: center; padding: 4rem 16px; }
+.ad-login form { width: 100%; max-width: 380px; }
+.ad-login h2 { margin-bottom: 1.5rem; }
+
+.ad-main { max-width: 1100px; margin: 0 auto; padding: 1.5rem clamp(16px, 4vw, 2.5rem) 4rem; }
+
+.ad-bar { display: flex; flex-wrap: wrap; gap: 0 1rem; align-items: flex-end; }
+.ad-bar .form-group { margin-bottom: 1rem; }
+.ad-event { flex: 1 1 220px; }
+.ad-search { flex: 2 1 260px; }
+.ad-actions { margin-bottom: 1rem; }
+
+.ad-tabs { display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.25rem; margin-bottom: 1rem; }
+.ad-tabs button {
+  flex: 0 0 auto;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--gray-light);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 0.85rem; font-weight: 600;
+  cursor: pointer;
+}
+.ad-tabs button span { margin-left: 4px; color: var(--gray); font-weight: 500; }
+.ad-tabs button.active { border-color: var(--orange); color: var(--white); background: var(--orange-subtle); }
+.ad-tabs .ad-tab-archived { margin-left: auto; }
+
+.ad-empty { text-align: center; padding: 3rem 0; color: var(--gray); }
+
+.ad-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.ad-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  width: 100%; text-align: left;
+  background: var(--navy-card);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: var(--radius);
+  padding: 0.9rem 1.1rem;
+  color: var(--white);
+  cursor: pointer;
+}
+.ad-row:hover { border-color: rgba(255,107,26,0.5); }
+.ad-row-main { min-width: 0; }
+.ad-row-name { font-weight: 600; font-size: 1rem; }
+.ad-row-sub { font-size: 0.82rem; color: var(--gray-light); margin-top: 2px; }
+.ad-row-side { display: flex; gap: 0.4rem; flex-wrap: wrap; justify-content: flex-end; flex-shrink: 0; }
+
+.ad-chip {
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.5px;
+  padding: 4px 9px; border-radius: 999px; white-space: nowrap;
+  border: 1px solid transparent;
+}
+.ad-chip-video { color: var(--electric-blue); border-color: rgba(0,212,255,0.35); }
+.ad-chip-muted { color: var(--gray); border-color: rgba(255,255,255,0.1); }
+.ad-st-pending { color: #FFD27A; background: rgba(255,210,122,0.1); }
+.ad-st-selected { color: #6EE7A0; background: rgba(110,231,160,0.12); }
+.ad-st-not_selected { color: var(--gray-light); background: rgba(255,255,255,0.06); }
+
+/* panel */
+.ad-overlay {
+  position: fixed; inset: 0; z-index: 2000;
+  background: rgba(3,5,15,0.75);
+  display: flex; justify-content: flex-end;
+}
+.ad-panel {
+  position: relative;
+  width: 100%; max-width: 560px; height: 100%;
+  overflow-y: auto;
+  background: var(--navy-light);
+  border-left: 1px solid rgba(255,255,255,0.08);
+  padding: 2rem clamp(16px, 4vw, 2rem) 3rem;
+}
+.ad-close {
+  position: absolute; top: 0.75rem; right: 0.75rem;
+  width: 40px; height: 40px;
+  background: none; border: 0; color: var(--gray-light);
+  font-size: 1.8rem; line-height: 1; cursor: pointer;
+}
+.ad-close:hover { color: var(--white); }
+.ad-p-event { font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--orange); margin: 0; }
+.ad-panel h2 { margin: 0.25rem 2.5rem 0.25rem 0; line-height: 1.05; }
+.ad-p-sub { margin-bottom: 1.25rem; }
+
+.ad-video { width: 100%; justify-content: center; margin-bottom: 1.25rem; }
+.ad-novideo { color: var(--gray); font-style: italic; margin-bottom: 1.25rem; }
+
+.ad-status { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem; margin-bottom: 1.5rem; }
+.ad-status button {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--gray-light);
+  border-radius: 6px;
+  padding: 10px 6px;
+  font-size: 0.8rem; font-weight: 600;
+  cursor: pointer;
+}
+.ad-status button.active[data-status="pending"] { border-color: #FFD27A; color: #FFD27A; background: rgba(255,210,122,0.1); }
+.ad-status button.active[data-status="selected"] { border-color: #6EE7A0; color: #6EE7A0; background: rgba(110,231,160,0.12); }
+.ad-status button.active[data-status="not_selected"] { border-color: var(--gray-light); color: var(--white); background: rgba(255,255,255,0.08); }
+
+.ad-facts {
+  display: grid; grid-template-columns: minmax(120px, 40%) 1fr;
+  gap: 0.55rem 1rem; margin: 0 0 1.5rem;
+  font-size: 0.88rem;
+}
+.ad-facts dt { color: var(--gray); }
+.ad-facts dd { margin: 0; color: var(--white); overflow-wrap: anywhere; }
+.ad-facts a { color: var(--electric-blue); }
+
+.ad-panel textarea { min-height: 90px; }
+
+.ad-danger { border-top: 1px solid rgba(255,255,255,0.07); padding-top: 1.25rem; margin-top: 0.5rem; }
+.ad-danger-row { display: flex; gap: 0.5rem; margin-top: 0.6rem; }
+.ad-danger-row input {
+  flex: 1; min-width: 0;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px; padding: 10px 12px;
+  color: var(--white); font-size: 0.9rem;
+}
+.ad-btn-danger { background: #B3261E; color: #fff; border: 0; }
+
+@media (max-width: 600px) {
+  .ad-row { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+  .ad-row-side { justify-content: flex-start; }
+  .ad-facts { grid-template-columns: 1fr; gap: 0.1rem; }
+  .ad-facts dd { margin-bottom: 0.6rem; }
+  .ad-tabs .ad-tab-archived { margin-left: 0; }
+}

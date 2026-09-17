@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Player Registration — Be Pro Soccer | Scouting Events</title>
+  <meta name="description" content="Register for a Be Pro Soccer scouting event. Send your player information and highlight video — selected players are contacted by the coach." />
+  <meta property="og:title" content="Player Registration — Be Pro Soccer" />
+  <meta property="og:description" content="Register for a Be Pro Soccer scouting event. Send your player information and highlight video." />
+  <meta property="og:url" content="https://bepro.futbol/registro.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://bepro.futbol/assets/logo_horizontal_dark_web.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <link rel="stylesheet" href="css/registro.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="logo">
+    <div class="logo-text"><span class="logo-be">BE</span><span class="logo-pro">PRO</span></div>
+    <div class="logo-sub">EL ECOSISTEMA DEL TALENTO</div>
+  </a>
+        <ul class="nav-links">
+    <li><a href="events.html" data-i18n="nav_events">EVENTOS</a></li>
+    <li><a href="registro.html" class="active" data-i18n="nav_register">REGISTRO</a></li>
+    <li><a href="club.html" data-i18n="nav_club">CLUB</a></li>
+    <li><a href="ecosystem.html" data-i18n="nav_ecosystem">ECOSISTEMA</a></li>
+    <li><a href="about.html" data-i18n="nav_about">SOBRE NOSOTROS</a></li>
+    <li><a href="merch.html" data-i18n="nav_merch">TIENDA</a></li>
+    <li><a href="contact.html" data-i18n="nav_contact">CONTACTO</a></li>
+    <li><a href="contact.html" class="nav-cta" data-i18n="nav_join">ÚNETE A BE PRO FC</a></li>
+  </ul>
+  <div class="lang-toggle">
+    <button class="lang-btn active" data-lang="es">ES</button>
+    <button class="lang-btn" data-lang="en">EN</button>
+  </div>
+  <div class="hamburger" aria-label="Toggle menu"><span></span><span></span><span></span></div>
+</nav>
+
+<div class="mobile-nav">
+  <a href="events.html" data-i18n="nav_events">EVENTOS</a>
+  <a href="registro.html" class="active" data-i18n="nav_register">REGISTRO</a>
+  <a href="club.html" data-i18n="nav_club">CLUB</a>
+  <a href="ecosystem.html" data-i18n="nav_ecosystem">ECOSISTEMA</a>
+  <a href="about.html" data-i18n="nav_about">SOBRE NOSOTROS</a>
+  <a href="merch.html" data-i18n="nav_merch">TIENDA</a>
+  <a href="contact.html" data-i18n="nav_contact">CONTACTO</a>
+  <a href="contact.html" class="nav-cta" data-i18n="nav_join">ÚNETE A BE PRO FC</a>
+</div>
+
+<div class="page-hero">
+  <div class="breadcrumb">
+    <a href="index.html" data-i18n="nav_home">Inicio</a>
+    <span class="breadcrumb-sep">/</span>
+    <span data-i18n="nav_register">Registro</span>
+  </div>
+  <h1 data-i18n-html="rg_hero_h1">REGISTRO DE <span style="color:var(--orange);">JUGADORES</span></h1>
+  <p data-i18n="rg_hero_p">Nuestros eventos de scouting son solo por selección. Envía tu información y tu video; el coach revisa cada registro y contacta a los jugadores seleccionados.</p>
+</div>
+
+<section class="rg-section">
+  <div class="rg-wrap">
+
+    <p class="rg-closed" id="rgClosed" hidden data-i18n="rg_closed">No hay eventos con registro abierto en este momento.</p>
+
+    <form id="rgForm" class="contact-form-box rg-form" novalidate>
+      <p class="rg-req-note" data-i18n="rg_req_note">* Obligatorio</p>
+
+      <!-- Hidden from people; bots fill it in. -->
+      <div class="rg-hp" aria-hidden="true">
+        <label for="rgWebsite">Website</label>
+        <input type="text" id="rgWebsite" name="website" tabindex="-1" autocomplete="off" />
+      </div>
+
+      <div class="form-group" id="rgEventGroup" data-field="event">
+        <label for="rgEvent" data-i18n="rg_event">Evento</label>
+        <select id="rgEvent" name="event" required></select>
+      </div>
+
+      <fieldset class="rg-block">
+        <legend data-i18n="rg_s1">1 · Datos personales</legend>
+        <div class="form-group" data-field="name">
+          <label for="rgName" data-i18n="rg_name">Nombre completo *</label>
+          <input type="text" id="rgName" name="name" autocomplete="name" maxlength="100" required />
+        </div>
+        <div class="form-row">
+          <div class="form-group" data-field="dob">
+            <label for="rgDob" data-i18n="rg_dob">Fecha de nacimiento *</label>
+            <input type="date" id="rgDob" name="dob" autocomplete="bday" required />
+          </div>
+          <div class="form-group" data-field="birthplace">
+            <label for="rgBirthplace" data-i18n="rg_birthplace">Lugar de nacimiento *</label>
+            <input type="text" id="rgBirthplace" name="birthplace" maxlength="120" data-i18n-placeholder="rg_ph_birthplace" placeholder="Ciudad, país" required />
+          </div>
+        </div>
+        <div class="form-group" data-field="nationalities">
+          <label for="rgNat" data-i18n="rg_nat">Nacionalidad(es) *</label>
+          <input type="text" id="rgNat" name="nationalities" maxlength="120" data-i18n-placeholder="rg_ph_nat" placeholder="Ej. México, USA" required />
+        </div>
+        <div class="form-row">
+          <div class="form-group" data-field="phone">
+            <label for="rgPhone" data-i18n="rg_phone">Teléfono / WhatsApp *</label>
+            <input type="tel" id="rgPhone" name="phone" autocomplete="tel" maxlength="25" placeholder="+1 702 555 0100" required />
+            <small class="rg-help" data-i18n="rg_phone_help">Con código de país si no es de USA.</small>
+          </div>
+          <div class="form-group" data-field="email">
+            <label for="rgEmail" data-i18n="rg_email">Email *</label>
+            <input type="email" id="rgEmail" name="email" autocomplete="email" maxlength="120" required />
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="rg-block">
+        <legend data-i18n="rg_s2">2 · Datos del jugador</legend>
+        <div class="form-row">
+          <div class="form-group" data-field="height">
+            <label for="rgHeight" data-i18n="rg_height">Estatura *</label>
+            <input type="text" id="rgHeight" name="height" maxlength="20" data-i18n-placeholder="rg_ph_height" placeholder="Ej. 1.75 m o 5'9&quot;" required />
+          </div>
+          <div class="form-group" data-field="weight">
+            <label for="rgWeight" data-i18n="rg_weight">Peso *</label>
+            <input type="text" id="rgWeight" name="weight" maxlength="20" data-i18n-placeholder="rg_ph_weight" placeholder="Ej. 70 kg o 154 lb" required />
+          </div>
+        </div>
+        <div class="form-group" data-field="mls_next">
+          <span class="rg-label" id="rgMlsLbl" data-i18n="rg_mls">¿Ya jugaste MLS NEXT? *</span>
+          <div class="rg-choices" role="radiogroup" aria-labelledby="rgMlsLbl">
+            <label class="rg-choice"><input type="radio" name="mlsNext" value="yes" /> <span data-i18n="rg_yes">Sí</span></label>
+            <label class="rg-choice"><input type="radio" name="mlsNext" value="no" /> <span data-i18n="rg_no">No</span></label>
+          </div>
+        </div>
+        <div class="form-group" data-field="strong_leg">
+          <span class="rg-label" id="rgLegLbl" data-i18n="rg_leg">Pierna hábil *</span>
+          <div class="rg-choices" role="radiogroup" aria-labelledby="rgLegLbl">
+            <label class="rg-choice"><input type="radio" name="strongLeg" value="right" /> <span data-i18n="rg_right">Derecha</span></label>
+            <label class="rg-choice"><input type="radio" name="strongLeg" value="left" /> <span data-i18n="rg_left">Izquierda</span></label>
+            <label class="rg-choice"><input type="radio" name="strongLeg" value="both" /> <span data-i18n="rg_both">Ambas</span></label>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group" data-field="position_primary">
+            <label for="rgPos1" data-i18n="rg_pos1">Posición principal *</label>
+            <select id="rgPos1" name="positionPrimary" class="rg-position" required></select>
+          </div>
+          <div class="form-group" data-field="position_secondary">
+            <label for="rgPos2" data-i18n="rg_pos2">Posición secundaria *</label>
+            <select id="rgPos2" name="positionSecondary" class="rg-position" required></select>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="rg-block">
+        <legend data-i18n="rg_s3">3 · Video</legend>
+        <div class="form-group" data-field="video_url">
+          <label for="rgVideo" data-i18n="rg_video">Link de tu video de jugadas</label>
+          <input type="url" id="rgVideo" name="videoUrl" inputmode="url" maxlength="500" placeholder="https://youtube.com/…" />
+          <small class="rg-help" data-i18n="rg_video_help">Pega el link de YouTube, Hudl, Google Drive u otro. No subas el video.</small>
+        </div>
+      </fieldset>
+
+      <fieldset class="rg-block">
+        <legend data-i18n="rg_s4">4 · Contacto de emergencia</legend>
+        <div class="form-group" data-field="emergency_name">
+          <label for="rgEmName" data-i18n="rg_em_name">Nombre *</label>
+          <input type="text" id="rgEmName" name="emergencyName" maxlength="100" required />
+        </div>
+        <div class="form-row">
+          <div class="form-group" data-field="emergency_phone">
+            <label for="rgEmPhone" data-i18n="rg_em_phone">Teléfono *</label>
+            <input type="tel" id="rgEmPhone" name="emergencyPhone" maxlength="25" placeholder="+1 702 555 0100" required />
+          </div>
+          <div class="form-group" data-field="emergency_relationship">
+            <label for="rgEmRel" data-i18n="rg_em_rel">Parentesco *</label>
+            <input type="text" id="rgEmRel" name="emergencyRelationship" maxlength="60" data-i18n-placeholder="rg_ph_rel" placeholder="Ej. Mamá" required />
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="rg-block">
+        <legend data-i18n="rg_s5">5 · Descargo de responsabilidad</legend>
+        <p class="rg-help" data-i18n="rg_waiver_note">El descargo está en inglés.</p>
+        <div class="rg-waiver" tabindex="0" lang="en">
+          <h4>WAIVER</h4>
+          <p>I, the undersigned, being the parent/legal guardian of the above-named participant, or if I am the participant and of legal age, hereby agree as follows:</p>
+
+          <h5>Assumption of Risk:</h5>
+          <p>I acknowledge that participation in soccer events and training involves inherent risks, including the risk of physical injury, illness, or other harm. I voluntarily assume all risks associated with participation in BE PRO Soccer events and training sessions.</p>
+
+          <h5>Release and Waiver of Liability:</h5>
+          <p>I release and discharge BE PRO Soccer, its officers, directors, coaches, agents, and employees from any and all claims, liabilities, or demands that arise from or are in any way connected with participation in any BE PRO Soccer event or training session, whether caused by negligence or otherwise, to the fullest extent permitted by law.</p>
+
+          <p>I FURTHER UNDERSTAND THAT SPORTS INVOLVE PHYSICAL CONTACT BETWEEN PLAYERS, THAT SERIOUS ACCIDENTS OCCASIONALLY OCCUR DURING SUCH SPORTING ACTIVITIES, AND THAT PARTICIPANTS IN SUCH SPORTING ACTIVITIES OCCASIONALLY SUSTAIN SERIOUS PERSONAL INJURIES (INCLUDING DEATH) AND/OR PROPERTY DAMAGE, AS A CONSEQUENCE THEREOF. KNOWING THE RISKS OF PARTICIPATION, NEVERTHELESS, I HEREBY AGREE AND I ASSUME THOSE RISKS AND RELEASE AND HOLD HARMLESS BE PRO SOCCER LLC COMPANY AND THEIR AGENTS, SPONSORS AND EMPLOYEES WHO (THROUGH NEGLIGENCE OR CARELESSNESS) MIGHT OTHERWISE BE LIABLE TO ME, (OR OUR HEIRS OR ASSIGNS) FOR DAMAGES.</p>
+
+          <p>I attest that I am physically fit and have no known medical conditions which prohibit participation in this sport. I agree to follow all laws, rules and guidelines regulating the conduct of the league, camp or clinic. I understand and agree I are responsible for the mechanical and/or operating condition of any and all sporting equipment provided by me for my use, and I agree that I will continuously inspect and maintain all equipment used, even if we have obtained any of the equipment from Be Pro Soccer company their agents, sponsors and/or employees.</p>
+
+          <p>I HAVE CAREFULLY READ THIS AGREEMENT AND FULLY UNDERSTAND ITS CONTENTS. I AM AWARE THAT THIS IS A RELEASE OF LIABILITY FOR MYSELF AND MY CHILD AND A CONTRACT BETWEEN MYSELF, MY CHILD AND BE PRO SOCCER COMPANY, AND THEIR AGENTS, SPONSORS AND EMPLOYEES, AND I HAVE SIGNED IT OF MY OWN FREE WILL.</p>
+
+          <h5>Use of Image and Likeness:</h5>
+          <p>I grant BE PRO Soccer and its representatives the right to take photographs, video, and other recordings of me (or my child, if applicable) during events and training sessions. I authorize BE PRO Soccer to use, publish, and distribute these images and recordings in any promotional materials, websites, social media, or other media formats without compensation or prior approval. I understand that these images may be used to promote BE PRO Soccer’s activities and programs.</p>
+
+          <h5>Indemnification:</h5>
+          <p>I agree to indemnify and hold harmless BE PRO Soccer, its officers, directors, coaches, agents, and employees from any claims, actions, or damages arising out of participation in BE PRO Soccer activities, including reasonable attorneys’ fees and costs.</p>
+
+          <p><strong>By signing below, I acknowledge that I have read, understood, and voluntarily agree to this waiver and release of liability.</strong></p>
+        </div>
+
+        <div class="form-group rg-guardian" id="rgGuardian" data-field="guardian_name" hidden>
+          <label for="rgGuardianName" data-i18n="rg_guardian">Nombre del padre, madre o tutor legal *</label>
+          <input type="text" id="rgGuardianName" name="guardianName" maxlength="100" />
+          <small class="rg-help" data-i18n="rg_guardian_help">El jugador es menor de 18 años: un padre, madre o tutor legal acepta el descargo.</small>
+        </div>
+
+        <div class="form-group" data-field="waiver">
+          <label class="rg-agree">
+            <input type="checkbox" id="rgWaiver" name="waiverAccepted" />
+            <span data-i18n="rg_agree">ACEPTO / I AGREE</span>
+          </label>
+        </div>
+      </fieldset>
+
+      <p class="rg-error" id="rgError" role="alert" hidden></p>
+
+      <button type="submit" class="btn btn-primary rg-submit" id="rgSubmit" data-i18n="rg_submit">ENVIAR REGISTRO</button>
+    </form>
+
+    <div class="contact-form-box rg-done" id="rgDone" hidden>
+      <div class="rg-done-mark" aria-hidden="true">✓</div>
+      <h2 data-i18n="rg_done_h">REGISTRO RECIBIDO</h2>
+      <p data-i18n="rg_done_p">Gracias. El coach revisará tu información y tu video. Si eres seleccionado, te contactaremos por teléfono o email.</p>
+      <a href="index.html" class="btn btn-secondary" data-i18n="rg_done_home">Volver al inicio</a>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <a href="index.html" class="logo">
+        <div class="logo-text"><span class="logo-be">BE</span><span class="logo-pro">PRO</span></div>
+        <div class="logo-sub" data-i18n="logo_sub">EL ECOSISTEMA DEL TALENTO</div>
+      </a>
+      <p data-i18n="footer_desc">Un ecosistema. Un solo propósito. Descubrir, formar y desarrollar el talento sin límites. Las Vegas, Nevada.</p>
+      <div class="socials-row">
+        <a href="https://instagram.com/beprofc" target="_blank" rel="noopener" class="social-pill"><span class="s-icon">📸</span> @beprofc</a>
+        <a href="https://tiktok.com/@bepro.scouting" target="_blank" rel="noopener" class="social-pill"><span class="s-icon">🎵</span> @bepro.scouting</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4 data-i18n="footer_col1">EVENTOS</h4>
+      <div class="footer-links">
+        <a href="events.html" data-i18n="footer_f_ev2">Eventos Preliminares</a>
+        <a href="events.html" data-i18n="footer_f_ev3">Eventos Finales Las Vegas</a>
+        <a href="registro.html" data-i18n="footer_f_ev4">Registrarse</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4 data-i18n="footer_col2">RED GLOBAL</h4>
+      <div class="footer-links">
+        <a href="ecosystem.html" data-i18n="footer_f_nw1">Academy — Metodología Propia</a>
+        <a href="club.html">Be Pro FC</a>
+        <a href="merch.html" data-i18n="footer_f_nw3">Tienda</a>
+        <a href="noticias.html" data-i18n="footer_f_nw4">Noticias</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4 data-i18n="footer_col3">CLUB</h4>
+      <div class="footer-links">
+        <a href="club.html" data-i18n="footer_f_cl1">Competencia y Desarrollo</a>
+        <a href="about.html" data-i18n="footer_f_cl2">Sobre Nosotros</a>
+        <a href="contact.html" data-i18n="footer_f_cl3">Contacto</a>
+        <a href="https://instagram.com/beprofc" target="_blank" rel="noopener">@beprofc</a>
+      </div>
+    </div>
+  </div>
+  <hr class="footer-divider" />
+  <div class="footer-bottom">
+    <p data-i18n="footer_copy">© 2026 Be Pro Scouting / Be Pro FC / Be Pro Academy — Las Vegas, Nevada. Todos los derechos reservados.</p>
+    <div class="footer-tagline" data-i18n="footer_tagline">BE PART OF THE PROCESS.</div>
+  </div>
+</footer>
+
+<script src="js/i18n.js"></script>
+<script src="js/main.js"></script>
+<script type="module" src="js/registro.js"></script>
+</body>
+</html>

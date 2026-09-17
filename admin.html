@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Registros — Be Pro Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/registro.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+</head>
+<body class="ad-body">
+
+<header class="ad-top">
+  <a href="index.html" class="logo">
+    <div class="logo-text"><span class="logo-be">BE</span><span class="logo-pro">PRO</span></div>
+    <div class="logo-sub">REGISTROS</div>
+  </a>
+  <button type="button" class="ad-link" id="adLogout" hidden>Salir</button>
+</header>
+
+<!-- Sign in -->
+<main class="ad-login" id="adLogin" hidden>
+  <form class="contact-form-box" id="adLoginForm">
+    <h2>REGISTROS</h2>
+    <div class="form-group">
+      <label for="adPassword">Contraseña</label>
+      <input type="password" id="adPassword" autocomplete="current-password" required />
+    </div>
+    <p class="rg-error" id="adLoginError" hidden></p>
+    <button type="submit" class="btn btn-primary rg-submit">ENTRAR</button>
+  </form>
+</main>
+
+<!-- Applicants -->
+<main class="ad-main" id="adMain" hidden>
+  <div class="ad-bar">
+    <div class="form-group ad-event">
+      <label for="adEvent">Evento</label>
+      <select id="adEvent"></select>
+    </div>
+    <div class="form-group ad-search">
+      <label for="adSearch">Buscar</label>
+      <input type="search" id="adSearch" placeholder="Nombre, email, país, posición…" />
+    </div>
+    <div class="ad-actions">
+      <button type="button" class="btn btn-secondary btn-sm" id="adCsv">Descargar CSV</button>
+    </div>
+  </div>
+
+  <div class="ad-tabs" id="adTabs" role="tablist">
+    <button type="button" role="tab" data-status="all" class="active">Todos <span></span></button>
+    <button type="button" role="tab" data-status="pending">Por revisar <span></span></button>
+    <button type="button" role="tab" data-status="selected">Seleccionados <span></span></button>
+    <button type="button" role="tab" data-status="not_selected">No seleccionados <span></span></button>
+    <button type="button" role="tab" data-status="archived" class="ad-tab-archived">Archivados <span></span></button>
+  </div>
+
+  <p class="rg-error" id="adError" hidden></p>
+  <p class="ad-empty" id="adEmpty" hidden>No hay registros aquí todavía.</p>
+
+  <div class="ad-list" id="adList"></div>
+</main>
+
+<!-- One applicant -->
+<div class="ad-overlay" id="adOverlay" hidden>
+  <div class="ad-panel" role="dialog" aria-modal="true" aria-labelledby="adPName">
+    <button type="button" class="ad-close" id="adClose" aria-label="Cerrar">×</button>
+    <p class="ad-p-event" id="adPEvent"></p>
+    <h2 id="adPName"></h2>
+    <p class="ad-p-sub" id="adPSub"></p>
+
+    <div id="adPVideoWrap"></div>
+
+    <div class="ad-status" id="adPStatus">
+      <button type="button" data-status="pending">Por revisar</button>
+      <button type="button" data-status="selected">Seleccionado</button>
+      <button type="button" data-status="not_selected">No seleccionado</button>
+    </div>
+
+    <dl class="ad-facts" id="adPFacts"></dl>
+
+    <div class="form-group">
+      <label for="adPNote">Notas del coach</label>
+      <textarea id="adPNote" rows="3" maxlength="2000"></textarea>
+      <small class="rg-help" id="adPNoteState"></small>
+    </div>
+
+    <p class="rg-error" id="adPError" hidden></p>
+
+    <div class="ad-danger" id="adPArchiveBox">
+      <button type="button" class="ad-link" id="adPArchiveOpen">Archivar este registro</button>
+      <div id="adPArchiveForm" hidden>
+        <p class="rg-help">Para archivarlo, escribe su nombre tal como aparece arriba. Podrás recuperarlo en “Archivados”.</p>
+        <div class="ad-danger-row">
+          <input type="text" id="adPArchiveName" autocomplete="off" />
+          <button type="button" class="btn btn-sm ad-btn-danger" id="adPArchive">Archivar</button>
+        </div>
+      </div>
+    </div>
+    <div class="ad-danger" id="adPRestoreBox" hidden>
+      <button type="button" class="btn btn-secondary btn-sm" id="adPRestore">Recuperar registro</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "bepro-website",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Be Pro Soccer — website and scouting event registration",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "pg": "^8.13.1"
+  },
+  "scripts": {
+    "test": "node test/api.test.mjs"
+  }
+}

@@ -1,3 +1,5 @@
 .vercel
 PRIVATE-DO-NOT-SHARE.txt
 .DS_Store
+node_modules
+.env*
