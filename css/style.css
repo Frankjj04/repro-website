@@ -946,6 +946,9 @@ section { padding: 6rem 5%; position: relative; }
 }
 .gallery-item:hover { transform: scale(1.02); box-shadow: var(--shadow-orange); }
 .gallery-item.tall { grid-row: span 2; aspect-ratio: auto; }
+.gallery-ig { flex-direction: column; gap: 0.35rem; text-decoration: none; color: var(--white); font-size: 0.95rem; text-align: center; }
+.gallery-ig .ig-logo { width: 2.6rem; height: 2.6rem; margin-bottom: 0.25rem; }
+.gallery-ig strong { color: var(--orange); }
 .g1 { background: linear-gradient(135deg, #0D1A4A, #1A1040); }
 .g2 { background: linear-gradient(135deg, #1A0D0D, #3A1010); }
 .g3 { background: linear-gradient(135deg, #0D2A1A, #103A20); }
