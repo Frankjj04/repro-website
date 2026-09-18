@@ -81,8 +81,7 @@ function init() {
 
       const years = document.createElement('div');
       years.className = 'rg-event-years';
-      years.textContent = t('rg_ev_born') + ' ' + e.years[0] + '-' + e.years[1] +
-        ' · ' + t(e.rule === 'any' ? 'rg_ev_any' : 'rg_ev_younger');
+      years.textContent = t('rg_ev_born') + ' ' + e.years[0] + '-' + e.years[1];
 
       const pick = document.createElement('span');
       pick.className = 'rg-event-pick';
@@ -103,9 +102,9 @@ function init() {
   });
   $('rgEvent').addEventListener('change', () => { renderEventCards(); });
 
-  const eventFor = (dob) => {
+  const fits = (e, dob) => {
     const y = Number(String(dob).slice(0, 4));
-    return openEvents.find((e) => y >= e.years[0] && y <= e.years[1]);
+    return y >= e.years[0] && y <= e.years[1];
   };
 
   /* ---------- dropdowns, in the current language ---------- */
@@ -228,13 +227,18 @@ function init() {
     }
   }
 
-  /* Too old for that date: say so, and point at the date that takes everyone. */
+  /* Wrong birth year for that date: say which years it takes, and point at
+     the date that fits theirs — or say there is none. */
   function eventAgeMessage() {
     const chosen = openEvents.find((e) => e.id === $('rgEvent').value);
-    const open = openEvents.find((e) => e.rule === 'any');
-    let msg = t('rg_err_event_age').replace('{year}', chosen ? chosen.years[0] : '');
-    if (open && open !== chosen) msg += ' ' + t('rg_err_event_yours').replace('{event}', open.label[lang()]);
-    return msg;
+    const dob = form.elements.dob.value;
+    let msg = chosen
+      ? t('rg_err_event_age').replace('{from}', chosen.years[0]).replace('{to}', chosen.years[1])
+      : '';
+    const other = dob && openEvents.find((e) => e !== chosen && fits(e, dob));
+    if (other) msg += ' ' + t('rg_err_event_yours').replace('{event}', other.label[lang()]);
+    else if (dob && !openEvents.some((e) => fits(e, dob))) msg += ' ' + t('rg_err_event_none');
+    return msg.trim();
   }
 
   /* ---------- collect + quick checks (the server has the final word) ---------- */
@@ -273,12 +277,9 @@ function init() {
     const digits = (s) => s.replace(/\D/g, '').length;
     if (!b.name) return 'name';
     if (!b.dob) return 'dob';
-    // Younger players may always play up; only the limited dates turn away
-    // players who are older than that date's range.
+    // Each date takes only its own birth years.
     const chosen = openEvents.find((e) => e.id === b.event);
-    if (!chosen) return 'event_age';
-    const born = Number(String(b.dob).slice(0, 4));
-    if (chosen.rule === 'no_older' && born < chosen.years[0]) return 'event_age';
+    if (!chosen || !fits(chosen, b.dob)) return 'event_age';
     if (!b.birthplace) return 'birthplace';
     if (!b.nationalities) return 'nationalities';
     if (digits(b.phone) < 7 || digits(b.phone) > 15) return 'phone';

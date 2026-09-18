@@ -132,20 +132,17 @@ for (const [field, value, code] of [
   });
 }
 
-await test('the first date is open to every age', () => {
-  // The coach wants Nov 10-11 to take anyone who shows up.
-  for (const dob of ['1998-01-01', '2003-12-31', '2008-06-06', '2013-04-04'])
-    assert.equal(validateApplication({ ...adult(), dob, signatureName: 'A B' }).error, undefined, dob);
-});
-
-await test('the other dates take younger players but not older ones', () => {
-  // Nov 17-18 is 2008-2011.
-  assert.equal(validateApplication({ ...adult(), event: 'nov-17-18', dob: '2007-12-31', signatureName: 'A B' }).code, 'event_age');
-  assert.equal(validateApplication({ ...adult(), event: 'nov-17-18', dob: '2008-01-01', signatureName: 'A B' }).error, undefined);
-  assert.equal(validateApplication({ ...adult(), event: 'nov-17-18', dob: '2013-01-01', signatureName: 'A B' }).error, undefined);
-  // Nov 24-25 is 2012-2014.
-  assert.equal(validateApplication({ ...adult(), event: 'nov-24-25', dob: '2011-12-31', signatureName: 'A B' }).code, 'event_age');
-  assert.equal(validateApplication({ ...adult(), event: 'nov-24-25', dob: '2014-05-05', signatureName: 'A B' }).error, undefined);
+await test('each date takes only its own birth years, both ends included', () => {
+  // The coach: 2003-2008, 2008-2011, 2011-2014 — nobody older, nobody younger.
+  const check = (event, dob) => validateApplication({ ...adult(), event, dob, signatureName: 'A B' });
+  for (const [event, ok, bad] of [
+    ['nov-10-11', ['2003-01-01', '2008-12-31'], ['2002-12-31', '2009-01-01']],
+    ['nov-17-18', ['2008-01-01', '2011-12-31'], ['2007-12-31', '2012-01-01']],
+    ['nov-24-25', ['2011-01-01', '2014-12-31'], ['2010-12-31', '2015-01-01']],
+  ]) {
+    for (const dob of ok) assert.equal(check(event, dob).error, undefined, event + ' ' + dob);
+    for (const dob of bad) assert.equal(check(event, dob).code, 'event_age', event + ' ' + dob);
+  }
 });
 
 await test('for a minor, the person signing is recorded as the guardian', () => {
