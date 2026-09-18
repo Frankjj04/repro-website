@@ -1217,6 +1217,17 @@ section { padding: 6rem 5%; position: relative; }
 }
 .social-pill:hover { border-color: var(--orange); color: var(--white); background: var(--orange-subtle); }
 .s-icon { font-size: 1rem; }
+/* Instagram's own mark: white glyph on its gradient tile. */
+.ig-logo {
+  display: inline-block;
+  width: 1.2em; height: 1.2em;
+  flex: none;
+  vertical-align: -0.25em;
+  border-radius: 28%;
+  background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285aeb 90%);
+}
+.contact-icon .ig-logo { width: 26px; height: 26px; }
+a > .ig-logo:first-child { margin-right: 0.3em; }
 
 .contact-form-box {
   background: var(--navy-card);
