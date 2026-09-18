@@ -1,5 +1,5 @@
 /* =========================================
-   BE PRO SOCCER — Main JavaScript
+   BE PRO FUTBOL — Main JavaScript
    ========================================= */
 
 'use strict';

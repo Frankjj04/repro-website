@@ -28,7 +28,7 @@ const BEPRO_TRANSLATIONS = {
     eco_desc3_alt: 'We develop & connect',
 
     /* ── INDEX HERO ── */
-    idx_eyebrow:  'Las Vegas, Nevada &nbsp;·&nbsp; Est. Be Pro Soccer',
+    idx_eyebrow:  'Las Vegas, Nevada &nbsp;·&nbsp; Est. BE PRO Futbol',
     idx_hero_h1:  'WE CREATE<br><span class="accent">REAL</span><br>OPPORTUNITIES.',
     idx_hero_sub: 'Developing athletes. Creating opportunities. The bridge between extraordinary talent and professional soccer worldwide.',
     idx_cta_reg:  'Register for the Event',
@@ -326,7 +326,7 @@ const BEPRO_TRANSLATIONS = {
     about_staff_h2:    'THE COACHING <span style="color:var(--orange);">STAFF</span>',
     about_staff_p:     'The people behind the ecosystem. Coaches with real experience, professional backgrounds, and one goal: developing your talent.',
     about_jose_title:  'Founder & Head Coach',
-    about_jose_bio:    'Founder of Be Pro Soccer and creator of the most important talent ecosystem in Las Vegas. Years of experience in scouting and player development at the professional and international level.',
+    about_jose_bio:    'Founder of BE PRO Futbol and creator of the most important talent ecosystem in Las Vegas. Years of experience in scouting and player development at the professional and international level.',
     about_coach2_title: 'Assistant Coach',
     about_coach2_bio:   'Coach information coming soon.',
     about_coach3_title: 'Assistant Coach',
@@ -651,9 +651,9 @@ const BEPRO_TRANSLATIONS = {
 
     /* ── REGISTRATION: permission to share + signature ── */
     rg_s6: '6 · Permission to share',
-    rg_consent_html: '<p>Be Pro Soccer connects players with clubs, coaches, scouts, universities and agencies. With your permission, we can share your <strong>player profile</strong> with them:</p><ul><li>Name and photo</li><li>Birth year, age, place of birth and nationality</li><li>Height, weight, positions, strong leg and whether you played MLS NEXT</li><li>Your video</li></ul><p><strong>We never share</strong> your phone, your email, your emergency contact or your parents\' information. If a club or scout is interested in you, they contact us and we contact you.</p><p>We only share profiles through private links that expire. You can withdraw this permission at any time by messaging us on WhatsApp at +1 702-831-9474; from then on your profile is no longer shown.</p>',
-    rg_consent_agree: 'I authorize Be Pro Soccer to share the player profile described above with clubs, coaches, scouts and agencies.',
-    rg_consent_optional: 'Optional. If you don\'t, you can still register, but only Be Pro Soccer will see your information.',
+    rg_consent_html: '<p>BE PRO Futbol connects players with clubs, coaches, scouts, universities and agencies. With your permission, we can share your <strong>player profile</strong> with them:</p><ul><li>Name and photo</li><li>Birth year, age, place of birth and nationality</li><li>Height, weight, positions, strong leg and whether you played MLS NEXT</li><li>Your video</li></ul><p><strong>We never share</strong> your phone, your email, your emergency contact or your parents\' information. If a club or scout is interested in you, they contact us and we contact you.</p><p>We only share profiles through private links that expire. You can withdraw this permission at any time by messaging us on WhatsApp at +1 702-831-9474; from then on your profile is no longer shown.</p>',
+    rg_consent_agree: 'I authorize BE PRO Futbol to share the player profile described above with clubs, coaches, scouts and agencies.',
+    rg_consent_optional: 'Optional. If you don\'t, you can still register, but only BE PRO Futbol will see your information.',
     rg_s7: '7 · Signature',
     rg_sign: 'Signature: type your full name *',
     rg_sign_minor: 'Parent or legal guardian signature: full name *',
@@ -661,7 +661,7 @@ const BEPRO_TRANSLATIONS = {
     rg_sign_help_minor: 'The player is under 18, so a parent or legal guardian signs. Typing their name signs the waiver and, if checked, the permission to share.',
     rg_sign_date: 'Date',
     rg_err_signature: 'Type the full name of the person signing.',
-    rg_privacy: '🔒 Your information is seen only by Be Pro Soccer and, if you allow it, the clubs and scouts we share your profile with.',
+    rg_privacy: '🔒 Your information is seen only by BE PRO Futbol and, if you allow it, the clubs and scouts we share your profile with.',
 
     /* ── REGISTRATION: the three events ── */
     rg_events_title: 'NOVEMBER SCOUTING <span style="color:var(--orange);">MADNESS</span>',
@@ -727,7 +727,7 @@ const BEPRO_TRANSLATIONS = {
     eco_desc3_alt: 'Formamos y conectamos',
 
     /* ── INDEX HERO ── */
-    idx_eyebrow:  'Las Vegas, Nevada &nbsp;·&nbsp; Est. Be Pro Soccer',
+    idx_eyebrow:  'Las Vegas, Nevada &nbsp;·&nbsp; Est. BE PRO Futbol',
     idx_hero_h1:  'CREAMOS<br><span class="accent">OPORTUNIDADES</span><br>REALES.',
     idx_hero_sub: 'Desarrollando atletas. Creando oportunidades. El puente entre el talento extraordinario y el fútbol profesional mundial.',
     idx_cta_reg:  'Regístrate al Evento',
@@ -1068,7 +1068,7 @@ const BEPRO_TRANSLATIONS = {
     about_staff_h2:    'EL CUERPO <span style="color:var(--orange);">TÉCNICO</span>',
     about_staff_p:     'Las personas detrás del ecosistema. Entrenadores con experiencia real, trayectoria profesional y un solo objetivo: desarrollar tu talento.',
     about_jose_title:  'Fundador & Head Coach',
-    about_jose_bio:    'Fundador de Be Pro Soccer y creador del ecosistema de talento más importante de Las Vegas. Con años de experiencia en scouting y desarrollo de jugadores a nivel profesional e internacional.',
+    about_jose_bio:    'Fundador de BE PRO Futbol y creador del ecosistema de talento más importante de Las Vegas. Con años de experiencia en scouting y desarrollo de jugadores a nivel profesional e internacional.',
     about_coach2_title: 'Asistente Técnico',
     about_coach2_bio:   'Información del entrenador próximamente.',
     about_coach3_title: 'Asistente Técnico',
@@ -1347,9 +1347,9 @@ const BEPRO_TRANSLATIONS = {
 
     /* ── REGISTRATION: permission to share + signature ── */
     rg_s6: '6 · Autorización para compartir',
-    rg_consent_html: '<p>Be Pro Soccer conecta jugadores con clubes, entrenadores, scouts, universidades y agencias. Si lo autorizas, podemos compartir con ellos tu <strong>perfil de jugador</strong>:</p><ul><li>Nombre y foto</li><li>Año de nacimiento, edad, lugar de nacimiento y nacionalidad</li><li>Estatura, peso, posiciones, pierna hábil y si jugaste MLS NEXT</li><li>Tu video</li></ul><p><strong>Nunca compartimos</strong> tu teléfono, tu email, tu contacto de emergencia ni los datos de tus padres. Si un club o scout se interesa en ti, nos contacta a nosotros y nosotros te contactamos a ti.</p><p>Compartimos los perfiles solo con links privados que vencen. Puedes retirar esta autorización cuando quieras escribiéndonos por WhatsApp al +1 702-831-9474; desde ese momento tu perfil deja de mostrarse.</p>',
-    rg_consent_agree: 'Autorizo a Be Pro Soccer a compartir el perfil de jugador descrito arriba con clubes, entrenadores, scouts y agencias.',
-    rg_consent_optional: 'Opcional. Si no lo autorizas, igual puedes registrarte, pero solo Be Pro Soccer verá tu información.',
+    rg_consent_html: '<p>BE PRO Futbol conecta jugadores con clubes, entrenadores, scouts, universidades y agencias. Si lo autorizas, podemos compartir con ellos tu <strong>perfil de jugador</strong>:</p><ul><li>Nombre y foto</li><li>Año de nacimiento, edad, lugar de nacimiento y nacionalidad</li><li>Estatura, peso, posiciones, pierna hábil y si jugaste MLS NEXT</li><li>Tu video</li></ul><p><strong>Nunca compartimos</strong> tu teléfono, tu email, tu contacto de emergencia ni los datos de tus padres. Si un club o scout se interesa en ti, nos contacta a nosotros y nosotros te contactamos a ti.</p><p>Compartimos los perfiles solo con links privados que vencen. Puedes retirar esta autorización cuando quieras escribiéndonos por WhatsApp al +1 702-831-9474; desde ese momento tu perfil deja de mostrarse.</p>',
+    rg_consent_agree: 'Autorizo a BE PRO Futbol a compartir el perfil de jugador descrito arriba con clubes, entrenadores, scouts y agencias.',
+    rg_consent_optional: 'Opcional. Si no lo autorizas, igual puedes registrarte, pero solo BE PRO Futbol verá tu información.',
     rg_s7: '7 · Firma',
     rg_sign: 'Firma: escribe tu nombre completo *',
     rg_sign_minor: 'Firma del padre, madre o tutor legal: nombre completo *',
@@ -1357,7 +1357,7 @@ const BEPRO_TRANSLATIONS = {
     rg_sign_help_minor: 'El jugador es menor de 18 años, así que firma su padre, madre o tutor legal. Al escribir su nombre firma el descargo y, si la marcó, la autorización para compartir.',
     rg_sign_date: 'Fecha',
     rg_err_signature: 'Escribe el nombre completo de quien firma.',
-    rg_privacy: '🔒 Tu información la ve solo Be Pro Soccer y, si lo autorizas, los clubes y scouts con los que compartimos tu perfil.',
+    rg_privacy: '🔒 Tu información la ve solo BE PRO Futbol y, si lo autorizas, los clubes y scouts con los que compartimos tu perfil.',
 
     /* ── REGISTRATION: the three events ── */
     rg_events_title: 'NOVEMBER SCOUTING <span style="color:var(--orange);">MADNESS</span>',

@@ -578,7 +578,7 @@ $('adSmCreate').addEventListener('click', async () => {
       (sh.skipped ? ' (' + sh.skipped + ' sin autorización quedaron fuera)' : '') + '.';
     $('adSmLink').value = url;
     $('adSmWhatsapp').href = 'https://wa.me/?text=' + encodeURIComponent(
-      'Hola, te comparto perfiles de jugadores de Be Pro Soccer: ' + url);
+      'Hola, te comparto perfiles de jugadores de BE PRO Futbol: ' + url);
     $('adSmPreview').href = url;
     $('adSmExpires').textContent = 'Cualquier persona con este link puede ver estos perfiles hasta el ' + fmtDay(sh.expiresAt) +
       '. Puedes desactivarlo cuando quieras en “Links compartidos”.';
@@ -672,7 +672,7 @@ $('adPrintBtn').addEventListener('click', async () => {
   const sheet = $('adPrint');
   const head = el('div', 'ad-print-head');
   head.append(
-    el('div', 'ad-print-brand', 'BE PRO SOCCER'),
+    el('div', 'ad-print-brand', 'BE PRO FUTBOL'),
     el('h1', null, listTitle()),
     el('div', 'ad-print-sub', ($('adEvent').value ? eventLabel($('adEvent').value) : 'Todos los eventos') +
       ' · ' + plural(rows.length, 'jugador', 'jugadores') + ' · ' + fmtDay(new Date().toISOString())),
@@ -713,7 +713,7 @@ $('adPrintBtn').addEventListener('click', async () => {
   });
 
   sheet.append(el('div', 'ad-print-foot',
-    'Be Pro Soccer · Las Vegas, Nevada · Documento interno con datos personales — no compartir.'));
+    'BE PRO Futbol · Las Vegas, Nevada · Documento interno con datos personales — no compartir.'));
 
   // A photo that has not arrived yet prints as a blank square.
   const btn = $('adPrintBtn');
