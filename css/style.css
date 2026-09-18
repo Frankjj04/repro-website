@@ -400,15 +400,14 @@ p { color: var(--gray-light); font-size: 0.95rem; line-height: 1.8; }
   background: var(--navy-deep);
   border-top: 1px solid rgba(255,107,26,0.15);
   border-bottom: 1px solid rgba(255,107,26,0.15);
-  padding: 1.4rem 5%;
-  display: flex;
-  justify-content: center;
-  gap: 3.5rem;
-  flex-wrap: wrap;
+  padding: 1.4rem max(5%, calc((100% - 1200px) / 2));
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1.5rem;
   position: relative;
   z-index: 3;
 }
-.stat-item { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.stat-item { display: flex; flex-direction: column; align-items: center; gap: 3px; text-align: center; }
 .stat-number {
   font-family: var(--font-heading);
   font-size: 2.2rem;
@@ -1368,7 +1367,8 @@ footer {
   .page-hero { padding: 120px 5% 60px; }
   .hero-content { padding-top: 72px; padding-bottom: 80px; }
   .hero h1 { font-size: 3rem; overflow-wrap: break-word; word-break: break-word; }
-  .stats-bar { gap: 1.5rem; padding: 1.2rem 4%; }
+  .stats-bar { grid-template-columns: 1fr 1fr; gap: 1.2rem 1rem; padding: 1.5rem 5%; }
+  .stat-item:last-child:nth-child(odd) { grid-column: 1 / -1; }
   .steps-container { grid-template-columns: 1fr; }
   .tier-cards { grid-template-columns: 1fr; }
   .testimonials-grid { grid-template-columns: 1fr; }
@@ -1395,8 +1395,6 @@ footer {
   .footer-grid { grid-template-columns: 1fr; }
   .gallery-grid { grid-template-columns: 1fr; }
   .gallery-item.tall { aspect-ratio: 16/9; }
-  .stats-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding: 1.5rem 5%; }
-  .stat-item { text-align: center; }
   .stat-number { font-size: 1.8rem; }
   .needs-grid { grid-template-columns: 1fr; }
   .hero h1 { font-size: 2.2rem; overflow-wrap: break-word; word-break: break-word; }

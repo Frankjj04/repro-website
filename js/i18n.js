@@ -38,9 +38,10 @@ const BEPRO_TRANSLATIONS = {
 
     /* ── STATS BAR ── */
     stat_l1: 'Players Reached',
-    stat_l2: 'Events & Tryouts',
+    stat_l2: 'Final Events',
     stat_l3: 'International Partners',
-    stat_l4: 'Opportunities Generated',
+    stat_l4: 'Real Opportunities Generated',
+    stat_l5: 'Pro Contracts Signed',
 
     /* ── THREE PILLARS ── */
     eco_tag: 'The Ecosystem',
@@ -371,7 +372,7 @@ const BEPRO_TRANSLATIONS = {
     about_f3_h4:  'BE PRO Academy',
     about_f3_p:   'Our way to train everyone. Own methodology adaptable from beginner to elite performance.',
     about_vs1:    'Players Reached',
-    about_vs2:    'Events',
+    about_vs2:    'Final Events',
     about_vs3:    'Int. Partners',
     about_vis_l1: 'BECOME THE',
     about_vis_l2: 'PLATFORM #1',
@@ -737,9 +738,10 @@ const BEPRO_TRANSLATIONS = {
 
     /* ── STATS BAR ── */
     stat_l1: 'Jugadores Alcanzados',
-    stat_l2: 'Eventos y Visorías',
+    stat_l2: 'Eventos Finales',
     stat_l3: 'Aliados Internacionales',
-    stat_l4: 'Oportunidades Generadas',
+    stat_l4: 'Oportunidades Reales Generadas',
+    stat_l5: 'Contratos Profesionales Firmados',
 
     /* ── THREE PILLARS ── */
     eco_tag: 'El Ecosistema',
@@ -1055,7 +1057,7 @@ const BEPRO_TRANSLATIONS = {
     about_f3_h4:  'BE PRO Academy',
     about_f3_p:   'Nuestra forma de entrenar a todos. Metodología propia adaptable desde iniciación hasta alto rendimiento.',
     about_vs1:    'Jugadores Alcanzados',
-    about_vs2:    'Eventos',
+    about_vs2:    'Eventos Finales',
     about_vs3:    'Aliados Int.',
     about_vis_l1: 'CONVERTIRNOS EN LA',
     about_vis_l2: 'PLATAFORMA #1',
