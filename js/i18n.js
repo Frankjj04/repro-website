@@ -142,7 +142,7 @@ const BEPRO_TRANSLATIONS = {
     footer_f_cl1:   'Competition & Development',
     footer_f_cl2:   'About Us',
     footer_f_cl3:   'Contact',
-    footer_copy:    '© 2026 Be Pro Scouting / Be Pro FC — Las Vegas, Nevada. All rights reserved.',
+    footer_copy:    '© 2026 BE PRO Futbol · BE PRO Scouting · BE PRO FC — Las Vegas, Nevada. All rights reserved.',
     footer_tagline: 'BE PART OF THE PROCESS.',
 
     /* ── EVENTS PAGE ── */
@@ -838,7 +838,7 @@ const BEPRO_TRANSLATIONS = {
     footer_f_cl1:   'Competencia y Desarrollo',
     footer_f_cl2:   'Sobre Nosotros',
     footer_f_cl3:   'Contacto',
-    footer_copy:    '© 2026 Be Pro Scouting / Be Pro FC — Las Vegas, Nevada. Todos los derechos reservados.',
+    footer_copy:    '© 2026 BE PRO Futbol · BE PRO Scouting · BE PRO FC — Las Vegas, Nevada. Todos los derechos reservados.',
     footer_tagline: 'BE PART OF THE PROCESS.',
 
     /* ── EVENTS PAGE ── */
