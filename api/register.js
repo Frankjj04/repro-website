@@ -39,16 +39,18 @@ export default async function handler(req, res) {
           mls_next, strong_leg, position_primary, position_secondary, video_url,
           emergency_name, emergency_phone, emergency_relationship, guardian_name,
           waiver_version, waiver_accepted_at, ip, photo, photo_type,
-          signature_name, consent_share, consent_share_at, consent_version, form_lang, user_agent)
+          signature_name, consent_share, consent_share_at, consent_version, form_lang, user_agent,
+          parent_email, parent_confirmed_at)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,
-               $24,$25,$26,$27,$28,$29)
+               $24,$25,$26,$27,$28,$29,$30,$31)
        RETURNING id`,
       [a.event, a.name, a.dob, a.birthplace, a.nationalities, a.phone, a.email, a.height, a.weight,
        a.mlsNext, a.strongLeg, a.positionPrimary, a.positionSecondary, a.videoUrl,
        a.emergencyName, a.emergencyPhone, a.emergencyRelationship, a.guardianName,
        WAIVER_VERSION, now, ip, photo.buf, photo.type,
        a.signatureName, a.consentShare, a.consentShare ? now : null,
-       a.consentShare ? CONSENT_VERSION : '', lang, userAgent]
+       a.consentShare ? CONSENT_VERSION : '', lang, userAgent,
+       a.parentEmail || '', a.parentConfirmed ? now : null]
     );
     return res.status(201).json({ ok: true, id: Number(rows[0].id) });
   } catch (err) {

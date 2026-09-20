@@ -4,7 +4,7 @@
    see and fix before sending. Every refusal code the server can send has an
    entry in REFUSALS; a test fails if one is missing. */
 
-import { EVENTS, POSITIONS, MINOR_AGE } from './registro-config.js';
+import { EVENTS, POSITIONS, MINOR_AGE, CHILD_AGE } from './registro-config.js';
 
 /* server code → [data-field to highlight, i18n key]. Codes that are not about
    one field highlight nothing. */
@@ -35,6 +35,8 @@ export const REFUSALS = {
   emergency_relationship: ['emergency_relationship', 'rg_err_emergency_relationship'],
   waiver: ['waiver', 'rg_err_waiver'],
   signature: ['signature', 'rg_err_signature'],
+  parent_email: ['parent_email', 'rg_err_parent_email'],
+  parent_confirm: ['parent_confirm', 'rg_err_parent_confirm'],
   duplicate: ['email', 'rg_err_duplicate'],
   server_error: [null, 'rg_err_server_error'],
   not_configured: [null, 'rg_err_not_configured'],
@@ -126,15 +128,23 @@ function init() {
   }
 
   /* ---------- signature: under 18, a parent or guardian signs ---------- */
-  function isMinor() {
+  function playerAge() {
     const v = $('rgDob').value;
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return false;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return null;
     const d = new Date(v + 'T00:00:00');
     const now = new Date();
     let age = now.getFullYear() - d.getFullYear();
     if (now.getMonth() < d.getMonth() ||
         (now.getMonth() === d.getMonth() && now.getDate() < d.getDate())) age--;
-    return age >= 0 && age < MINOR_AGE;
+    return age >= 0 ? age : null;
+  }
+  function isMinor() {
+    const age = playerAge();
+    return age !== null && age < MINOR_AGE;
+  }
+  function isChild() {
+    const age = playerAge();
+    return age !== null && age < CHILD_AGE;
   }
   // Switching the data-i18n key (not just the text) keeps the right wording
   // when i18n.js re-translates the page on a language change.
@@ -146,6 +156,12 @@ function init() {
     const minor = isMinor();
     setKey($('rgSignLabel'), minor ? 'rg_sign_minor' : 'rg_sign');
     setKey($('rgSignHelp'), minor ? 'rg_sign_help_minor' : 'rg_sign_help');
+
+    // Under 13 the parent's own email and a plain statement that it is them.
+    const child = isChild();
+    $('rgChildBlock').hidden = !child;
+    $('rgParentEmail').required = child;
+    if (!child) { $('rgParentEmail').value = ''; $('rgParentConfirm').checked = false; }
   }
   function updateDate() {
     $('rgSignDate').textContent = new Date().toLocaleDateString(lang() === 'en' ? 'en-US' : 'es-MX',
@@ -267,6 +283,8 @@ function init() {
       waiverAccepted: $('rgWaiver').checked,
       consentShare: $('rgConsent').checked,
       signatureName: v('signatureName'),
+      parentEmail: v('parentEmail'),
+      parentConfirm: $('rgParentConfirm').checked,
       lang: lang(),
       photo: photoUrl,
       website: v('website'),
@@ -296,6 +314,10 @@ function init() {
     if (!b.emergencyRelationship) return 'emergency_relationship';
     if (!b.waiverAccepted) return 'waiver';
     if (!b.signatureName) return 'signature';
+    if (isChild()) {
+      if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(b.parentEmail)) return 'parent_email';
+      if (!b.parentConfirm) return 'parent_confirm';
+    }
     return null;
   }
 

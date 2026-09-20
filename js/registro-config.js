@@ -69,3 +69,9 @@ export const CONSENT_VERSION = '2026-09-17';
 export const SHARE_LINK_DAYS = [7, 30, 90];
 
 export const MINOR_AGE = 18;
+
+/* Under this age a parent or guardian must be the one filling the form: we ask
+   for their email and an explicit statement that it is them. US rules on
+   children's data (COPPA) expect a parent, not the child, to hand over the
+   information. */
+export const CHILD_AGE = 13;

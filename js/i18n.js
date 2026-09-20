@@ -20,6 +20,9 @@ const BEPRO_TRANSLATIONS = {
     nav_home:      'Home',
     nav_news:      'News',
     nav_privacy:   'Privacy',
+    nav_terms:     'Terms of Use',
+    tm_h1:         'TERMS OF <span style="color:var(--orange);">USE</span>',
+    tm_sub:        'What we offer, what we do not promise, and the rules for registration and events.',
     eco_hero_h1:   'THE <span style="color:var(--orange);">ECOSYSTEM</span>',
     eco_hero_p:    'Three pillars. One purpose: discover, develop, and connect players with real opportunities.',
     eco_dest_h2:   'WHERE OUR <span style="color:var(--orange);">PLAYERS LAND</span>',
@@ -668,6 +671,11 @@ const BEPRO_TRANSLATIONS = {
     rg_sign_help_minor: 'The player is under 18, so a parent or legal guardian signs. Typing their name signs the waiver and, if checked, the permission to share.',
     rg_sign_date: 'Date',
     rg_err_signature: 'Type the full name of the person signing.',
+    rg_parent_email: "Parent or guardian's email *",
+    rg_parent_help: 'An adult has to fill out this registration. We only use this email to confirm permission.',
+    rg_parent_confirm: 'I am the parent or legal guardian of this player and I am filling out this registration for them.',
+    rg_err_parent_email: "Enter the parent or guardian's email.",
+    rg_err_parent_confirm: 'A parent or guardian has to confirm they are filling out this form.',
     rg_privacy: '🔒 Your information is seen only by BE PRO Futbol and, if you allow it, the clubs and scouts we share your profile with.',
 
     /* ── REGISTRATION: the three events ── */
@@ -726,6 +734,9 @@ const BEPRO_TRANSLATIONS = {
     nav_home:      'Inicio',
     nav_news:      'Noticias',
     nav_privacy:   'Privacidad',
+    nav_terms:     'Términos de Uso',
+    tm_h1:         'TÉRMINOS DE <span style="color:var(--orange);">USO</span>',
+    tm_sub:        'Qué ofrecemos, qué no prometemos, y las reglas del registro y de los eventos.',
     eco_hero_h1:   'EL <span style="color:var(--orange);">ECOSISTEMA</span>',
     eco_hero_p:    'Tres pilares. Un solo propósito: descubrir, desarrollar y conectar jugadores con oportunidades reales.',
     eco_dest_h2:   'DONDE LLEGAN <span style="color:var(--orange);">NUESTROS JUGADORES</span>',
@@ -1371,6 +1382,11 @@ const BEPRO_TRANSLATIONS = {
     rg_sign_help_minor: 'El jugador es menor de 18 años, así que firma su padre, madre o tutor legal. Al escribir su nombre firma el descargo y, si la marcó, la autorización para compartir.',
     rg_sign_date: 'Fecha',
     rg_err_signature: 'Escribe el nombre completo de quien firma.',
+    rg_parent_email: 'Correo del papá, mamá o tutor *',
+    rg_parent_help: 'Este registro lo tiene que llenar un adulto. Usaremos este correo solo para confirmar el permiso.',
+    rg_parent_confirm: 'Soy el papá, la mamá o el tutor legal de este jugador y estoy llenando este registro por él o ella.',
+    rg_err_parent_email: 'Escribe el correo del papá, la mamá o el tutor.',
+    rg_err_parent_confirm: 'El papá, la mamá o el tutor tiene que confirmar que está llenando este formulario.',
     rg_privacy: '🔒 Tu información la ve solo BE PRO Futbol y, si lo autorizas, los clubes y scouts con los que compartimos tu perfil.',
 
     /* ── REGISTRATION: the three events ── */

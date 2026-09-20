@@ -349,6 +349,10 @@ function openPanel(id) {
     ['Tel. de emergencia', a.emergencyPhone, 'tel:' + a.emergencyPhone],
     ['Firma', a.signatureName ? a.signatureName + (a.guardianName ? ' (padre, madre o tutor)' : '') : '—'],
     ['Descargo aceptado', fmtDate(a.waiverAcceptedAt)],
+    ...(a.parentEmail
+      ? [['Correo del tutor (menor de 13)', a.parentEmail, 'mailto:' + a.parentEmail],
+         ['Permiso del tutor', fmtDate(a.parentConfirmedAt)]]
+      : []),
     ['Registrado', fmtDate(a.createdAt)],
   ];
   $('adPFacts').replaceChildren(...facts.flatMap(([k, val, href]) => {

@@ -4,6 +4,8 @@
 
 import { checkPassword, issueCookie, clearCookie, isSignedIn, isConfigured }
   from '../lib/auth.js';
+import { clientIp, readAttempts, saveAttempts, nextState, LOCK_MINUTES }
+  from '../lib/lockout.js';
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
@@ -28,12 +30,34 @@ export default async function handler(req, res) {
   }
 
   const password = (req.body && req.body.password) || '';
+  const ip = clientIp(req);
+  const row = await readAttempts(ip);
+  const ok = checkPassword(password);
+  const state = nextState(row, ok);
 
-  if (!checkPassword(password)) {
-    // A small delay blunts guessing without needing shared state between
-    // serverless instances.
+  await saveAttempts(ip, state);
+
+  // Already locked from earlier tries: the password is not even considered.
+  if (state.locked && !ok) {
     await new Promise((r) => setTimeout(r, 600));
-    return res.status(401).json({ error: 'bad_password', message: 'Contraseña incorrecta.' });
+    return res.status(429).json({
+      error: 'locked',
+      message: 'Demasiados intentos. Espera ' + state.minutesLeft +
+        (state.minutesLeft === 1 ? ' minuto' : ' minutos') + ' e inténtalo otra vez.',
+    });
+  }
+
+  if (!ok) {
+    // A small delay blunts guessing even before the lock kicks in.
+    await new Promise((r) => setTimeout(r, 600));
+    const left = Math.max(0, 5 - state.fails);
+    return res.status(401).json({
+      error: 'bad_password',
+      message: left <= 2
+        ? 'Contraseña incorrecta. Te quedan ' + left + (left === 1 ? ' intento' : ' intentos') +
+          ' antes de esperar ' + LOCK_MINUTES + ' minutos.'
+        : 'Contraseña incorrecta.',
+    });
   }
 
   res.setHeader('Set-Cookie', issueCookie());

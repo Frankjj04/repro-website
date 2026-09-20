@@ -134,7 +134,9 @@ for (const [field, value, code] of [
 
 await test('each date takes only its own birth years, both ends included', () => {
   // The coach: 2003-2008, 2008-2011, 2011-2014 — nobody older, nobody younger.
-  const check = (event, dob) => validateApplication({ ...adult(), event, dob, signatureName: 'A B' });
+  // Players under 13 also need the parent fields; this test is about the years.
+  const check = (event, dob) => validateApplication({ ...adult(), event, dob, signatureName: 'A B',
+    parentEmail: 'mama@ejemplo.com', parentConfirm: true });
   for (const [event, ok, bad] of [
     ['nov-10-11', ['2003-01-01', '2008-12-31'], ['2002-12-31', '2009-01-01']],
     ['nov-17-18', ['2008-01-01', '2011-12-31'], ['2007-12-31', '2012-01-01']],
@@ -309,6 +311,68 @@ await test('every rg_ key used exists in Spanish and English', () => {
     const missing = [...used].filter((k) => T[lang][k] === undefined);
     assert.deepEqual(missing, [], lang + ' is missing keys');
   }
+});
+
+/* ---------- under 13: a parent fills the form ---------- */
+const childDob = () => '2014-01-15';   // 11 or 12 years old, inside the nov-24-25 years
+
+await test('under 13 needs a parent email and their confirmation', () => {
+  const base = { ...adult(), dob: childDob(), event: 'nov-24-25' };
+  assert.equal(validateApplication(base).code, 'parent_email');
+  assert.equal(validateApplication({ ...base, parentEmail: 'mama@ejemplo.com' }).code, 'parent_confirm');
+  const ok = validateApplication({ ...base, parentEmail: 'Mama@Ejemplo.com', parentConfirm: true });
+  assert.equal(ok.code, undefined);
+  assert.equal(ok.application.parentEmail, 'mama@ejemplo.com');
+  assert.equal(ok.application.parentConfirmed, true);
+});
+
+await test('13 and over does not ask for a parent email', () => {
+  const a = validateApplication(adult()).application;
+  assert.equal(a.parentEmail, '');
+  assert.equal(a.parentConfirmed, false);
+});
+
+/* ---------- sign-in lockout ---------- */
+const { nextState, clientIp, MAX_FAILS, LOCK_MINUTES } = await import('../lib/lockout.js');
+
+await test('wrong tries add up and then lock the address', () => {
+  const now = new Date('2026-09-19T20:00:00Z');
+  let row = null;
+  for (let i = 1; i < MAX_FAILS; i++) {
+    const st = nextState(row, false, now);
+    assert.equal(st.fails, i);
+    assert.equal(st.locked, false);
+    row = { fails: st.fails, locked_until: st.lockedUntil };
+  }
+  const last = nextState(row, false, now);
+  assert.equal(last.locked, true);
+  assert.equal(last.minutesLeft, LOCK_MINUTES);
+});
+
+await test('while locked, even the right password is refused', () => {
+  const now = new Date('2026-09-19T20:00:00Z');
+  const row = { fails: MAX_FAILS, locked_until: new Date('2026-09-19T20:10:00Z') };
+  assert.equal(nextState(row, true, now).locked, true);
+  assert.equal(nextState(row, false, now).minutesLeft, 10);
+});
+
+await test('the lock runs out and the count starts over', () => {
+  const now = new Date('2026-09-19T20:20:00Z');
+  const row = { fails: MAX_FAILS, locked_until: new Date('2026-09-19T20:10:00Z') };
+  const st = nextState(row, false, now);
+  assert.equal(st.locked, false);
+  assert.equal(st.fails, 1);
+});
+
+await test('the right password clears the count', () => {
+  const st = nextState({ fails: 3, locked_until: null }, true);
+  assert.equal(st.fails, 0);
+  assert.equal(st.locked, false);
+});
+
+await test('the client address is the first one in x-forwarded-for', () => {
+  assert.equal(clientIp({ headers: { 'x-forwarded-for': '203.0.113.7, 70.1.1.1' } }), '203.0.113.7');
+  assert.equal(clientIp({ headers: {} }), 'unknown');
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);
