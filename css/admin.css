@@ -227,6 +227,13 @@ a.ad-chip-video:hover { background: rgba(0,212,255,0.1); }
 .ad-parent-check { display: flex; gap: 0.5rem; align-items: flex-start; font-size: 0.82rem; color: var(--gray-light); }
 .ad-parent-check input { margin-top: 0.2rem; flex: none; }
 .ad-parent-form .btn { justify-self: start; }
+.ad-novideo-box { border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 0.9rem 1rem; }
+.ad-novideo-box .ad-novideo { margin: 0 0 0.3rem; }
+.ad-parent-form input[type="url"] {
+  width: 100%; padding: 0.6rem 0.8rem; border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.04);
+  color: var(--white); font-family: inherit; font-size: 0.9rem;
+}
 
 .ad-consent { border-radius: 8px; padding: 0.9rem 1rem; margin-bottom: 1.5rem; border: 1px solid; }
 .ad-consent-yes { border-color: rgba(125,211,252,0.35); background: rgba(125,211,252,0.06); }

@@ -1,7 +1,7 @@
 /* Managing one applicant from the admin page. All behind the password.
 
    PATCH  /api/applicant?id=N   { status } | { note } | { restore: true } | { consentShare: false }
-                                | { parentEmail, parentConfirm: true }
+                                | { parentConfirm: true, parentEmail? } | { videoUrl }
    DELETE /api/applicant?id=N   { confirmName } — archive (recoverable)
 
    Archiving requires the applicant's exact name, checked here on the server,
@@ -9,7 +9,7 @@
 
 import { query, isConfigured } from '../lib/db.js';
 import { requireAdmin } from '../lib/auth.js';
-import { clean } from '../lib/validate.js';
+import { clean, videoUrl as cleanVideoUrl } from '../lib/validate.js';
 import { toJson, COLUMNS } from './applicants.js';
 
 const STATUSES = ['pending', 'selected', 'not_selected'];
@@ -64,22 +64,34 @@ async function patch(req, res, id) {
     if (!rows.length) {
       ({ rows } = await query(`SELECT ${COLUMNS} FROM applicants WHERE id = $1`, [id]));
     }
-  } else if (b.parentEmail !== undefined) {
+  } else if (b.parentConfirm !== undefined || b.parentEmail !== undefined) {
     // A player who registered before the form asked for it: the coach reached
-    // the parent (WhatsApp, phone) and records that permission here.
-    const email = clean(b.parentEmail, 120).toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(email)) {
-      return res.status(400).json({ error: 'parent_email',
-        message: 'Escribe un correo válido del papá, la mamá o el tutor.' });
-    }
+    // the parent (usually WhatsApp) and records that permission here. The
+    // email is a bonus — most parents answer on WhatsApp and nothing else.
     if (b.parentConfirm !== true) {
       return res.status(400).json({ error: 'parent_confirm',
         message: 'Marca la casilla para confirmar que el tutor dio el permiso.' });
+    }
+    const email = clean(b.parentEmail, 120).toLowerCase();
+    if (email && !/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(email)) {
+      return res.status(400).json({ error: 'parent_email',
+        message: 'Ese correo no se ve bien. Déjalo vacío si no tienes uno.' });
     }
     ({ rows } = await query(
       `UPDATE applicants SET parent_email = $2, parent_confirmed_at = NOW(),
               parent_confirm_source = 'coach', updated_at = NOW()
         WHERE id = $1 AND deleted_at IS NULL RETURNING ${COLUMNS}`, [id, email]));
+  } else if (b.videoUrl !== undefined) {
+    // The video is required now, but players who signed up before that rule
+    // send their link afterwards and the coach pastes it here.
+    const link = cleanVideoUrl(b.videoUrl);
+    if (!link) {
+      return res.status(400).json({ error: 'video_url',
+        message: 'Ese link no se ve bien. Pega el link completo del video.' });
+    }
+    ({ rows } = await query(
+      `UPDATE applicants SET video_url = $2, updated_at = NOW()
+        WHERE id = $1 AND deleted_at IS NULL RETURNING ${COLUMNS}`, [id, link]));
   } else if (b.note !== undefined) {
     // The note keeps its line breaks, unlike the form fields.
     const note = String(b.note == null ? '' : b.note).slice(0, 2000);

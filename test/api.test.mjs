@@ -248,6 +248,16 @@ await test("signed in: a bad parent email is refused before touching the databas
   assert.equal(res.body.error, 'parent_email');
 });
 
+await test('signed in: a bad video link is refused before touching the database', async () => {
+  const cookie = auth.issueCookie().split(';')[0];
+  for (const bad of ['javascript:alert(1)', 'not a link', '']) {
+    const res = mockRes();
+    await applicant({ method: 'PATCH', headers: { cookie }, query: { id: '1' }, body: { videoUrl: bad } }, res);
+    assert.equal(res.statusCode, 400, bad);
+    assert.equal(res.body.error, 'video_url', bad);
+  }
+});
+
 await test('signed in: recording a parent permission needs the box ticked', async () => {
   const cookie = auth.issueCookie().split(';')[0];
   const res = mockRes();

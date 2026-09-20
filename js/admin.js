@@ -16,7 +16,7 @@ const eventLabel = (id) => (EVENTS.find((e) => e.id === id) || { label: { es: id
    registered before the form asked for it shows up as missing it. */
 const CHILD_AGE = 13;
 const isChild = (a) => age(a.dob) < CHILD_AGE;
-const needsParent = (a) => isChild(a) && !a.parentEmail;
+const needsParent = (a) => isChild(a) && !a.parentConfirmedAt;
 
 let active = [];        // applicants not archived
 let archived = [];
@@ -334,7 +334,7 @@ function openPanel(id) {
   $('adPSub').textContent = ['Categoría ' + birthYear(a), age(a.dob) + ' años', POS[a.positionPrimary] || a.positionPrimary].join(' · ');
 
   const v = videoLink(a.videoUrl, 'btn btn-primary ad-video');
-  $('adPVideoWrap').replaceChildren(v || el('p', 'ad-novideo', 'No mandó video.'));
+  $('adPVideoWrap').replaceChildren(v || missingVideo(a, isArchived));
 
   $('adPStatus').hidden = isArchived;
   $('adPStatus').querySelectorAll('button').forEach((b) =>
@@ -506,49 +506,33 @@ function renderConsent(a, isArchived) {
   }
 }
 
-/* ---------- parent's permission (under 13) ---------- */
-function renderParent(a, isArchived) {
-  const box = $('adPParent');
-  box.replaceChildren();
-  box.className = '';
-  if (!isChild(a)) return;
+/* ---------- no video yet ----------
+   The form asks for a video now, but players who signed up before that rule
+   send the link afterwards, and the coach pastes it here. */
+function missingVideo(a, isArchived) {
+  const box = el('div', 'ad-novideo-box');
+  box.append(el('p', 'ad-novideo', 'Este jugador no mandó video.'));
+  if (isArchived) return box;
 
-  box.className = 'ad-parent ' + (a.parentEmail ? 'ad-parent-ok' : 'ad-parent-missing');
+  const ask = el('a', 'btn btn-secondary btn-sm', '💬 Pedir video por WhatsApp');
+  ask.href = 'https://wa.me/' + waNumber(a.phone) + '?text=' + encodeURIComponent(
+    'Hola ' + a.name.split(' ')[0] + ', te escribimos de BE PRO Futbol. Para completar tu registro ' +
+    'nos falta el link de tu video de jugadas (YouTube, Hudl, Drive u otro). ¿Nos lo mandas por aquí?');
+  ask.target = '_blank';
+  ask.rel = 'noopener noreferrer';
 
-  if (a.parentEmail) {
-    box.append(
-      el('div', 'ad-consent-title', '✓ Permiso del papá, mamá o tutor'),
-      el('div', 'ad-consent-sub', a.parentEmail + ' · ' + fmtDate(a.parentConfirmedAt) +
-        (a.parentConfirmSource === 'coach' ? ' · registrado por BE PRO' : ' · al llenar el formulario')),
-    );
-    return;
-  }
-
-  box.append(
-    el('div', 'ad-consent-title', '⚠ Falta el permiso del papá, mamá o tutor'),
-    el('div', 'ad-consent-sub', 'Este jugador tiene menos de ' + CHILD_AGE + ' años y se registró antes de que el ' +
-      'formulario pidiera el permiso. Habla con su papá, mamá o tutor (WhatsApp o teléfono) y registra aquí su correo.'),
-  );
-  if (isArchived) return;
-
-  const row = el('div', 'ad-parent-form');
   const input = el('input');
-  input.type = 'email';
-  input.placeholder = 'correo del papá, mamá o tutor';
-  input.maxLength = 120;
-  const save = el('button', 'btn btn-primary btn-sm', 'Registrar permiso');
-  save.type = 'button';
-  const check = el('label', 'ad-parent-check');
-  const box2 = el('input');
-  box2.type = 'checkbox';
-  check.append(box2, el('span', null, 'Su papá, mamá o tutor me dio el permiso y este es su correo.'));
+  input.type = 'url';
+  input.placeholder = 'https://youtube.com/… (pega aquí el link que te mande)';
+  input.maxLength = 500;
 
+  const save = el('button', 'btn btn-primary btn-sm', 'Guardar video');
+  save.type = 'button';
   save.addEventListener('click', async () => {
     flash($('adPError'), '');
     save.disabled = true;
     try {
-      const updated = await api('PATCH', '/api/applicant?id=' + a.id,
-        { parentEmail: input.value, parentConfirm: box2.checked });
+      const updated = await api('PATCH', '/api/applicant?id=' + a.id, { videoUrl: input.value });
       replaceActive(updated);
       openPanel(a.id);
       render();
@@ -558,7 +542,77 @@ function renderParent(a, isArchived) {
     }
   });
 
-  row.append(input, check, save);
+  const form = el('div', 'ad-parent-form');
+  form.append(ask, input, save);
+  box.append(form);
+  return box;
+}
+
+/* ---------- parent's permission (under 13) ---------- */
+function renderParent(a, isArchived) {
+  const box = $('adPParent');
+  box.replaceChildren();
+  box.className = '';
+  if (!isChild(a)) return;
+
+  box.className = 'ad-parent ' + (a.parentEmail ? 'ad-parent-ok' : 'ad-parent-missing');
+
+  if (a.parentConfirmedAt) {
+    const how = a.parentConfirmSource === 'coach'
+      ? 'Registrado por BE PRO · ' + (a.parentEmail || 'por WhatsApp al ' + a.phone)
+      : 'Dado al llenar el formulario · ' + (a.parentEmail || '—');
+    box.append(
+      el('div', 'ad-consent-title', '✓ Permiso del papá, mamá o tutor'),
+      el('div', 'ad-consent-sub', how + ' · ' + fmtDate(a.parentConfirmedAt)),
+    );
+    return;
+  }
+
+  box.append(
+    el('div', 'ad-consent-title', '⚠ Falta el permiso del papá, mamá o tutor'),
+    el('div', 'ad-consent-sub', 'Este jugador tiene menos de ' + CHILD_AGE + ' años y se registró antes de que el ' +
+      'formulario pidiera el permiso. Pregúntale por WhatsApp a su papá, mamá o tutor y marca la casilla cuando te diga que sí.'),
+  );
+  if (isArchived) return;
+
+  const row = el('div', 'ad-parent-form');
+
+  const ask = el('a', 'btn btn-secondary btn-sm', '💬 Pedir permiso por WhatsApp');
+  ask.href = 'https://wa.me/' + waNumber(a.phone) + '?text=' + encodeURIComponent(
+    'Hola, le escribimos de BE PRO Futbol por el registro de ' + a.name + '. ' +
+    'Como es menor de 13 años necesitamos que usted, como su papá, mamá o tutor, ' +
+    'nos confirme que autoriza su registro y que tengamos su información. ¿Nos lo confirma por aquí?');
+  ask.target = '_blank';
+  ask.rel = 'noopener noreferrer';
+
+  const check = el('label', 'ad-parent-check');
+  const tick = el('input');
+  tick.type = 'checkbox';
+  check.append(tick, el('span', null, 'Su papá, mamá o tutor me dio el permiso.'));
+
+  const input = el('input');
+  input.type = 'email';
+  input.placeholder = 'correo del tutor (opcional)';
+  input.maxLength = 120;
+
+  const save = el('button', 'btn btn-primary btn-sm', 'Registrar permiso');
+  save.type = 'button';
+  save.addEventListener('click', async () => {
+    flash($('adPError'), '');
+    save.disabled = true;
+    try {
+      const updated = await api('PATCH', '/api/applicant?id=' + a.id,
+        { parentConfirm: tick.checked, parentEmail: input.value });
+      replaceActive(updated);
+      openPanel(a.id);
+      render();
+    } catch (err) {
+      flash($('adPError'), err.message);
+      save.disabled = false;
+    }
+  });
+
+  row.append(ask, check, input, save);
   box.append(row);
 }
 
