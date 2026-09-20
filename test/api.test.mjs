@@ -239,6 +239,24 @@ await test('signed in: a bad status is refused before touching the database', as
   assert.equal(res.statusCode, 400);
 });
 
+await test("signed in: a bad parent email is refused before touching the database", async () => {
+  const cookie = auth.issueCookie().split(';')[0];
+  const res = mockRes();
+  await applicant({ method: 'PATCH', headers: { cookie }, query: { id: '1' },
+    body: { parentEmail: 'not-an-email', parentConfirm: true } }, res);
+  assert.equal(res.statusCode, 400);
+  assert.equal(res.body.error, 'parent_email');
+});
+
+await test('signed in: recording a parent permission needs the box ticked', async () => {
+  const cookie = auth.issueCookie().split(';')[0];
+  const res = mockRes();
+  await applicant({ method: 'PATCH', headers: { cookie }, query: { id: '1' },
+    body: { parentEmail: 'mama@ejemplo.com', parentConfirm: false } }, res);
+  assert.equal(res.statusCode, 400);
+  assert.equal(res.body.error, 'parent_confirm');
+});
+
 console.log('sharing');
 
 const { default: shares } = await import('../api/shares.js');

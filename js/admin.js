@@ -12,6 +12,12 @@ const LEG_LABEL = { right: 'Derecha', left: 'Izquierda', both: 'Ambas' };
 const POS = Object.fromEntries(POSITIONS.map((p) => [p.id, p.es]));
 const eventLabel = (id) => (EVENTS.find((e) => e.id === id) || { label: { es: id } }).label.es;
 
+/* Players under this age must have a parent's permission on record. Anyone who
+   registered before the form asked for it shows up as missing it. */
+const CHILD_AGE = 13;
+const isChild = (a) => age(a.dob) < CHILD_AGE;
+const needsParent = (a) => isChild(a) && !a.parentEmail;
+
 let active = [];        // applicants not archived
 let archived = [];
 let tab = 'all';
@@ -236,6 +242,11 @@ function render() {
       ? el('span', 'ad-chip ad-chip-share', '↗ Compartible')
       : el('span', 'ad-chip ad-chip-private', '🔒 Privado'));
     side.append(video || el('span', 'ad-chip ad-chip-muted', 'Sin video'));
+    if (needsParent(a)) {
+      const warn = el('span', 'ad-chip ad-chip-warn', '⚠ Falta permiso del tutor');
+      warn.title = 'Menor de ' + CHILD_AGE + ' años sin permiso del papá, mamá o tutor registrado.';
+      side.append(warn);
+    }
 
     if (tab !== 'archived') {
       const quick = el('div', 'ad-quick');
@@ -330,6 +341,7 @@ function openPanel(id) {
     b.classList.toggle('active', b.dataset.status === a.status));
 
   renderConsent(a, isArchived);
+  renderParent(a, isArchived);
 
   const facts = [
     ['Fecha de nacimiento', a.dob],
@@ -492,6 +504,62 @@ function renderConsent(a, isArchived) {
         : 'Su información solo la ve Be Pro. No se puede incluir en links para scouts.'),
     );
   }
+}
+
+/* ---------- parent's permission (under 13) ---------- */
+function renderParent(a, isArchived) {
+  const box = $('adPParent');
+  box.replaceChildren();
+  box.className = '';
+  if (!isChild(a)) return;
+
+  box.className = 'ad-parent ' + (a.parentEmail ? 'ad-parent-ok' : 'ad-parent-missing');
+
+  if (a.parentEmail) {
+    box.append(
+      el('div', 'ad-consent-title', '✓ Permiso del papá, mamá o tutor'),
+      el('div', 'ad-consent-sub', a.parentEmail + ' · ' + fmtDate(a.parentConfirmedAt) +
+        (a.parentConfirmSource === 'coach' ? ' · registrado por BE PRO' : ' · al llenar el formulario')),
+    );
+    return;
+  }
+
+  box.append(
+    el('div', 'ad-consent-title', '⚠ Falta el permiso del papá, mamá o tutor'),
+    el('div', 'ad-consent-sub', 'Este jugador tiene menos de ' + CHILD_AGE + ' años y se registró antes de que el ' +
+      'formulario pidiera el permiso. Habla con su papá, mamá o tutor (WhatsApp o teléfono) y registra aquí su correo.'),
+  );
+  if (isArchived) return;
+
+  const row = el('div', 'ad-parent-form');
+  const input = el('input');
+  input.type = 'email';
+  input.placeholder = 'correo del papá, mamá o tutor';
+  input.maxLength = 120;
+  const save = el('button', 'btn btn-primary btn-sm', 'Registrar permiso');
+  save.type = 'button';
+  const check = el('label', 'ad-parent-check');
+  const box2 = el('input');
+  box2.type = 'checkbox';
+  check.append(box2, el('span', null, 'Su papá, mamá o tutor me dio el permiso y este es su correo.'));
+
+  save.addEventListener('click', async () => {
+    flash($('adPError'), '');
+    save.disabled = true;
+    try {
+      const updated = await api('PATCH', '/api/applicant?id=' + a.id,
+        { parentEmail: input.value, parentConfirm: box2.checked });
+      replaceActive(updated);
+      openPanel(a.id);
+      render();
+    } catch (err) {
+      flash($('adPError'), err.message);
+      save.disabled = false;
+    }
+  });
+
+  row.append(input, check, save);
+  box.append(row);
 }
 
 /* ---------- share links ---------- */

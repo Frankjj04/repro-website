@@ -40,9 +40,9 @@ export default async function handler(req, res) {
           emergency_name, emergency_phone, emergency_relationship, guardian_name,
           waiver_version, waiver_accepted_at, ip, photo, photo_type,
           signature_name, consent_share, consent_share_at, consent_version, form_lang, user_agent,
-          parent_email, parent_confirmed_at)
+          parent_email, parent_confirmed_at, parent_confirm_source)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,
-               $24,$25,$26,$27,$28,$29,$30,$31)
+               $24,$25,$26,$27,$28,$29,$30,$31,$32)
        RETURNING id`,
       [a.event, a.name, a.dob, a.birthplace, a.nationalities, a.phone, a.email, a.height, a.weight,
        a.mlsNext, a.strongLeg, a.positionPrimary, a.positionSecondary, a.videoUrl,
@@ -50,7 +50,7 @@ export default async function handler(req, res) {
        WAIVER_VERSION, now, ip, photo.buf, photo.type,
        a.signatureName, a.consentShare, a.consentShare ? now : null,
        a.consentShare ? CONSENT_VERSION : '', lang, userAgent,
-       a.parentEmail || '', a.parentConfirmed ? now : null]
+       a.parentEmail || '', a.parentConfirmed ? now : null, a.parentConfirmed ? 'form' : '']
     );
     return res.status(201).json({ ok: true, id: Number(rows[0].id) });
   } catch (err) {

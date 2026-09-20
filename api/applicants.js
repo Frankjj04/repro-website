@@ -35,7 +35,7 @@ export const COLUMNS = `id, event, name, dob, birthplace, nationalities, phone, 
   emergency_name, emergency_phone, emergency_relationship, guardian_name,
   waiver_version, waiver_accepted_at, status, coach_note, created_at, deleted_at,
   signature_name, consent_share, consent_share_at, consent_version, consent_withdrawn_at, form_lang,
-  parent_email, parent_confirmed_at,
+  parent_email, parent_confirmed_at, parent_confirm_source,
   (photo IS NOT NULL) AS has_photo`;
 
 export function toJson(r) {
@@ -70,6 +70,7 @@ export function toJson(r) {
     formLang: r.form_lang,
     parentEmail: r.parent_email,
     parentConfirmedAt: r.parent_confirmed_at,
+    parentConfirmSource: r.parent_confirm_source,
     status: r.status,
     note: r.coach_note,
     createdAt: r.created_at,
