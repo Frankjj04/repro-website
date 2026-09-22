@@ -159,15 +159,11 @@ function init() {
     setKey($('rgSignLabel'), minor ? 'rg_sign_minor' : 'rg_sign');
     setKey($('rgSignHelp'), minor ? 'rg_sign_help_minor' : 'rg_sign_help');
 
-    // Every minor gives a parent's email; under 13 the parent also has to say
-    // plainly that they are the one filling this in.
+    // Under 13 the parent's own email and a plain statement that it is them.
     const child = isChild();
-    $('rgParentBlock').hidden = !minor;
-    $('rgParentEmail').required = minor;
-    setKey($('rgParentHelp'), child ? 'rg_parent_help_child' : 'rg_parent_help_minor');
     $('rgChildBlock').hidden = !child;
-    if (!minor) $('rgParentEmail').value = '';
-    if (!child) $('rgParentConfirm').checked = false;
+    $('rgParentEmail').required = child;
+    if (!child) { $('rgParentEmail').value = ''; $('rgParentConfirm').checked = false; }
   }
   /* The way out for a player whose phone will not give them a shareable link:
      send the video to Be Pro on WhatsApp. The message is written for them, in
@@ -330,8 +326,10 @@ function init() {
     if (!b.emergencyRelationship) return 'emergency_relationship';
     if (!b.waiverAccepted) return 'waiver';
     if (!b.signatureName) return 'signature';
-    if (isMinor() && !/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(b.parentEmail)) return 'parent_email';
-    if (isChild() && !b.parentConfirm) return 'parent_confirm';
+    if (isChild()) {
+      if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(b.parentEmail)) return 'parent_email';
+      if (!b.parentConfirm) return 'parent_confirm';
+    }
     return null;
   }
 
