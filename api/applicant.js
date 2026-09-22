@@ -65,22 +65,34 @@ async function patch(req, res, id) {
       ({ rows } = await query(`SELECT ${COLUMNS} FROM applicants WHERE id = $1`, [id]));
     }
   } else if (b.parentConfirm !== undefined || b.parentEmail !== undefined) {
-    // A player who registered before the form asked for it: the coach reached
-    // the parent (usually WhatsApp) and records that permission here. The
-    // email is a bonus — most parents answer on WhatsApp and nothing else.
-    if (b.parentConfirm !== true) {
-      return res.status(400).json({ error: 'parent_confirm',
-        message: 'Marca la casilla para confirmar que el tutor dio el permiso.' });
-    }
+    // Two different things arrive here. With the box ticked it is a permission
+    // the coach collected from a parent of an under-13. Without it, it is just
+    // the parent's email for a 13-to-17 player who registered before we asked
+    // for one — contact details, not permission, and never recorded as such.
     const email = clean(b.parentEmail, 120).toLowerCase();
     if (email && !/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(email)) {
       return res.status(400).json({ error: 'parent_email',
         message: 'Ese correo no se ve bien. Déjalo vacío si no tienes uno.' });
     }
-    ({ rows } = await query(
-      `UPDATE applicants SET parent_email = $2, parent_confirmed_at = NOW(),
-              parent_confirm_source = 'coach', updated_at = NOW()
-        WHERE id = $1 AND deleted_at IS NULL RETURNING ${COLUMNS}`, [id, email]));
+
+    if (b.parentConfirm === undefined) {
+      if (!email) {
+        return res.status(400).json({ error: 'parent_email',
+          message: 'Escribe el correo del papá, mamá o tutor.' });
+      }
+      ({ rows } = await query(
+        `UPDATE applicants SET parent_email = $2, updated_at = NOW()
+          WHERE id = $1 AND deleted_at IS NULL RETURNING ${COLUMNS}`, [id, email]));
+    } else {
+      if (b.parentConfirm !== true) {
+        return res.status(400).json({ error: 'parent_confirm',
+          message: 'Marca la casilla para confirmar que el tutor dio el permiso.' });
+      }
+      ({ rows } = await query(
+        `UPDATE applicants SET parent_email = $2, parent_confirmed_at = NOW(),
+                parent_confirm_source = 'coach', updated_at = NOW()
+          WHERE id = $1 AND deleted_at IS NULL RETURNING ${COLUMNS}`, [id, email]));
+    }
   } else if (b.videoUrl !== undefined) {
     // The video is required now, but players who signed up before that rule
     // send their link afterwards and the coach pastes it here.

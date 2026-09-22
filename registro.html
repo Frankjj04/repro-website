@@ -275,12 +275,14 @@
           </div>
         </div>
 
-        <div id="rgChildBlock" hidden>
+        <div id="rgParentBlock" hidden>
           <div class="form-group" data-field="parent_email">
             <label for="rgParentEmail" data-i18n="rg_parent_email">Correo del papá, mamá o tutor *</label>
             <input type="email" id="rgParentEmail" name="parentEmail" maxlength="120" autocomplete="off" />
-            <small class="rg-help" data-i18n="rg_parent_help">Este registro lo tiene que llenar un adulto. Usaremos este correo solo para confirmar el permiso.</small>
+            <small class="rg-help" id="rgParentHelp" data-i18n="rg_parent_help_minor">Ahí le mandaremos la invitación y los datos del evento.</small>
           </div>
+        </div>
+        <div id="rgChildBlock" hidden>
           <div class="form-group" data-field="parent_confirm">
             <label class="rg-agree">
               <input type="checkbox" id="rgParentConfirm" name="parentConfirm" />

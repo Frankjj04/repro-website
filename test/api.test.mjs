@@ -154,9 +154,25 @@ await test('each date takes only its own birth years, both ends included', () =>
 });
 
 await test('for a minor, the person signing is recorded as the guardian', () => {
-  const ok = validateApplication({ ...adult(), event: 'nov-17-18', dob: '2010-03-02', signatureName: 'Ana Pérez' });
+  const ok = validateApplication({ ...adult(), event: 'nov-17-18', dob: '2010-03-02',
+    signatureName: 'Ana Pérez', parentEmail: 'ana@example.com' });
   assert.equal(ok.application.isMinor, true);
   assert.equal(ok.application.guardianName, 'Ana Pérez');
+});
+
+await test("every minor gives a parent's email, not just the under-13s", () => {
+  const minor = (over) => validateApplication({ ...adult(), event: 'nov-17-18', dob: '2010-03-02', ...over });
+  // 16 years old: the email is required, the "I am the parent" tick is not.
+  assert.equal(minor({}).code, 'parent_email');
+  assert.equal(minor({ parentEmail: 'not-an-email' }).code, 'parent_email');
+  const ok = minor({ parentEmail: 'Ana@Example.com ' });
+  assert.equal(ok.code, undefined);
+  assert.equal(ok.application.parentEmail, 'ana@example.com');
+  // Only under 13 does it also become a declared permission.
+  assert.equal(ok.application.parentConfirmed, false);
+
+  // An adult never gets asked, and anything sent is dropped.
+  assert.equal(validateApplication({ ...adult(), parentEmail: 'x@y.com' }).application.parentEmail, '');
 });
 
 await test('an adult signs for themselves; no guardian is recorded', () => {

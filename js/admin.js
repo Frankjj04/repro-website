@@ -15,8 +15,13 @@ const eventLabel = (id) => (EVENTS.find((e) => e.id === id) || { label: { es: id
 /* Players under this age must have a parent's permission on record. Anyone who
    registered before the form asked for it shows up as missing it. */
 const CHILD_AGE = 13;
+const MINOR_AGE = 18;
 const isChild = (a) => age(a.dob) < CHILD_AGE;
+const isMinor = (a) => age(a.dob) < MINOR_AGE;
 const needsParent = (a) => isChild(a) && !a.parentConfirmedAt;
+/* Every minor needs an adult's email — that is where the invitation goes. The
+   ones who registered before we asked show up here. */
+const needsParentEmail = (a) => isMinor(a) && !a.parentEmail;
 
 let active = [];        // applicants not archived
 let archived = [];
@@ -249,6 +254,11 @@ function render() {
     if (needsParent(a)) {
       const warn = el('span', 'ad-chip ad-chip-warn', '⚠ Falta permiso del tutor');
       warn.title = 'Menor de ' + CHILD_AGE + ' años sin permiso del papá, mamá o tutor registrado.';
+      side.append(warn);
+    }
+    if (needsParentEmail(a) && !needsParent(a)) {
+      const warn = el('span', 'ad-chip ad-chip-warn', '✉ Falta correo del tutor');
+      warn.title = 'Es menor de edad y no tenemos el correo de su papá, mamá o tutor.';
       side.append(warn);
     }
     // Only an invited player can be waiting for the email, so only they say so.
@@ -563,11 +573,69 @@ function missingVideo(a, isArchived) {
   return box;
 }
 
+/* A minor's parent email, for the 13-to-17s who registered before the form
+   asked for one. Contact details only — nothing here claims a permission. */
+function renderParentEmail(a, isArchived, box) {
+  if (a.parentEmail) {
+    box.className = 'ad-parent ad-parent-ok';
+    box.append(
+      el('div', 'ad-consent-title', '✓ Correo del papá, mamá o tutor'),
+      el('div', 'ad-consent-sub', a.parentEmail + ' · la invitación también le llega a esta dirección'),
+    );
+    return;
+  }
+
+  box.className = 'ad-parent ad-parent-missing';
+  box.append(
+    el('div', 'ad-consent-title', '✉ Falta el correo del papá, mamá o tutor'),
+    el('div', 'ad-consent-sub', 'Es menor de edad y se registró antes de que pidiéramos el correo de un adulto. ' +
+      'Pídeselo por WhatsApp: ahí es donde le llega la invitación y los datos del pago.'),
+  );
+  if (isArchived) return;
+
+  const row = el('div', 'ad-parent-form');
+
+  const ask = el('a', 'btn btn-secondary btn-sm', '💬 Pedir el correo por WhatsApp');
+  ask.href = 'https://wa.me/' + waNumber(a.phone) + '?text=' + encodeURIComponent(
+    'Hola, le escribimos de BE PRO Futbol por el registro de ' + a.name + '. ' +
+    'Como es menor de edad, necesitamos el correo de su papá, mamá o tutor para mandarle ahí la ' +
+    'invitación y los datos del evento. ¿Nos lo pasa por aquí?');
+  ask.target = '_blank';
+  ask.rel = 'noopener noreferrer';
+
+  const input = el('input');
+  input.type = 'email';
+  input.placeholder = 'correo del papá, mamá o tutor';
+  input.maxLength = 120;
+
+  const save = el('button', 'btn btn-primary btn-sm', 'Guardar correo');
+  save.type = 'button';
+  save.addEventListener('click', async () => {
+    flash($('adPError'), '');
+    save.disabled = true;
+    try {
+      const updated = await api('PATCH', '/api/applicant?id=' + a.id, { parentEmail: input.value });
+      replaceActive(updated);
+      openPanel(a.id);
+      render();
+    } catch (err) {
+      flash($('adPError'), err.message);
+      save.disabled = false;
+    }
+  });
+
+  row.append(ask, input, save);
+  box.append(row);
+}
+
 /* ---------- parent's permission (under 13) ---------- */
 function renderParent(a, isArchived) {
   const box = $('adPParent');
   box.replaceChildren();
   box.className = '';
+
+  // 13 to 17: no permission is involved, we simply need an adult's address.
+  if (!isChild(a) && isMinor(a)) return renderParentEmail(a, isArchived, box);
   if (!isChild(a)) return;
 
   box.className = 'ad-parent ' + (a.parentEmail ? 'ad-parent-ok' : 'ad-parent-missing');

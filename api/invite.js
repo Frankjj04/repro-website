@@ -104,9 +104,9 @@ async function send(res, id) {
 
   const mail = buildInvite(a, { parentLink, settings: payment });
 
-  // Under 13 the parent is the one who has to read this, so they get a copy
-  // whenever we know their address.
-  const to = [a.email, ...(asks.parent && a.parentEmail ? [a.parentEmail] : [])];
+  // A minor's parent is the one who pays and who brings them, so they get a
+  // copy whenever we know their address — at 13 as much as at 17.
+  const to = [a.email, ...(a.parentEmail && a.parentEmail !== a.email ? [a.parentEmail] : [])];
   try {
     for (const address of to) {
       await sendEmail({ from: FROM, to: address, replyTo: REPLY_TO,
