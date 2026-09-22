@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="referrer" content="no-referrer" />
+  <title>Permiso del tutor — BE PRO Futbol</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/registro.css" />
+</head>
+<body class="sc-body">
+
+<header class="sc-top">
+  <div class="logo">
+    <div class="logo-text"><span class="logo-be">BE</span><span class="logo-pro">PRO</span></div>
+    <div class="logo-sub">FUTBOL</div>
+  </div>
+  <div class="lang-toggle sc-lang">
+    <button class="lang-btn active" data-pm-lang="es">ES</button>
+    <button class="lang-btn" data-pm-lang="en">EN</button>
+  </div>
+</header>
+
+<main class="pm-main">
+  <p class="sc-loading" id="pmLoading" data-t="loading">Cargando…</p>
+
+  <section class="pm-box" id="pmUnavailable" hidden>
+    <h1 data-t="gone_h">LINK NO DISPONIBLE</h1>
+    <p data-t="gone_p">Este link venció o ya se usó. Escríbenos por WhatsApp y te mandamos uno nuevo.</p>
+    <a class="btn btn-primary" href="https://wa.me/17028319474" target="_blank" rel="noopener noreferrer" data-t="wa">Escribir por WhatsApp</a>
+  </section>
+
+  <section class="pm-box" id="pmForm" hidden>
+    <span class="section-tag" data-t="tag">Permiso del papá, mamá o tutor</span>
+    <h1 data-t="h">PERMISO DEL TUTOR</h1>
+
+    <div class="pm-player">
+      <strong id="pmName"></strong>
+      <span id="pmAge"></span>
+      <span id="pmEvent"></span>
+    </div>
+
+    <p data-t="p">Este jugador es menor de 13 años. Por eso necesitamos que un papá, mamá o tutor nos diga que está de acuerdo con su registro en BE PRO Futbol.</p>
+
+    <form id="pmFormEl" novalidate>
+      <div class="form-group">
+        <span class="rg-label" data-t="who">¿Quién llenó el registro?</span>
+        <label class="rg-agree">
+          <input type="radio" name="who" value="parent" checked />
+          <span data-t="who_parent">Yo, el papá, la mamá o el tutor</span>
+        </label>
+        <label class="rg-agree">
+          <input type="radio" name="who" value="player" />
+          <span data-t="who_player">Mi hijo o hija lo llenó por su cuenta</span>
+        </label>
+      </div>
+
+      <div id="pmParentFields">
+        <div class="form-group">
+          <label for="pmParentName" data-t="name">Su nombre completo *</label>
+          <input type="text" id="pmParentName" maxlength="100" autocomplete="name" />
+        </div>
+        <div class="form-group">
+          <label for="pmParentEmail" data-t="email">Su correo (opcional)</label>
+          <input type="email" id="pmParentEmail" maxlength="120" autocomplete="email" />
+          <small class="rg-help" data-t="email_help">Solo lo usamos para avisarle cosas del evento.</small>
+        </div>
+        <div class="form-group">
+          <label class="rg-agree">
+            <input type="checkbox" id="pmAgree" />
+            <span data-t="agree">Doy permiso para que este jugador participe en los eventos de BE PRO Futbol y para que BE PRO Futbol guarde su información como lo explica el aviso de privacidad.</span>
+          </label>
+        </div>
+      </div>
+
+      <p class="rg-error" id="pmError" role="alert" hidden></p>
+      <button type="submit" class="btn btn-primary rg-submit" id="pmSubmit" data-t="send">ENVIAR</button>
+      <p class="rg-privacy">
+        <a href="privacidad.html" data-t="privacy">Aviso de privacidad</a> ·
+        <a href="terminos.html" data-t="terms">Términos de uso</a>
+      </p>
+    </form>
+  </section>
+
+  <section class="pm-box" id="pmDone" hidden>
+    <div class="rg-done-mark" aria-hidden="true">✓</div>
+    <h1 id="pmDoneH" data-t="done_h">PERMISO RECIBIDO</h1>
+    <p id="pmDoneP" data-t="done_p">Gracias. Ya quedó registrado. Si tiene cualquier duda, escríbanos por WhatsApp.</p>
+    <a class="btn btn-secondary" href="https://wa.me/17028319474" target="_blank" rel="noopener noreferrer" data-t="wa">Escribir por WhatsApp</a>
+  </section>
+</main>
+
+<footer class="sc-footer">
+  <p>© 2026 BE PRO Futbol — Las Vegas, Nevada · <a href="https://bepro.futbol" rel="noopener noreferrer">bepro.futbol</a></p>
+</footer>
+
+<script type="module" src="js/permiso.js"></script>
+</body>
+</html>

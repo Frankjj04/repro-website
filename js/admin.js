@@ -49,8 +49,11 @@ function showLogin() {
   $('adOverlay').hidden = true;
   $('adLogout').hidden = true;
   $('adSharesOpen').hidden = true;
+  $('adPayOpen').hidden = true;
   $('adShareModal').hidden = true;
   $('adShares').hidden = true;
+  $('adPayModal').hidden = true;
+  $('adInviteModal').hidden = true;
   $('adLogin').hidden = false;
   $('adPassword').focus();
 }
@@ -80,6 +83,7 @@ async function start() {
   $('adMain').hidden = false;
   $('adLogout').hidden = false;
   $('adSharesOpen').hidden = false;
+  $('adPayOpen').hidden = false;
   flash($('adError'), '');
   try {
     [active, archived] = await Promise.all([
@@ -247,6 +251,12 @@ function render() {
       warn.title = 'Menor de ' + CHILD_AGE + ' años sin permiso del papá, mamá o tutor registrado.';
       side.append(warn);
     }
+    // Only an invited player can be waiting for the email, so only they say so.
+    if (a.status === 'selected') {
+      side.append(a.invitedAt
+        ? el('span', 'ad-chip ad-chip-sent', '📧 Invitación enviada')
+        : el('span', 'ad-chip ad-chip-warn', '📧 Sin enviar'));
+    }
 
     if (tab !== 'archived') {
       const quick = el('div', 'ad-quick');
@@ -342,6 +352,7 @@ function openPanel(id) {
 
   renderConsent(a, isArchived);
   renderParent(a, isArchived);
+  renderInvite(a, isArchived);
 
   const facts = [
     ['Fecha de nacimiento', a.dob],
@@ -356,6 +367,10 @@ function openPanel(id) {
     ['Pierna hábil', LEG_LABEL[a.strongLeg] || a.strongLeg],
     ['Posición principal', POS[a.positionPrimary] || a.positionPrimary],
     ['Posición secundaria', POS[a.positionSecondary] || a.positionSecondary],
+    ['Instagram', a.instagram ? '@' + a.instagram : '—',
+      a.instagram ? 'https://instagram.com/' + a.instagram : ''],
+    ['TikTok', a.tiktok ? '@' + a.tiktok : '—',
+      a.tiktok ? 'https://tiktok.com/@' + a.tiktok : ''],
     ['Video', a.videoUrl || '—', a.videoUrl],
     ['Contacto de emergencia', a.emergencyName + ' (' + a.emergencyRelationship + ')'],
     ['Tel. de emergencia', a.emergencyPhone, 'tel:' + a.emergencyPhone],
@@ -616,6 +631,224 @@ function renderParent(a, isArchived) {
   box.append(row);
 }
 
+/* ---------- what the invitation says about paying ----------
+   The coach types this himself: it is the one thing in the email that changes
+   between events, and it must never sit in a file the public can read. */
+let payment = null;
+
+function methodRow(m) {
+  const row = el('div', 'ad-pay-method');
+  const label = el('input');
+  label.type = 'text';
+  label.maxLength = 60;
+  label.placeholder = 'Zelle';
+  label.value = m.label || '';
+  const detail = el('input');
+  detail.type = 'text';
+  detail.maxLength = 200;
+  detail.placeholder = 'pagos@bepro.futbol — a nombre de Rondo Time LLC';
+  detail.value = m.detail || '';
+  const drop = el('button', 'ad-link', 'Quitar');
+  drop.type = 'button';
+  drop.addEventListener('click', () => row.remove());
+  row.append(label, detail, drop);
+  return row;
+}
+
+function fillPayForm(p) {
+  $('adPayAmountEs').value = p.amount.es;
+  $('adPayAmountEn').value = p.amount.en;
+  $('adPayDeadlineEs').value = p.deadline.es;
+  $('adPayDeadlineEn').value = p.deadline.en;
+  $('adPayRefundEs').value = p.refund.es;
+  $('adPayRefundEn').value = p.refund.en;
+  $('adPayBringEs').value = (p.bring.es || []).join('\n');
+  $('adPayBringEn').value = (p.bring.en || []).join('\n');
+
+  $('adPayMethods').replaceChildren(
+    ...(p.methods.length ? p.methods : [{ label: '', detail: '' }]).map(methodRow));
+
+  $('adPayLogistics').replaceChildren(...EVENTS.map((e) => {
+    const l = (p.logistics || {})[e.id] || {};
+    const wrap = el('div', 'ad-pay-event');
+    wrap.append(el('span', 'ad-pay-event-name', e.dates.es));
+    const venue = el('input');
+    venue.type = 'text';
+    venue.maxLength = 160;
+    venue.placeholder = 'Lugar — cancha y dirección';
+    venue.value = l.venue || '';
+    venue.dataset.event = e.id;
+    venue.dataset.field = 'venue';
+    const time = el('input');
+    time.type = 'text';
+    time.maxLength = 80;
+    time.placeholder = 'Hora — ej. 9:00 AM';
+    time.value = l.time || '';
+    time.dataset.event = e.id;
+    time.dataset.field = 'time';
+    wrap.append(venue, time);
+    return wrap;
+  }));
+}
+
+function readPayForm() {
+  const lines = (id) => $(id).value.split('\n').map((x) => x.trim()).filter(Boolean);
+  const logistics = {};
+  for (const input of $('adPayLogistics').querySelectorAll('input')) {
+    const e = input.dataset.event;
+    logistics[e] = logistics[e] || { venue: '', time: '' };
+    logistics[e][input.dataset.field] = input.value;
+  }
+  return {
+    amount:   { es: $('adPayAmountEs').value,   en: $('adPayAmountEn').value },
+    deadline: { es: $('adPayDeadlineEs').value, en: $('adPayDeadlineEn').value },
+    refund:   { es: $('adPayRefundEs').value,   en: $('adPayRefundEn').value },
+    methods: [...$('adPayMethods').querySelectorAll('.ad-pay-method')].map((row) => {
+      const [label, detail] = row.querySelectorAll('input');
+      return { label: label.value, detail: detail.value };
+    }),
+    bring: { es: lines('adPayBringEs'), en: lines('adPayBringEn') },
+    logistics,
+  };
+}
+
+function showMissing(missing) {
+  const ul = $('adPayMissing');
+  if (!missing.length) { ul.hidden = true; return; }
+  ul.replaceChildren(...missing.map((m) => el('li', null, 'Falta ' + m + '.')));
+  ul.hidden = false;
+}
+
+$('adPayOpen').addEventListener('click', async () => {
+  flash($('adPayError'), '');
+  $('adPaySaved').hidden = true;
+  openModal('adPayModal');
+  try {
+    const data = await api('GET', '/api/settings');
+    payment = data.payment;
+    fillPayForm(payment);
+    showMissing(data.missing);
+  } catch (err) {
+    flash($('adPayError'), err.message);
+  }
+});
+
+$('adPayAddMethod').addEventListener('click', () => {
+  $('adPayMethods').append(methodRow({ label: '', detail: '' }));
+});
+
+$('adPaySave').addEventListener('click', async () => {
+  const btn = $('adPaySave');
+  btn.disabled = true;
+  flash($('adPayError'), '');
+  try {
+    const data = await api('PUT', '/api/settings', { payment: readPayForm() });
+    payment = data.payment;
+    fillPayForm(payment);
+    showMissing(data.missing);
+    $('adPaySaved').textContent = data.missing.length
+      ? 'Guardado. Todavía falta algo para poder mandar invitaciones.'
+      : 'Guardado. Ya puedes mandar invitaciones.';
+    $('adPaySaved').hidden = false;
+  } catch (err) {
+    flash($('adPayError'), err.message);
+  }
+  btn.disabled = false;
+});
+
+/* ---------- the invitation email ----------
+   Marking somebody Invitado and emailing them are two separate taps on
+   purpose: a status can be undone, an email cannot. */
+function renderInvite(a, isArchived) {
+  const box = $('adPInvite');
+  box.replaceChildren();
+  box.className = '';
+  if (isArchived || a.status !== 'selected') return;
+
+  box.className = 'ad-invite ' + (a.invitedAt ? 'ad-invite-sent' : 'ad-invite-todo');
+
+  if (a.invitedAt) {
+    const times = a.inviteCount > 1 ? ' · ' + a.inviteCount + ' veces' : '';
+    box.append(
+      el('div', 'ad-consent-title', '✓ Invitación enviada'),
+      el('div', 'ad-consent-sub', (a.inviteTo || a.email) + ' · ' + fmtDate(a.invitedAt) + times),
+    );
+  } else {
+    box.append(
+      el('div', 'ad-consent-title', '📧 Todavía no le mandas la invitación'),
+      el('div', 'ad-consent-sub', 'El correo lleva la fecha, el lugar y cómo hacer el pago. ' +
+        'Te lo enseñamos antes de enviarlo.'),
+    );
+  }
+
+  const send = el('button', 'btn btn-primary btn-sm', a.invitedAt ? 'Reenviar invitación' : '📧 Enviar invitación');
+  send.type = 'button';
+  send.addEventListener('click', () => openInviteModal(a));
+  const row = el('div', 'ad-parent-form');
+  row.append(send);
+  box.append(row);
+}
+
+let inviteId = 0;
+
+async function openInviteModal(a) {
+  inviteId = a.id;
+  $('adIvTo').textContent = 'Para: ' + a.email;
+  $('adIvSubject').textContent = '…';
+  $('adIvFrame').removeAttribute('srcdoc');
+  flash($('adIvError'), '');
+  $('adIvBlockers').hidden = true;
+  $('adIvAsks').hidden = true;
+  $('adIvSend').disabled = true;
+  openModal('adInviteModal');
+
+  let data;
+  try {
+    data = await api('GET', '/api/invite?id=' + a.id);
+  } catch (err) {
+    return flash($('adIvError'), err.message);
+  }
+
+  $('adIvTo').textContent = 'Para: ' + [data.to, data.asks.parent && data.parentEmail ? data.parentEmail : '']
+    .filter(Boolean).join(' · ');
+  $('adIvSubject').textContent = data.subject;
+  $('adIvFrame').srcdoc = data.html;
+
+  // What else this particular email is asking the family for.
+  const asks = [];
+  if (data.asks.parent) asks.push('el permiso del papá, mamá o tutor (con su propio link)');
+  if (data.asks.video) asks.push('el video, por WhatsApp');
+  if (asks.length) {
+    $('adIvAsks').textContent = 'Este correo también pide: ' + asks.join(' y ') + '.';
+    $('adIvAsks').hidden = false;
+  }
+
+  if (data.blockers.length) {
+    const ul = $('adIvBlockers');
+    ul.replaceChildren(...data.blockers.map((b) => el('li', null, b)));
+    ul.hidden = false;
+    $('adIvSend').disabled = true;
+  } else {
+    $('adIvSend').disabled = false;
+  }
+}
+
+$('adIvSend').addEventListener('click', async () => {
+  const btn = $('adIvSend');
+  btn.disabled = true;
+  flash($('adIvError'), '');
+  try {
+    const res = await api('POST', '/api/invite?id=' + inviteId, {});
+    replaceActive(res.applicant);
+    closeModal('adInviteModal');
+    openPanel(inviteId);
+    render();
+  } catch (err) {
+    flash($('adIvError'), err.message);
+    btn.disabled = false;
+  }
+});
+
 /* ---------- share links ---------- */
 let shareIds = [];
 
@@ -625,18 +858,21 @@ function openModal(id) {
 }
 function closeModal(id) {
   $(id).hidden = true;
-  if ($('adOverlay').hidden && $('adShareModal').hidden && $('adShares').hidden) {
+  if ($('adOverlay').hidden && $('adShareModal').hidden && $('adShares').hidden
+      && $('adInviteModal').hidden && $('adPayModal').hidden) {
     document.body.classList.remove('ad-noscroll');
   }
 }
-['adShareModal', 'adShares'].forEach((id) => {
+['adShareModal', 'adShares', 'adInviteModal', 'adPayModal'].forEach((id) => {
   $(id).addEventListener('click', (e) => {
     if (e.target === $(id) || e.target.closest('[data-close]')) closeModal(id);
   });
 });
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
-  if (!$('adShareModal').hidden) closeModal('adShareModal');
+  if (!$('adPayModal').hidden) closeModal('adPayModal');
+  else if (!$('adInviteModal').hidden) closeModal('adInviteModal');
+  else if (!$('adShareModal').hidden) closeModal('adShareModal');
   else if (!$('adShares').hidden) closeModal('adShares');
 });
 
@@ -883,6 +1119,8 @@ $('adCsv').addEventListener('click', () => {
     ['Nacionalidades', (a) => a.nationalities],
     ['Teléfono', (a) => a.phone],
     ['Email', (a) => a.email],
+    ['Instagram', (a) => (a.instagram ? '@' + a.instagram : '')],
+    ['TikTok', (a) => (a.tiktok ? '@' + a.tiktok : '')],
     ['Estatura', (a) => a.height],
     ['Peso', (a) => a.weight],
     ['MLS NEXT', (a) => (a.mlsNext ? 'Sí' : 'No')],

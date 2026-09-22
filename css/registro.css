@@ -216,3 +216,22 @@
 }
 .rg-wa:hover { background: rgba(37, 211, 102, 0.12); border-color: #25D366; }
 .rg-wa-icon { width: 18px; height: 18px; flex: none; }
+
+/* The parent's permission page (permiso.html). Reached by a parent who may
+   never have seen the site, so it is one narrow card and nothing else. */
+.pm-main { max-width: 620px; margin: 0 auto; padding: 3rem 1.2rem 5rem; }
+.pm-box {
+  background: var(--navy-light, #121735); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius); padding: 2rem 1.6rem; text-align: left;
+}
+.pm-box h1 { margin: 0.4rem 0 1rem; }
+.pm-box .rg-done-mark { margin-bottom: 0.6rem; }
+.pm-player {
+  display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; align-items: baseline;
+  background: rgba(255, 107, 26, 0.08); border: 1px solid rgba(255, 107, 26, 0.25);
+  border-radius: var(--radius); padding: 0.9rem 1rem; margin-bottom: 1.2rem;
+}
+.pm-player strong { font-size: 1.1rem; }
+.pm-player span { color: var(--gray); font-size: 0.9rem; }
+@media (max-width: 600px) { .pm-main { padding: 2rem 1rem 4rem; } .pm-box { padding: 1.5rem 1.1rem; } }
+.pm-box form { margin-top: 1.4rem; }

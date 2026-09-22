@@ -15,8 +15,12 @@ const { default: register } = await import('../api/register.js');
 const { default: applicant } = await import('../api/applicant.js');
 const { default: applicants } = await import('../api/applicants.js');
 const auth = await import('../lib/auth.js');
-const { validateApplication, videoUrl, phone } = await import('../lib/validate.js');
+const { validateApplication, videoUrl, phone, handle } = await import('../lib/validate.js');
 const { REFUSALS } = await import('../js/registro.js');
+const { default: invite } = await import('../api/invite.js');
+const { default: permiso } = await import('../api/permiso.js');
+const { buildInvite, asksFor } = await import('../lib/invite.js');
+const { missingDetails, cleanPayment, isReady, EMPTY } = await import('../lib/settings.js');
 
 let passed = 0, failed = 0;
 async function test(name, fn) {
@@ -405,5 +409,174 @@ await test('the client address is the first one in x-forwarded-for', () => {
   assert.equal(clientIp({ headers: {} }), 'unknown');
 });
 
+/* ---------- the invitation email ---------- */
+
+const invitee = (over = {}) => ({
+  id: 7, event: 'nov-24-25', name: 'Diego Martínez López', dob: '2014-05-02',
+  email: 'diego@example.com', formLang: 'es', videoUrl: '', status: 'selected',
+  parentConfirmedAt: null, parentEmail: '', invitedAt: null, inviteCount: 0, ...over,
+});
+
+await test('the email asks for what this player is actually missing', () => {
+  const now = new Date('2026-10-01T00:00:00Z');
+  // 12 years old, nobody gave permission, no video: both asks.
+  assert.deepEqual(asksFor(invitee(), now), { parent: true, video: true });
+  // Permission on record: only the video.
+  assert.deepEqual(asksFor(invitee({ parentConfirmedAt: '2026-09-20T00:00:00Z' }), now),
+    { parent: false, video: true });
+  // A 17-year-old is not a child: never the parent block, whatever we hold.
+  assert.deepEqual(asksFor(invitee({ dob: '2008-05-02', videoUrl: 'https://v.example' }), now),
+    { parent: false, video: false });
+});
+
+await test('the invitation is written in the language the player used', () => {
+  const es = buildInvite(invitee());
+  const en = buildInvite(invitee({ formLang: 'en' }));
+  assert.equal(es.lang, 'es');
+  assert.match(es.subject, /Estás invitado/);
+  assert.match(es.text, /Hola Diego,/);
+  assert.equal(en.lang, 'en');
+  assert.match(en.subject, /You're invited/);
+  assert.match(en.text, /Hi Diego,/);
+});
+
+await test('the permission block appears only when a link was made for it', () => {
+  const without = buildInvite(invitee());
+  assert.equal(/permiso\.html/.test(without.text), false);
+
+  const with_ = buildInvite(invitee(), { parentLink: 'https://bepro.futbol/permiso.html?t=abc' });
+  assert.match(with_.text, /permiso\.html\?t=abc/);
+  assert.match(with_.html, /permiso\.html\?t=abc/);
+
+  // A player old enough never gets it, even if a link is passed by mistake.
+  const grown = buildInvite(invitee({ dob: '2008-05-02' }), { parentLink: 'https://x/permiso.html?t=abc' });
+  assert.equal(/permiso\.html/.test(grown.text), false);
+});
+
+await test('the video block appears only when we have no link', () => {
+  assert.match(buildInvite(invitee()).text, /wa\.me/);
+  const has = buildInvite(invitee({ videoUrl: 'https://youtu.be/abc' }));
+  assert.equal(/NOS FALTA TU VIDEO/.test(has.text), false);
+});
+
+await test('a name with html in it cannot break out into the email', () => {
+  const mail = buildInvite(invitee({ name: '<script>alert(1)</script> Pérez' }));
+  assert.equal(mail.html.includes('<script>'), false);
+  assert.match(mail.html, /&lt;script&gt;/);
+});
+
+await test('the email refuses to go out while the payment details are missing', () => {
+  // Nothing typed yet: a half-written email about money must never reach a
+  // family, so every missing piece is named.
+  const empty = cleanPayment({});
+  assert.equal(isReady(empty), false);
+  assert.ok(missingDetails(empty).includes('el costo'));
+  assert.ok(missingDetails(empty).includes('cómo se paga'));
+
+  // Everything filled in: ready.
+  const full = cleanPayment({
+    amount: { es: '$120 dólares', en: '$120' },
+    methods: [{ label: 'Zelle', detail: 'pagos@bepro.futbol' }],
+    deadline: { es: '1 de noviembre', en: 'November 1' },
+    refund: { es: 'No hay devoluciones.', en: 'No refunds.' },
+    logistics: {
+      'nov-10-11': { venue: 'Cancha A', time: '9:00 AM' },
+      'nov-17-18': { venue: 'Cancha A', time: '9:00 AM' },
+      'nov-24-25': { venue: 'Cancha A', time: '9:00 AM' },
+    },
+  });
+  assert.deepEqual(missingDetails(full), []);
+  assert.equal(isReady(full), true);
+});
+
+await test("the coach's typing is cleaned before it can reach an email", () => {
+  const p = cleanPayment({
+    amount: { es: '  $120   dólares ', en: '' },
+    methods: [{ label: 'Zelle', detail: 'x'.repeat(500) }, { label: '', detail: '' }],
+    bring: { es: ['Agua', '', '  Botines '], en: [] },
+    logistics: { 'nov-10-11': { venue: 'Cancha A', time: '9 AM' }, 'no-such-event': { venue: 'x' } },
+  });
+  assert.equal(p.amount.es, '$120 dólares');
+  assert.equal(p.methods.length, 1);
+  assert.equal(p.methods[0].detail.length, 200);
+  assert.deepEqual(p.bring.es, ['Agua', 'Botines']);
+  assert.equal(p.logistics['no-such-event'], undefined);
+  assert.equal(p.logistics['nov-10-11'].venue, 'Cancha A');
+});
+
+await test('an empty settings object never crashes the email', () => {
+  const mail = buildInvite(invitee(), { settings: EMPTY });
+  assert.match(mail.text, /Hola Diego,/);
+});
+
+await test('signed out: the invitation endpoints say nothing at all', async () => {
+  for (const method of ['GET', 'POST']) {
+    const res = mockRes();
+    await invite({ method, headers: {}, query: { id: '1' } }, res);
+    assert.equal(res.statusCode, 401, method);
+  }
+});
+
+await test('signed in: a bad id never reaches the database', async () => {
+  const cookie = auth.issueCookie().split(';')[0];
+  for (const id of ['0', '-3', 'abc', '']) {
+    const res = mockRes();
+    await invite({ method: 'GET', headers: { cookie }, query: { id } }, res);
+    assert.equal(res.statusCode, 400, id);
+    assert.equal(res.body.error, 'bad_id');
+  }
+});
+
+/* ---------- the parent's permission link ---------- */
+
+await test('a link that is not a real token is refused before any query', async () => {
+  for (const t of ['', 'x', '../../etc/passwd', "' OR 1=1 --", 'a'.repeat(42)]) {
+    const res = mockRes();
+    await permiso({ method: 'GET', headers: {}, query: { t } }, res);
+    assert.equal(res.statusCode, 404, JSON.stringify(t));
+  }
+});
+
+await test('the permission page says who, and only who', async () => {
+  const res = mockRes();
+  await permiso({ method: 'POST', headers: {}, body: { t: 'a'.repeat(43), who: 'maybe' } }, res);
+  assert.equal(res.statusCode, 400);
+  assert.equal(res.body.error, 'who');
+});
+
+await test('the permission page is never indexed or cached', async () => {
+  const res = mockRes();
+  await permiso({ method: 'GET', headers: {}, query: { t: 'x' } }, res);
+  assert.equal(res.headers['Cache-Control'], 'no-store');
+  assert.equal(res.headers['X-Robots-Tag'], 'noindex, nofollow');
+});
+
+
+/* ---------- Instagram and TikTok ---------- */
+
+await test('a social name is accepted however people paste it', () => {
+  for (const given of ['diego10', '@diego10', 'instagram.com/diego10', 'https://www.instagram.com/diego10',
+                       'https://instagram.com/diego10/', 'instagram.com/diego10?igsh=abc']) {
+    assert.equal(handle(given, 'instagram.com/'), 'diego10', given);
+  }
+  assert.equal(handle('@diego.10_', 'tiktok.com/'), 'diego.10_');
+  assert.equal(handle('tiktok.com/@diego10', 'tiktok.com/'), 'diego10');
+});
+
+await test('both social names are optional, and junk is refused', () => {
+  const ok = validateApplication({ ...adult(), instagram: '', tiktok: '' });
+  assert.equal(ok.code, undefined);
+  assert.equal(ok.application.instagram, '');
+  assert.equal(ok.application.tiktok, '');
+
+  assert.equal(validateApplication({ ...adult(), instagram: 'two words' }).code, 'instagram');
+  assert.equal(validateApplication({ ...adult(), tiktok: '<script>' }).code, 'tiktok');
+});
+
+await test('the social names are stored without the @ or the link', () => {
+  const r = validateApplication({ ...adult(), instagram: '@Diego_10', tiktok: 'https://tiktok.com/@diego10' });
+  assert.equal(r.application.instagram, 'Diego_10');
+  assert.equal(r.application.tiktok, 'diego10');
+});
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

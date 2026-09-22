@@ -324,3 +324,51 @@ a.ad-chip-video:hover { background: rgba(0,212,255,0.1); }
 
   @page { margin: 14mm; }
 }
+
+/* ---------- the invitation email ---------- */
+.ad-invite {
+  border-radius: var(--radius); padding: 1rem 1.1rem; margin: 0 0 1.2rem;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.ad-invite-todo { background: rgba(255, 107, 26, 0.08); border-color: rgba(255, 107, 26, 0.3); }
+.ad-invite-sent { background: rgba(0, 212, 255, 0.07); border-color: rgba(0, 212, 255, 0.28); }
+
+.ad-iv-blockers {
+  margin: 0 0 1rem; padding: 0.8rem 1rem 0.8rem 2rem; border-radius: var(--radius);
+  background: rgba(255, 77, 77, 0.1); border: 1px solid rgba(255, 77, 77, 0.35);
+  color: #FFB3B3; font-size: 0.85rem; line-height: 1.6;
+}
+.ad-iv-subject {
+  font-size: 0.85rem; color: var(--gray); margin: 0.4rem 0 0.8rem;
+  padding-bottom: 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.ad-iv-frame {
+  width: 100%; height: 420px; border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--radius); background: #F2F3F7; margin-bottom: 1rem;
+}
+@media (max-width: 600px) { .ad-iv-frame { height: 320px; } }
+.ad-chip-sent { background: rgba(0, 212, 255, 0.12); color: #7FE6FF; border-color: rgba(0, 212, 255, 0.35); }
+
+/* ---------- payment details ---------- */
+.ad-pay-method, .ad-pay-event {
+  display: grid; grid-template-columns: 1fr 2fr auto; gap: 0.6rem;
+  align-items: center; margin-bottom: 0.7rem;
+}
+.ad-pay-event { grid-template-columns: 0.9fr 2fr 1fr; }
+.ad-pay-event-name { font-size: 0.82rem; color: var(--gray); line-height: 1.4; }
+/* These inputs are built in JS, outside a .form-group, so they need the same
+   look spelled out. */
+.ad-pay-method input, .ad-pay-event input {
+  width: 100%; padding: 0.7rem 0.8rem; font-family: inherit; font-size: 0.92rem;
+  color: var(--white); background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.14); border-radius: var(--radius);
+}
+.ad-pay-method input:focus, .ad-pay-event input:focus {
+  outline: none; border-color: var(--electric); background: rgba(0, 212, 255, 0.06);
+}
+#adPayMethods { margin-top: 0.7rem; }
+#adPayAddMethod { display: inline-block; margin: 0 0 1.4rem; }
+#adPayLogistics { margin: 0.7rem 0 1.4rem; }
+@media (max-width: 640px) {
+  .ad-pay-method, .ad-pay-event { grid-template-columns: 1fr; }
+}

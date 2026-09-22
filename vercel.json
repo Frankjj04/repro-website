@@ -31,6 +31,14 @@
       ]
     },
     {
+      "source": "/permiso.html",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" },
+        { "key": "Cache-Control", "value": "no-store" },
+        { "key": "Referrer-Policy", "value": "no-referrer" }
+      ]
+    },
+    {
       "source": "/scout.html",
       "headers": [
         {

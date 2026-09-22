@@ -20,6 +20,7 @@
     <div class="logo-sub">REGISTROS</div>
   </a>
   <div class="ad-top-actions">
+    <button type="button" class="btn btn-secondary btn-sm" id="adPayOpen" hidden>⚙ Datos del pago</button>
     <button type="button" class="btn btn-secondary btn-sm" id="adSharesOpen" hidden>Links compartidos</button>
     <button type="button" class="ad-link" id="adLogout" hidden>Salir</button>
   </div>
@@ -99,6 +100,7 @@
 
     <div class="ad-consent" id="adPConsent"></div>
     <div id="adPParent"></div>
+    <div id="adPInvite"></div>
 
     <dl class="ad-facts" id="adPFacts"></dl>
 
@@ -171,6 +173,92 @@
       </div>
       <p class="rg-help" id="adSmExpires"></p>
     </div>
+  </div>
+</div>
+
+<!-- What the invitation email says about paying -->
+<div class="ad-overlay ad-modal-wrap" id="adPayModal" hidden>
+  <div class="ad-modal" role="dialog" aria-modal="true" aria-labelledby="adPayTitle">
+    <button type="button" class="ad-close" data-close aria-label="Cerrar">×</button>
+    <h2 id="adPayTitle">DATOS DEL PAGO</h2>
+    <p class="rg-help">Esto es lo que lee la familia en el correo de invitación. Solo tú lo ves aquí;
+      no aparece en la página web. En inglés es opcional: si lo dejas vacío usamos el español.</p>
+
+    <ul class="ad-iv-blockers" id="adPayMissing" hidden></ul>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="adPayAmountEs">Costo (español)</label>
+        <input type="text" id="adPayAmountEs" maxlength="200" placeholder="Ej. $120 dólares por jugador" />
+      </div>
+      <div class="form-group">
+        <label for="adPayAmountEn">Cost (English)</label>
+        <input type="text" id="adPayAmountEn" maxlength="200" placeholder="Ej. $120 per player" />
+      </div>
+    </div>
+
+    <span class="rg-label">Formas de pago</span>
+    <div id="adPayMethods"></div>
+    <button type="button" class="ad-link" id="adPayAddMethod">+ Agregar forma de pago</button>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="adPayDeadlineEs">Fecha límite (español)</label>
+        <input type="text" id="adPayDeadlineEs" maxlength="200" placeholder="Ej. 1 de noviembre" />
+      </div>
+      <div class="form-group">
+        <label for="adPayDeadlineEn">Deadline (English)</label>
+        <input type="text" id="adPayDeadlineEn" maxlength="200" placeholder="Ej. November 1" />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="adPayRefundEs">Devoluciones (español)</label>
+        <input type="text" id="adPayRefundEs" maxlength="200" placeholder="Ej. El pago no se devuelve." />
+      </div>
+      <div class="form-group">
+        <label for="adPayRefundEn">Refunds (English)</label>
+        <input type="text" id="adPayRefundEn" maxlength="200" placeholder="Ej. Payments are non-refundable." />
+      </div>
+    </div>
+
+    <span class="rg-label">Lugar y hora de cada fecha</span>
+    <div id="adPayLogistics"></div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="adPayBringEs">Qué traer (español, uno por línea)</label>
+        <textarea id="adPayBringEs" rows="3" placeholder="Uniforme y espinilleras&#10;Botines&#10;Agua"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="adPayBringEn">What to bring (English)</label>
+        <textarea id="adPayBringEn" rows="3"></textarea>
+      </div>
+    </div>
+
+    <p class="rg-error" id="adPayError" hidden></p>
+    <p class="rg-help" id="adPaySaved" hidden></p>
+    <button type="button" class="btn btn-primary rg-submit" id="adPaySave">GUARDAR</button>
+  </div>
+</div>
+
+<!-- The invitation email, exactly as the player will get it -->
+<div class="ad-overlay ad-modal-wrap" id="adInviteModal" hidden>
+  <div class="ad-modal" role="dialog" aria-modal="true" aria-labelledby="adIvTitle">
+    <button type="button" class="ad-close" data-close aria-label="Cerrar">×</button>
+    <h2 id="adIvTitle">ENVIAR INVITACIÓN</h2>
+
+    <p class="ad-sm-count" id="adIvTo"></p>
+    <ul class="ad-iv-blockers" id="adIvBlockers" hidden></ul>
+    <p class="rg-help" id="adIvAsks" hidden></p>
+
+    <div class="ad-iv-subject"><strong>Asunto:</strong> <span id="adIvSubject"></span></div>
+    <iframe class="ad-iv-frame" id="adIvFrame" title="Vista previa del correo" sandbox=""></iframe>
+
+    <p class="rg-error" id="adIvError" hidden></p>
+    <button type="button" class="btn btn-primary rg-submit" id="adIvSend">CONFIRMAR Y ENVIAR</button>
+    <p class="rg-help">Una vez enviado no se puede deshacer. Revisa el correo arriba antes de mandarlo.</p>
   </div>
 </div>
 
