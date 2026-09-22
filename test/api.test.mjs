@@ -88,8 +88,10 @@ await test('permission to share only counts as an explicit true', () => {
   assert.equal(validateApplication({ ...adult(), consentShare: true }).application.consentShare, true);
 });
 
-await test('video link is required', () => {
-  assert.equal(validateApplication({ ...adult(), videoUrl: '' }).code, 'video_url');
+await test('video link is optional: players may send it on WhatsApp instead', () => {
+  const r = validateApplication({ ...adult(), videoUrl: '' });
+  assert.equal(r.code, undefined);
+  assert.equal(r.application.videoUrl, '');
 });
 
 await test('dangerous or broken video links are refused', () => {

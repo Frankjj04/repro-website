@@ -163,6 +163,14 @@ function init() {
     $('rgParentEmail').required = child;
     if (!child) { $('rgParentEmail').value = ''; $('rgParentConfirm').checked = false; }
   }
+  /* The way out for a player whose phone will not give them a shareable link:
+     send the video to Be Pro on WhatsApp. The message is written for them, in
+     the language they are filling the form in. */
+  function updateVideoWa() {
+    const href = 'https://wa.me/17028319474?text=' + encodeURIComponent(t('rg_video_wa_msg'));
+    $('rgVideoWa').href = href;
+    $('rgDoneWa').href = href;
+  }
   function updateDate() {
     $('rgSignDate').textContent = new Date().toLocaleDateString(lang() === 'en' ? 'en-US' : 'es-MX',
       { day: 'numeric', month: 'long', year: 'numeric' });
@@ -356,6 +364,11 @@ function init() {
     if (!res) return showError(null, 'rg_err_connection');
     if (res.ok) {
       form.hidden = true;
+      // Nothing to chase when they gave a link; when they did not, this is the
+      // moment they are most likely to send the video.
+      const noVideo = !$('rgVideo').value.trim();
+      $('rgDoneVideo').hidden = !noVideo;
+      $('rgDoneWa').hidden = !noVideo;
       $('rgDone').hidden = false;
       $('rgDone').scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
@@ -384,11 +397,13 @@ function init() {
       if (!sending) $('rgSubmit').textContent = t('rg_submit');
       photoLabels();
       updateDate();
+      updateVideoWa();
     });
   });
 
   renderOptions();
   updateGuardian();
   updateDate();
+  updateVideoWa();
   resetPhoto();
 }
