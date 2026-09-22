@@ -186,16 +186,14 @@
 
     <ul class="ad-iv-blockers" id="adPayMissing" hidden></ul>
 
-    <div class="form-row">
-      <div class="form-group">
-        <label for="adPayAmountEs">Costo (español)</label>
-        <input type="text" id="adPayAmountEs" maxlength="200" placeholder="Ej. $120 dólares por jugador" />
-      </div>
-      <div class="form-group">
-        <label for="adPayAmountEn">Cost (English)</label>
-        <input type="text" id="adPayAmountEn" maxlength="200" placeholder="Ej. $120 per player" />
-      </div>
-    </div>
+    <details class="ad-pay-paste">
+      <summary>Pegar todo de una vez</summary>
+      <p class="rg-help">Pega aquí el bloque de datos y se llenan todas las casillas solas.
+        Revísalas y luego dale Guardar.</p>
+      <textarea id="adPayPaste" rows="6" placeholder="costo 10-11: $365&#10;link 10-11: https://buy.stripe.com/…&#10;lugar 10-11: …"></textarea>
+      <button type="button" class="btn btn-secondary btn-sm" id="adPayPasteFill">Llenar casillas</button>
+      <p class="rg-help" id="adPayPasteState" hidden></p>
+    </details>
 
     <span class="rg-label">Formas de pago</span>
     <div id="adPayMethods"></div>
@@ -223,9 +221,9 @@
       </div>
     </div>
 
-    <span class="rg-label">Cada fecha: lugar, hora y link de pago</span>
-    <p class="rg-help">El link de pago es el de Stripe. Cada fecha puede tener el suyo; si dos fechas
-      comparten el mismo link, pégalo en las dos.</p>
+    <span class="rg-label">Cada fecha: lugar, hora, costo y link de pago</span>
+    <p class="rg-help">Cada fecha puede costar distinto y tener su propio link de Stripe. Si dos fechas
+      comparten el mismo link o el mismo precio, ponlo en las dos. Si dos fechas cuestan lo mismo, escribe el mismo número en las dos.</p>
     <div id="adPayLogistics"></div>
 
     <div class="form-row">

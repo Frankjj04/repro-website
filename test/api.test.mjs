@@ -470,19 +470,18 @@ await test('the email refuses to go out while the payment details are missing', 
   // family, so every missing piece is named.
   const empty = cleanPayment({});
   assert.equal(isReady(empty), false);
-  assert.ok(missingDetails(empty).includes('el costo'));
+  assert.ok(missingDetails(empty).some((m) => m.startsWith('el costo del')));
   assert.ok(missingDetails(empty).some((m) => m.startsWith('cómo se paga')));
 
   // Everything filled in: ready.
   const full = cleanPayment({
-    amount: { es: '$120 dólares', en: '$120' },
     methods: [{ label: 'Zelle', detail: 'pagos@bepro.futbol' }],
     deadline: { es: '1 de noviembre', en: 'November 1' },
     refund: { es: 'No hay devoluciones.', en: 'No refunds.' },
     logistics: {
-      'nov-10-11': { venue: 'Cancha A', time: '9:00 AM' },
-      'nov-17-18': { venue: 'Cancha A', time: '9:00 AM' },
-      'nov-24-25': { venue: 'Cancha A', time: '9:00 AM' },
+      'nov-10-11': { venue: 'Cancha A', time: '9:00 AM', price: '$365' },
+      'nov-17-18': { venue: 'Cancha A', time: '9:00 AM', price: '$365' },
+      'nov-24-25': { venue: 'Cancha A', time: '9:00 AM', price: '$95' },
     },
   });
   assert.deepEqual(missingDetails(full), []);
@@ -491,12 +490,10 @@ await test('the email refuses to go out while the payment details are missing', 
 
 await test("the coach's typing is cleaned before it can reach an email", () => {
   const p = cleanPayment({
-    amount: { es: '  $120   dólares ', en: '' },
     methods: [{ label: 'Zelle', detail: 'x'.repeat(500) }, { label: '', detail: '' }],
     bring: { es: ['Agua', '', '  Botines '], en: [] },
     logistics: { 'nov-10-11': { venue: 'Cancha A', time: '9 AM' }, 'no-such-event': { venue: 'x' } },
   });
-  assert.equal(p.amount.es, '$120 dólares');
   assert.equal(p.methods.length, 1);
   assert.equal(p.methods[0].detail.length, 200);
   assert.deepEqual(p.bring.es, ['Agua', 'Botines']);
@@ -581,13 +578,12 @@ await test('the social names are stored without the @ or the link', () => {
 
 await test('a checkout link on every date counts as a way to pay', () => {
   const base = {
-    amount: { es: '$120', en: '' },
     deadline: { es: '1 de noviembre', en: '' },
     refund: { es: 'No hay devoluciones.', en: '' },
     logistics: {
-      'nov-10-11': { venue: 'Cancha A', time: '9 AM', payLink: 'https://buy.stripe.com/aaa' },
-      'nov-17-18': { venue: 'Cancha A', time: '9 AM', payLink: 'https://buy.stripe.com/aaa' },
-      'nov-24-25': { venue: 'Cancha A', time: '9 AM', payLink: 'https://buy.stripe.com/bbb' },
+      'nov-10-11': { venue: 'Cancha A', time: '9 AM', price: '$365', payLink: 'https://buy.stripe.com/aaa' },
+      'nov-17-18': { venue: 'Cancha A', time: '9 AM', price: '$365', payLink: 'https://buy.stripe.com/aaa' },
+      'nov-24-25': { venue: 'Cancha A', time: '9 AM', price: '$95', payLink: 'https://buy.stripe.com/bbb' },
     },
   };
   // No Zelle, no transfer — just the links. That is enough.
@@ -624,6 +620,38 @@ await test('the payment button carries that date\'s own link', () => {
   // A player on another date never sees it.
   const other = buildInvite(invitee({ event: 'nov-10-11', dob: '2008-05-02' }), { settings });
   assert.equal(/buy\.stripe\.com/.test(other.text), false);
+});
+
+await test('each date can cost a different amount', () => {
+  const settings = cleanPayment({
+    logistics: {
+      'nov-10-11': { venue: 'Cancha A', time: '9 AM', price: '$365', payLink: 'https://buy.stripe.com/a' },
+      'nov-17-18': { venue: 'Cancha A', time: '9 AM', price: '$365', payLink: 'https://buy.stripe.com/a' },
+      'nov-24-25': { venue: 'Cancha B', time: '9 AM', price: '$95', payLink: 'https://buy.stripe.com/b' },
+    },
+  });
+  // Each player is told their own date's price, never another one's.
+  assert.match(buildInvite(invitee(), { settings }).text, /Costo: \$95/);
+  assert.match(buildInvite(invitee({ event: 'nov-10-11', dob: '2008-05-02' }), { settings }).text,
+    /Costo: \$365/);
+});
+
+await test('a price is needed on every date', () => {
+  const each = cleanPayment({
+    deadline: { es: '1 de noviembre', en: '' },
+    refund: { es: 'No se devuelve.', en: '' },
+    logistics: {
+      'nov-10-11': { venue: 'A', time: '9', price: '$120', payLink: 'https://buy.stripe.com/a' },
+      'nov-17-18': { venue: 'A', time: '9', price: '$120', payLink: 'https://buy.stripe.com/a' },
+      'nov-24-25': { venue: 'B', time: '9', price: '$150', payLink: 'https://buy.stripe.com/b' },
+    },
+  });
+  assert.deepEqual(missingDetails(each), []);
+
+  // Take one price away and nothing covers that date.
+  const gap = JSON.parse(JSON.stringify(each));
+  gap.logistics['nov-17-18'].price = '';
+  assert.ok(missingDetails(cleanPayment(gap)).some((m) => m.startsWith('el costo del')));
 });
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

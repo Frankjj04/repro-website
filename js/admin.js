@@ -656,8 +656,6 @@ function methodRow(m) {
 }
 
 function fillPayForm(p) {
-  $('adPayAmountEs').value = p.amount.es;
-  $('adPayAmountEn').value = p.amount.en;
   $('adPayDeadlineEs').value = p.deadline.es;
   $('adPayDeadlineEn').value = p.deadline.en;
   $('adPayRefundEs').value = p.refund.es;
@@ -671,7 +669,7 @@ function fillPayForm(p) {
   $('adPayLogistics').replaceChildren(...EVENTS.map((e) => {
     const l = (p.logistics || {})[e.id] || {};
     const wrap = el('div', 'ad-pay-event');
-    wrap.append(el('span', 'ad-pay-event-name', e.dates.es));
+    wrap.append(el('div', 'ad-pay-event-name', e.dates.es));
     const venue = el('input');
     venue.type = 'text';
     venue.maxLength = 160;
@@ -686,6 +684,13 @@ function fillPayForm(p) {
     time.value = l.time || '';
     time.dataset.event = e.id;
     time.dataset.field = 'time';
+    const price = el('input');
+    price.type = 'text';
+    price.maxLength = 100;
+    price.placeholder = 'Costo de esta fecha — ej. $150';
+    price.value = l.price || '';
+    price.dataset.event = e.id;
+    price.dataset.field = 'price';
     const link = el('input');
     link.type = 'url';
     link.maxLength = 300;
@@ -693,7 +698,7 @@ function fillPayForm(p) {
     link.value = l.payLink || '';
     link.dataset.event = e.id;
     link.dataset.field = 'payLink';
-    wrap.append(venue, time, link);
+    wrap.append(venue, time, price, link);
     return wrap;
   }));
 }
@@ -703,11 +708,10 @@ function readPayForm() {
   const logistics = {};
   for (const input of $('adPayLogistics').querySelectorAll('input')) {
     const e = input.dataset.event;
-    logistics[e] = logistics[e] || { venue: '', time: '', payLink: '' };
+    logistics[e] = logistics[e] || { venue: '', time: '', price: '', payLink: '' };
     logistics[e][input.dataset.field] = input.value;
   }
   return {
-    amount:   { es: $('adPayAmountEs').value,   en: $('adPayAmountEn').value },
     deadline: { es: $('adPayDeadlineEs').value, en: $('adPayDeadlineEn').value },
     refund:   { es: $('adPayRefundEs').value,   en: $('adPayRefundEn').value },
     methods: [...$('adPayMethods').querySelectorAll('.ad-pay-method')].map((row) => {
@@ -725,6 +729,67 @@ function showMissing(missing) {
   ul.replaceChildren(...missing.map((m) => el('li', null, 'Falta ' + m + '.')));
   ul.hidden = false;
 }
+
+/* One paste instead of a dozen boxes. Lines look like "costo 10-11: $365";
+   the date is matched however it is written — 10-11, 10 y 11, nov-10-11. */
+function parsePaste(text) {
+  const strip = (x) => x.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+  const out = { general: {}, events: {}, bring: [] };
+
+  const whichEvent = (s) => {
+    const digits = (s.match(/\d+/g) || []).join('-');
+    return EVENTS.find((e) => {
+      const d = (e.id.match(/\d+/g) || []).join('-');
+      return digits === d || digits === d.split('-').reverse().join('-');
+    });
+  };
+
+  for (const raw of String(text || '').split('\n')) {
+    const line = raw.trim();
+    if (!line) continue;
+    const at = line.indexOf(':');
+    if (at < 1) continue;
+    const key = strip(line.slice(0, at));
+    const value = line.slice(at + 1).trim();
+    if (!value) continue;
+
+    const ev = whichEvent(key);
+    if (ev) {
+      const slot = out.events[ev.id] || (out.events[ev.id] = {});
+      if (key.startsWith('costo') || key.startsWith('precio')) slot.price = value;
+      else if (key.startsWith('link') || key.startsWith('pago')) slot.payLink = value;
+      else if (key.startsWith('lugar') || key.startsWith('cancha')) slot.venue = value;
+      else if (key.startsWith('hora')) slot.time = value;
+      continue;
+    }
+    if (key.startsWith('fecha') || key.startsWith('limite')) out.general.deadline = value;
+    else if (key.startsWith('devolucion') || key.startsWith('reembolso')) out.general.refund = value;
+    else if (key.startsWith('traer') || key.startsWith('que traer')) {
+      out.bring = value.split(/[;,]/).map((x) => x.trim()).filter(Boolean);
+    }
+  }
+  return out;
+}
+
+$('adPayPasteFill').addEventListener('click', () => {
+  const parsed = parsePaste($('adPayPaste').value);
+  let filled = 0;
+
+  const set = (id, v) => { if (v) { $(id).value = v; filled++; } };
+  set('adPayDeadlineEs', parsed.general.deadline);
+  set('adPayRefundEs', parsed.general.refund);
+  if (parsed.bring.length) { $('adPayBringEs').value = parsed.bring.join('\n'); filled++; }
+
+  for (const input of $('adPayLogistics').querySelectorAll('input')) {
+    const v = (parsed.events[input.dataset.event] || {})[input.dataset.field];
+    if (v) { input.value = v; filled++; }
+  }
+
+  $('adPayPasteState').textContent = filled
+    ? 'Se llenaron ' + filled + ' casillas. Revísalas y dale Guardar.'
+    : 'No reconocí nada. Revisa que cada línea sea "nombre: valor".';
+  $('adPayPasteState').hidden = false;
+});
 
 $('adPayOpen').addEventListener('click', async () => {
   flash($('adPayError'), '');

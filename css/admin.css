@@ -354,8 +354,17 @@ a.ad-chip-video:hover { background: rgba(0,212,255,0.1); }
   display: grid; grid-template-columns: 1fr 2fr auto; gap: 0.6rem;
   align-items: center; margin-bottom: 0.7rem;
 }
-.ad-pay-event { grid-template-columns: 0.8fr 1.4fr 0.8fr 1.6fr; }
-.ad-pay-event-name { font-size: 0.82rem; color: var(--gray); line-height: 1.4; }
+.ad-pay-event {
+  display: block; padding: 0.9rem 1rem; margin-bottom: 0.9rem;
+  border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius);
+  background: rgba(255,255,255,0.02);
+}
+.ad-pay-event-name {
+  font-size: 0.75rem; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--orange); margin-bottom: 0.7rem;
+}
+.ad-pay-event input { margin-bottom: 0.6rem; }
+.ad-pay-event input:last-child { margin-bottom: 0; }
 /* These inputs are built in JS, outside a .form-group, so they need the same
    look spelled out. */
 .ad-pay-method input, .ad-pay-event input {
@@ -372,3 +381,6 @@ a.ad-chip-video:hover { background: rgba(0,212,255,0.1); }
 @media (max-width: 640px) {
   .ad-pay-method, .ad-pay-event { grid-template-columns: 1fr; }
 }
+.ad-pay-paste { margin: 0 0 1.4rem; border: 1px dashed rgba(255,255,255,0.18); border-radius: var(--radius); padding: 0.8rem 1rem; }
+.ad-pay-paste summary { cursor: pointer; font-size: 0.85rem; font-weight: 600; color: var(--electric); }
+.ad-pay-paste textarea { width: 100%; margin: 0.6rem 0; font-family: ui-monospace, Menlo, monospace; font-size: 0.85rem; }
