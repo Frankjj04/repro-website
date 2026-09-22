@@ -471,7 +471,7 @@ await test('the email refuses to go out while the payment details are missing', 
   const empty = cleanPayment({});
   assert.equal(isReady(empty), false);
   assert.ok(missingDetails(empty).includes('el costo'));
-  assert.ok(missingDetails(empty).includes('cómo se paga'));
+  assert.ok(missingDetails(empty).some((m) => m.startsWith('cómo se paga')));
 
   // Everything filled in: ready.
   const full = cleanPayment({
@@ -577,6 +577,53 @@ await test('the social names are stored without the @ or the link', () => {
   const r = validateApplication({ ...adult(), instagram: '@Diego_10', tiktok: 'https://tiktok.com/@diego10' });
   assert.equal(r.application.instagram, 'Diego_10');
   assert.equal(r.application.tiktok, 'diego10');
+});
+
+await test('a checkout link on every date counts as a way to pay', () => {
+  const base = {
+    amount: { es: '$120', en: '' },
+    deadline: { es: '1 de noviembre', en: '' },
+    refund: { es: 'No hay devoluciones.', en: '' },
+    logistics: {
+      'nov-10-11': { venue: 'Cancha A', time: '9 AM', payLink: 'https://buy.stripe.com/aaa' },
+      'nov-17-18': { venue: 'Cancha A', time: '9 AM', payLink: 'https://buy.stripe.com/aaa' },
+      'nov-24-25': { venue: 'Cancha A', time: '9 AM', payLink: 'https://buy.stripe.com/bbb' },
+    },
+  };
+  // No Zelle, no transfer — just the links. That is enough.
+  assert.deepEqual(missingDetails(cleanPayment(base)), []);
+
+  // Drop one link and it is not: nobody on that date could pay.
+  const short = JSON.parse(JSON.stringify(base));
+  short.logistics['nov-24-25'].payLink = '';
+  assert.ok(missingDetails(cleanPayment(short)).some((m) => m.startsWith('cómo se paga')));
+});
+
+await test('only an https link is ever put in front of a family', () => {
+  const p = cleanPayment({
+    logistics: {
+      'nov-10-11': { payLink: 'https://buy.stripe.com/ok' },
+      'nov-17-18': { payLink: 'javascript:alert(1)' },
+      'nov-24-25': { payLink: 'buy.stripe.com/no-scheme' },
+    },
+  });
+  assert.equal(p.logistics['nov-10-11'].payLink, 'https://buy.stripe.com/ok');
+  assert.equal(p.logistics['nov-17-18'].payLink, '');
+  assert.equal(p.logistics['nov-24-25'].payLink, '');
+});
+
+await test('the payment button carries that date\'s own link', () => {
+  const settings = cleanPayment({
+    amount: { es: '$120', en: '' },
+    logistics: { 'nov-24-25': { venue: 'Cancha A', time: '9 AM', payLink: 'https://buy.stripe.com/bbb' } },
+  });
+  const mail = buildInvite(invitee(), { settings });
+  assert.match(mail.text, /Pagar mi lugar: https:\/\/buy\.stripe\.com\/bbb/);
+  assert.match(mail.html, /href="https:\/\/buy\.stripe\.com\/bbb"/);
+
+  // A player on another date never sees it.
+  const other = buildInvite(invitee({ event: 'nov-10-11', dob: '2008-05-02' }), { settings });
+  assert.equal(/buy\.stripe\.com/.test(other.text), false);
 });
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

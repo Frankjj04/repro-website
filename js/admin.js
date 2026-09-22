@@ -686,7 +686,14 @@ function fillPayForm(p) {
     time.value = l.time || '';
     time.dataset.event = e.id;
     time.dataset.field = 'time';
-    wrap.append(venue, time);
+    const link = el('input');
+    link.type = 'url';
+    link.maxLength = 300;
+    link.placeholder = 'Link de pago (Stripe) — https://buy.stripe.com/…';
+    link.value = l.payLink || '';
+    link.dataset.event = e.id;
+    link.dataset.field = 'payLink';
+    wrap.append(venue, time, link);
     return wrap;
   }));
 }
@@ -696,7 +703,7 @@ function readPayForm() {
   const logistics = {};
   for (const input of $('adPayLogistics').querySelectorAll('input')) {
     const e = input.dataset.event;
-    logistics[e] = logistics[e] || { venue: '', time: '' };
+    logistics[e] = logistics[e] || { venue: '', time: '', payLink: '' };
     logistics[e][input.dataset.field] = input.value;
   }
   return {
