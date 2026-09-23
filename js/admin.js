@@ -658,8 +658,6 @@ function methodRow(m) {
 function fillPayForm(p) {
   $('adPayDeadlineEs').value = p.deadline.es;
   $('adPayDeadlineEn').value = p.deadline.en;
-  $('adPayRefundEs').value = p.refund.es;
-  $('adPayRefundEn').value = p.refund.en;
   $('adPayBringEs').value = (p.bring.es || []).join('\n');
   $('adPayBringEn').value = (p.bring.en || []).join('\n');
 
@@ -713,7 +711,6 @@ function readPayForm() {
   }
   return {
     deadline: { es: $('adPayDeadlineEs').value, en: $('adPayDeadlineEn').value },
-    refund:   { es: $('adPayRefundEs').value,   en: $('adPayRefundEn').value },
     methods: [...$('adPayMethods').querySelectorAll('.ad-pay-method')].map((row) => {
       const [label, detail] = row.querySelectorAll('input');
       return { label: label.value, detail: detail.value };
@@ -763,7 +760,6 @@ function parsePaste(text) {
       continue;
     }
     if (key.startsWith('fecha') || key.startsWith('limite')) out.general.deadline = value;
-    else if (key.startsWith('devolucion') || key.startsWith('reembolso')) out.general.refund = value;
     else if (key.startsWith('traer') || key.startsWith('que traer')) {
       out.bring = value.split(/[;,]/).map((x) => x.trim()).filter(Boolean);
     }
@@ -777,7 +773,6 @@ $('adPayPasteFill').addEventListener('click', () => {
 
   const set = (id, v) => { if (v) { $(id).value = v; filled++; } };
   set('adPayDeadlineEs', parsed.general.deadline);
-  set('adPayRefundEs', parsed.general.refund);
   if (parsed.bring.length) { $('adPayBringEs').value = parsed.bring.join('\n'); filled++; }
 
   for (const input of $('adPayLogistics').querySelectorAll('input')) {

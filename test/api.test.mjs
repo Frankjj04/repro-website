@@ -440,6 +440,16 @@ await test('the invitation is written in the language the player used', () => {
   assert.match(en.text, /Hi Diego,/);
 });
 
+await test('the invitation says nothing about refunds (coach, 2026-09-23)', () => {
+  // A stored refund line from before must not come back either.
+  const settings = { ...cleanPayment({}), refund: { es: 'No se devuelve.', en: 'No refunds.' } };
+  for (const lang of ['es', 'en']) {
+    const mail = buildInvite(invitee({ formLang: lang }), { settings });
+    assert.doesNotMatch(mail.text + mail.html, /devol|reembols|refund/i);
+  }
+  assert.ok(!missingDetails(cleanPayment({})).some((m) => /devuelve/.test(m)));
+});
+
 await test('the permission block appears only when a link was made for it', () => {
   const without = buildInvite(invitee());
   assert.equal(/permiso\.html/.test(without.text), false);
@@ -477,7 +487,6 @@ await test('the email refuses to go out while the payment details are missing', 
   const full = cleanPayment({
     methods: [{ label: 'Zelle', detail: 'pagos@bepro.futbol' }],
     deadline: { es: '1 de noviembre', en: 'November 1' },
-    refund: { es: 'No hay devoluciones.', en: 'No refunds.' },
     logistics: {
       'nov-10-11': { venue: 'Cancha A', time: '9:00 AM', price: '$365' },
       'nov-17-18': { venue: 'Cancha A', time: '9:00 AM', price: '$365' },
@@ -579,7 +588,6 @@ await test('the social names are stored without the @ or the link', () => {
 await test('a checkout link on every date counts as a way to pay', () => {
   const base = {
     deadline: { es: '1 de noviembre', en: '' },
-    refund: { es: 'No hay devoluciones.', en: '' },
     logistics: {
       'nov-10-11': { venue: 'Cancha A', time: '9 AM', price: '$365', payLink: 'https://buy.stripe.com/aaa' },
       'nov-17-18': { venue: 'Cancha A', time: '9 AM', price: '$365', payLink: 'https://buy.stripe.com/aaa' },
@@ -639,7 +647,6 @@ await test('each date can cost a different amount', () => {
 await test('a price is needed on every date', () => {
   const each = cleanPayment({
     deadline: { es: '1 de noviembre', en: '' },
-    refund: { es: 'No se devuelve.', en: '' },
     logistics: {
       'nov-10-11': { venue: 'A', time: '9', price: '$120', payLink: 'https://buy.stripe.com/a' },
       'nov-17-18': { venue: 'A', time: '9', price: '$120', payLink: 'https://buy.stripe.com/a' },
