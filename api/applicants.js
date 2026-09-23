@@ -39,6 +39,7 @@ export const COLUMNS = `id, event, name, dob, birthplace, nationalities, phone, 
   instagram, tiktok,
   invited_at, invite_count, invite_to,
   parent_confirm_name, parent_reply, parent_reply_at,
+  paid_at, paid_amount, details_sent_at, details_to,
   (photo IS NOT NULL) AS has_photo`;
 
 export function toJson(r) {
@@ -82,6 +83,10 @@ export function toJson(r) {
     parentConfirmName: r.parent_confirm_name,
     parentReply: r.parent_reply,
     parentReplyAt: r.parent_reply_at,
+    paidAt: r.paid_at,
+    paidAmount: r.paid_amount || '',
+    detailsSentAt: r.details_sent_at,
+    detailsTo: r.details_to || '',
     status: r.status,
     note: r.coach_note,
     createdAt: r.created_at,

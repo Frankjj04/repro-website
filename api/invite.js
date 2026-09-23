@@ -4,6 +4,10 @@
                            is written down. The coach reads this before deciding.
    POST /api/invite?id=N   actually sends it, and records that it went out.
 
+   With &kind=details, the same two steps for the second email: venue, time and
+   what to bring. Stripe sends that one by itself when a family pays; this is
+   for resending it, or for a family that paid another way.
+
    Sending is deliberately a second, separate step from marking somebody
    "Invitado": a status can be undone with another tap, an email cannot. */
 
@@ -15,6 +19,8 @@ import { isEmailConfigured, sendEmail } from '../lib/email.js';
 import { FROM, REPLY_TO, PARENT_LINK_DAYS } from '../js/invite-config.js';
 import { loadPayment, missingDetails } from '../lib/settings.js';
 import { toJson, COLUMNS } from './applicants.js';
+import { buildDetails, detailsMissing, recipients } from '../lib/details.js';
+import { sendDetails } from '../lib/payments.js';
 
 const SITE = (process.env.SITE_URL || 'https://bepro.futbol').replace(/\/+$/, '');
 
@@ -26,9 +32,10 @@ export default async function handler(req, res) {
   const id = Number((req.query || {}).id);
   if (!Number.isInteger(id) || id < 1) return res.status(400).json({ error: 'bad_id' });
 
+  const details = (req.query || {}).kind === 'details';
   try {
-    if (req.method === 'GET') return await preview(res, id);
-    if (req.method === 'POST') return await send(res, id);
+    if (req.method === 'GET') return await (details ? previewDetails : preview)(res, id);
+    if (req.method === 'POST') return await (details ? sendDetailsNow : send)(res, id);
   } catch (err) {
     console.error('invite failed:', err);
     return res.status(500).json({ error: 'server_error', message: String(err.message || err) });
@@ -122,4 +129,50 @@ async function send(res, id) {
       WHERE id = $1 RETURNING ${COLUMNS}`, [id, to.join(', ')]);
 
   return res.status(200).json({ sent: to, applicant: toJson(rows[0]) });
+}
+
+/* ---------- the details email ---------- */
+
+function detailBlockers(a, settings) {
+  const out = [];
+  const miss = detailsMissing(settings, a.event);
+  if (miss.length) out.push('Falta ' + miss.join(' y ') + ' de esta fecha — ponlo en “Datos del pago”.');
+  if (!isEmailConfigured()) out.push('Falta conectar el servicio de correo (RESEND_API_KEY).');
+  if (!a.email) out.push('Este jugador no tiene email.');
+  return out;
+}
+
+async function previewDetails(res, id) {
+  const a = await load(id);
+  if (!a) return res.status(404).json({ error: 'not_found' });
+  const settings = await loadPayment();
+  const mail = buildDetails(a, { settings, amount: a.paidAmount });
+  return res.status(200).json({
+    to: recipients(a).join(' · '),
+    subject: mail.subject,
+    html: mail.html,
+    text: mail.text,
+    lang: mail.lang,
+    asks: { parent: false, video: false },
+    // Not a blocker: a family that paid in cash still needs the venue.
+    notice: a.paidAt ? '' : 'Este jugador no tiene un pago registrado en Stripe. Mándalo solo si ya pagó de otra forma.',
+    blockers: detailBlockers(a, settings),
+  });
+}
+
+async function sendDetailsNow(res, id) {
+  const a = await load(id);
+  if (!a) return res.status(404).json({ error: 'not_found' });
+  const settings = await loadPayment();
+  const stop = detailBlockers(a, settings);
+  if (stop.length) return res.status(400).json({ error: 'not_ready', blockers: stop, message: stop.join(' ') });
+
+  let out;
+  try {
+    out = await sendDetails(a, { query, settings, send: sendEmail, from: FROM, replyTo: REPLY_TO });
+  } catch (err) {
+    return res.status(502).json({ error: 'email_failed', message: String(err.message || err) });
+  }
+  const { rows } = await query(`SELECT ${COLUMNS} FROM applicants WHERE id = $1`, [id]);
+  return res.status(200).json({ sent: out.sent, applicant: toJson(rows[0]) });
 }

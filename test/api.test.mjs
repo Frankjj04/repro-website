@@ -440,6 +440,26 @@ await test('the invitation is written in the language the player used', () => {
   assert.match(en.text, /Hi Diego,/);
 });
 
+await test('only price and payment link are needed; venue, time and deadline are not (coach, 2026-09-23)', () => {
+  const settings = cleanPayment({
+    logistics: {
+      'nov-10-11': { price: '$365', payLink: 'https://buy.stripe.com/a' },
+      'nov-17-18': { price: '$365', payLink: 'https://buy.stripe.com/a' },
+      'nov-24-25': { price: '$95', payLink: 'https://buy.stripe.com/b' },
+    },
+  });
+  assert.deepEqual(missingDetails(settings), []);
+  // Even a venue saved before today stays out of the email.
+  settings.logistics['nov-24-25'].venue = 'Cancha Secreta';
+  settings.deadline = { es: '1 de noviembre', en: 'November 1' };
+  const es = buildInvite(invitee(), { settings });
+  const en = buildInvite(invitee({ formLang: 'en' }), { settings });
+  for (const m of [es, en]) assert.doesNotMatch(m.text + m.html, /Cancha Secreta|noviembre 1|1 de noviembre|November 1/);
+  assert.match(es.text, /Cuando hagas tu pago te mandamos todos los detalles/);
+  assert.match(es.text, /Los registros se cierran cuando se llena el evento\./);
+  assert.match(en.text, /Registration closes when the event is full\./);
+});
+
 await test('the invitation says nothing about refunds (coach, 2026-09-23)', () => {
   // A stored refund line from before must not come back either.
   const settings = { ...cleanPayment({}), refund: { es: 'No se devuelve.', en: 'No refunds.' } };
@@ -622,8 +642,8 @@ await test('the payment button carries that date\'s own link', () => {
     logistics: { 'nov-24-25': { venue: 'Cancha A', time: '9 AM', payLink: 'https://buy.stripe.com/bbb' } },
   });
   const mail = buildInvite(invitee(), { settings });
-  assert.match(mail.text, /Pagar mi lugar: https:\/\/buy\.stripe\.com\/bbb/);
-  assert.match(mail.html, /href="https:\/\/buy\.stripe\.com\/bbb"/);
+  assert.match(mail.text, /Pagar mi lugar: https:\/\/buy\.stripe\.com\/bbb\?client_reference_id=bp-7/);
+  assert.match(mail.html, /href="https:\/\/buy\.stripe\.com\/bbb\?client_reference_id=bp-7"/);
 
   // A player on another date never sees it.
   const other = buildInvite(invitee({ event: 'nov-10-11', dob: '2008-05-02' }), { settings });
@@ -660,5 +680,180 @@ await test('a price is needed on every date', () => {
   gap.logistics['nov-17-18'].price = '';
   assert.ok(missingDetails(cleanPayment(gap)).some((m) => m.startsWith('el costo del')));
 });
+console.log('payments');
+
+const stripe = await import('../lib/stripe.js');
+const { recordCheckout, sendDetails } = await import('../lib/payments.js');
+const { buildDetails, detailsMissing } = await import('../lib/details.js');
+const { default: stripeHook } = await import('../api/stripe.js');
+
+/* A stand-in for Postgres: just enough of the four queries payments use. */
+function fakeDb(applicants) {
+  const db = { applicants, payments: [], sql: [] };
+  db.query = async (text, params = []) => {
+    db.sql.push(text);
+    if (/^SELECT id FROM applicants WHERE id = \$1/.test(text)) {
+      return { rows: applicants.filter((a) => a.id === params[0]).map((a) => ({ id: a.id })) };
+    }
+    if (/lower\(email\) = \$1 OR lower\(parent_email\) = \$1/.test(text)) {
+      return { rows: applicants.filter((a) => !a.deletedAt && a.status === 'selected' &&
+        (a.email.toLowerCase() === params[0] || (a.parentEmail || '').toLowerCase() === params[0])).map((a) => ({ id: a.id })) };
+    }
+    if (/^\s*INSERT INTO payments/.test(text)) {
+      if (db.payments.some((p) => p.session === params[0])) return { rows: [] };
+      db.payments.push({ session: params[0], applicantId: params[1], amount: params[4] });
+      return { rows: [{ id: db.payments.length }] };
+    }
+    if (/UPDATE applicants SET paid_at/.test(text)) {
+      const a = applicants.find((x) => x.id === params[0]);
+      if (!a.paidAt) a.paidAt = 'now';
+      a.paidAmount = params[1];
+      return { rows: [] };
+    }
+    if (/UPDATE applicants SET details_sent_at/.test(text)) {
+      const a = applicants.find((x) => x.id === params[0]);
+      a.detailsSentAt = 'now'; a.detailsTo = params[1];
+      return { rows: [] };
+    }
+    throw new Error('unexpected query: ' + text);
+  };
+  return db;
+}
+
+const session = (over = {}) => ({
+  id: 'cs_test_1', payment_status: 'paid', amount_total: 36500, currency: 'usd',
+  client_reference_id: 'bp-7', payment_link: 'plink_1',
+  customer_details: { email: 'papa@example.com', name: 'Papá Martínez' }, ...over,
+});
+
+await test('the payment link carries the player, and only a Stripe link does', () => {
+  assert.equal(stripe.checkoutLink('https://buy.stripe.com/abc', 42), 'https://buy.stripe.com/abc?client_reference_id=bp-42');
+  assert.equal(stripe.checkoutLink('https://example.com/pay', 42), 'https://example.com/pay');
+  assert.equal(stripe.checkoutLink('', 42), '');
+  assert.equal(stripe.idFromRef('bp-42'), 42);
+  for (const bad of ['42', 'bp-', 'bp-4x', "bp-1' OR 1=1", null, 'xx-42']) assert.equal(stripe.idFromRef(bad), null);
+});
+
+await test('a Stripe message is believed only with the right signature, and only while fresh', () => {
+  const body = JSON.stringify({ type: 'checkout.session.completed' });
+  const now = 1_800_000_000;
+  const good = stripe.signForTest(body, 'whsec_x', now);
+  assert.ok(stripe.verifyEvent(body, good, 'whsec_x', now));
+  assert.equal(stripe.verifyEvent(body, good, 'whsec_other', now), null);
+  assert.equal(stripe.verifyEvent(body + ' ', good, 'whsec_x', now), null);
+  assert.equal(stripe.verifyEvent(body, good, 'whsec_x', now + 301), null);
+  assert.equal(stripe.verifyEvent(body, 't=1,v1=zz', 'whsec_x', now), null);
+  assert.equal(stripe.verifyEvent(body, '', 'whsec_x', now), null);
+});
+
+await test('amounts read the way people write them', () => {
+  assert.equal(stripe.formatAmount(36500, 'usd'), '$365');
+  assert.equal(stripe.formatAmount(9550, 'usd'), '$95.50');
+  assert.equal(stripe.formatAmount(100000, 'mxn'), '1000 MXN');
+});
+
+await test('a payment lands on the player whose link was used, once', async () => {
+  const db = fakeDb([invitee()]);
+  const r = await recordCheckout(session(), db);
+  assert.equal(r.recorded, true);
+  assert.equal(r.applicantId, 7);
+  assert.equal(db.applicants[0].paidAmount, '$365');
+  // Stripe sends the same message again: nothing changes.
+  const again = await recordCheckout(session(), db);
+  assert.equal(again.duplicate, true);
+  assert.equal(db.payments.length, 1);
+});
+
+await test('without a reference, one invited player with that email is matched — two are not', async () => {
+  const one = fakeDb([invitee({ parentEmail: 'papa@example.com' })]);
+  assert.equal((await recordCheckout(session({ client_reference_id: null }), one)).applicantId, 7);
+
+  const two = fakeDb([invitee({ parentEmail: 'papa@example.com' }), invitee({ id: 8, parentEmail: 'papa@example.com' })]);
+  const r = await recordCheckout(session({ client_reference_id: null }), two);
+  assert.equal(r.applicantId, null);
+  assert.equal(two.payments.length, 1, 'kept anyway, as unmatched');
+});
+
+await test('an unpaid or empty session records nothing', async () => {
+  const db = fakeDb([invitee()]);
+  assert.equal((await recordCheckout(session({ payment_status: 'unpaid' }), db)).skipped, 'not_paid');
+  assert.equal((await recordCheckout({}, db)).skipped, 'no_session');
+  assert.equal(db.payments.length, 0);
+});
+
+const detailSettings = () => cleanPayment({
+  bring: { es: ['Espinilleras', 'Agua'], en: [] },
+  logistics: { 'nov-24-25': { venue: 'Kellogg Zaher, Las Vegas', time: '9:00 AM', price: '$95', payLink: 'https://buy.stripe.com/b' } },
+});
+
+await test('the details email has the venue, time, map and what to bring — in their language', () => {
+  const es = buildDetails(invitee(), { settings: detailSettings(), amount: '$95' });
+  assert.match(es.subject, /Pago recibido/);
+  assert.match(es.text, /Recibimos tu pago de \$95/);
+  assert.match(es.text, /Kellogg Zaher, Las Vegas\n9:00 AM/);
+  assert.match(es.text, /- Espinilleras/);
+  assert.match(es.html, /google\.com\/maps\/search/);
+  const en = buildDetails(invitee({ formLang: 'en' }), { settings: detailSettings() });
+  assert.match(en.subject, /Payment received/);
+  assert.match(en.text, /- Agua/, 'no English list, so the Spanish one is used');
+});
+
+await test('no venue or time: the details email waits instead of going out half empty', async () => {
+  assert.deepEqual(detailsMissing(cleanPayment({}), 'nov-24-25'), ['el lugar', 'la hora']);
+  const db = fakeDb([invitee()]);
+  const sent = [];
+  const r = await sendDetails(db.applicants[0], { query: db.query, settings: cleanPayment({}), send: async (m) => sent.push(m) });
+  assert.deepEqual(r.sent, []);
+  assert.equal(sent.length, 0);
+  assert.equal(db.applicants[0].detailsSentAt, undefined);
+});
+
+await test('the details go to the player, the parent and whoever paid — each once', async () => {
+  const db = fakeDb([invitee({ parentEmail: 'Mama@example.com' })]);
+  const sent = [];
+  const r = await sendDetails(db.applicants[0], {
+    query: db.query, settings: detailSettings(), send: async (m) => sent.push(m.to),
+    extraTo: ['papa@example.com', 'mama@example.com'],
+  });
+  assert.deepEqual(sent, ['diego@example.com', 'Mama@example.com', 'papa@example.com']);
+  assert.deepEqual(r.sent, sent);
+  assert.equal(db.applicants[0].detailsSentAt, 'now');
+});
+
+await test('the webhook refuses anything not signed by Stripe, before touching the database', async () => {
+  const body = JSON.stringify({ type: 'checkout.session.completed', data: { object: session() } });
+  const call = async (headers, secret) => {
+    if (secret === undefined) delete process.env.STRIPE_WEBHOOK_SECRET; else process.env.STRIPE_WEBHOOK_SECRET = secret;
+    const res = mockRes();
+    await stripeHook({ method: 'POST', body: Buffer.from(body), headers }, res);
+    return res;
+  };
+  assert.equal((await call({}, undefined)).statusCode, 503);
+  assert.equal((await call({}, 'whsec_x')).statusCode, 400);
+  assert.equal((await call({ 'stripe-signature': stripe.signForTest(body, 'whsec_wrong') }, 'whsec_x')).statusCode, 400);
+  const res = mockRes();
+  await stripeHook({ method: 'GET', headers: {} }, res);
+  assert.equal(res.statusCode, 405);
+
+  // A correctly signed message about something else is acknowledged and ignored.
+  const other = JSON.stringify({ type: 'customer.created', data: { object: {} } });
+  const ok = mockRes();
+  process.env.STRIPE_WEBHOOK_SECRET = 'whsec_x';
+  await stripeHook({ method: 'POST', body: Buffer.from(other), headers: { 'stripe-signature': stripe.signForTest(other, 'whsec_x') } }, ok);
+  assert.equal(ok.statusCode, 200);
+  assert.equal(ok.body.ignored, 'customer.created');
+  delete process.env.STRIPE_WEBHOOK_SECRET;
+});
+
+await test('the payments list and the details email stay behind the password', async () => {
+  const { default: settingsApi } = await import('../api/settings.js');
+  const r1 = mockRes();
+  await settingsApi({ method: 'GET', query: { payments: '1' }, headers: {} }, r1);
+  assert.equal(r1.statusCode, 401);
+  const r2 = mockRes();
+  await invite({ method: 'POST', query: { id: '7', kind: 'details' }, headers: {} }, r2);
+  assert.equal(r2.statusCode, 401);
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

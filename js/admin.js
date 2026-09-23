@@ -50,10 +50,12 @@ function showLogin() {
   $('adLogout').hidden = true;
   $('adSharesOpen').hidden = true;
   $('adPayOpen').hidden = true;
+  $('adPaymentsOpen').hidden = true;
   $('adShareModal').hidden = true;
   $('adShares').hidden = true;
   $('adPayModal').hidden = true;
   $('adInviteModal').hidden = true;
+  $('adPayments').hidden = true;
   $('adLogin').hidden = false;
   $('adPassword').focus();
 }
@@ -84,6 +86,7 @@ async function start() {
   $('adLogout').hidden = false;
   $('adSharesOpen').hidden = false;
   $('adPayOpen').hidden = false;
+  $('adPaymentsOpen').hidden = false;
   flash($('adError'), '');
   try {
     [active, archived] = await Promise.all([
@@ -139,7 +142,7 @@ const inYear = (list) => (year ? list.filter((a) => birthYear(a) === year) : lis
 function current() {
   const q = $('adSearch').value.trim().toLowerCase();
   const base = tab === 'archived' ? inYear(inEvent(archived))
-    : inYear(inEvent(active)).filter((a) => tab === 'all' || a.status === tab);
+    : inYear(inEvent(active)).filter((a) => tab === 'all' || (tab === 'paid' ? a.paidAt : a.status === tab));
   return base.filter((a) => matches(a, q))
     .sort((x, y) => birthYear(x).localeCompare(birthYear(y)) || x.name.localeCompare(y.name, 'es'));
 }
@@ -202,6 +205,7 @@ function render() {
     pending: evList.filter((a) => a.status === 'pending').length,
     selected: evList.filter((a) => a.status === 'selected').length,
     not_selected: evList.filter((a) => a.status === 'not_selected').length,
+    paid: evList.filter((a) => a.paidAt).length,
     archived: inYear(inEvent(archived)).length,
   };
   $('adTabs').querySelectorAll('button').forEach((b) => {
@@ -251,10 +255,13 @@ function render() {
       warn.title = 'Menor de ' + CHILD_AGE + ' años sin permiso del papá, mamá o tutor registrado.';
       side.append(warn);
     }
-    // Only an invited player can be waiting for the email, so only they say so.
-    if (a.status === 'selected') {
+    // Paid says it all. Otherwise only an invited player can be waiting on
+    // the email, so only they say where it stands.
+    if (a.paidAt) {
+      side.append(el('span', 'ad-chip ad-chip-paid', '💰 Pagado' + (a.paidAmount ? ' ' + a.paidAmount : '')));
+    } else if (a.status === 'selected') {
       side.append(a.invitedAt
-        ? el('span', 'ad-chip ad-chip-sent', '📧 Invitación enviada')
+        ? el('span', 'ad-chip ad-chip-sent', '📧 Invitado · sin pagar')
         : el('span', 'ad-chip ad-chip-warn', '📧 Sin enviar'));
     }
 
@@ -353,6 +360,7 @@ function openPanel(id) {
   renderConsent(a, isArchived);
   renderParent(a, isArchived);
   renderInvite(a, isArchived);
+  renderPaid(a, isArchived);
 
   const facts = [
     ['Fecha de nacimiento', a.dob],
@@ -378,7 +386,7 @@ function openPanel(id) {
     ['Descargo aceptado', fmtDate(a.waiverAcceptedAt)],
     ...(a.parentEmail
       ? [['Correo del tutor (menor de 13)', a.parentEmail, 'mailto:' + a.parentEmail],
-         ['Permiso del tutor', fmtDate(a.parentConfirmedAt)]]
+         ['Permiso del tutor', a.parentConfirmedAt ? fmtDate(a.parentConfirmedAt) : 'Pendiente']]
       : []),
     ['Registrado', fmtDate(a.createdAt)],
   ];
@@ -656,11 +664,8 @@ function methodRow(m) {
 }
 
 function fillPayForm(p) {
-  $('adPayDeadlineEs').value = p.deadline.es;
-  $('adPayDeadlineEn').value = p.deadline.en;
   $('adPayBringEs').value = (p.bring.es || []).join('\n');
   $('adPayBringEn').value = (p.bring.en || []).join('\n');
-
   $('adPayMethods').replaceChildren(
     ...(p.methods.length ? p.methods : [{ label: '', detail: '' }]).map(methodRow));
 
@@ -668,20 +673,14 @@ function fillPayForm(p) {
     const l = (p.logistics || {})[e.id] || {};
     const wrap = el('div', 'ad-pay-event');
     wrap.append(el('div', 'ad-pay-event-name', e.dates.es));
-    const venue = el('input');
-    venue.type = 'text';
-    venue.maxLength = 160;
-    venue.placeholder = 'Lugar — cancha y dirección';
-    venue.value = l.venue || '';
-    venue.dataset.event = e.id;
-    venue.dataset.field = 'venue';
-    const time = el('input');
-    time.type = 'text';
-    time.maxLength = 80;
-    time.placeholder = 'Hora — ej. 9:00 AM';
-    time.value = l.time || '';
-    time.dataset.event = e.id;
-    time.dataset.field = 'time';
+    const input = (field, type, max, placeholder) => {
+      const i = el('input');
+      i.type = type; i.maxLength = max; i.placeholder = placeholder;
+      i.value = l[field] || ''; i.dataset.event = e.id; i.dataset.field = field;
+      return i;
+    };
+    const venue = input('venue', 'text', 160, 'Lugar — cancha y dirección (se manda al pagar)');
+    const time = input('time', 'text', 80, 'Hora — ej. 9:00 AM (se manda al pagar)');
     const price = el('input');
     price.type = 'text';
     price.maxLength = 100;
@@ -696,7 +695,7 @@ function fillPayForm(p) {
     link.value = l.payLink || '';
     link.dataset.event = e.id;
     link.dataset.field = 'payLink';
-    wrap.append(venue, time, price, link);
+    wrap.append(price, link, venue, time);
     return wrap;
   }));
 }
@@ -706,11 +705,10 @@ function readPayForm() {
   const logistics = {};
   for (const input of $('adPayLogistics').querySelectorAll('input')) {
     const e = input.dataset.event;
-    logistics[e] = logistics[e] || { venue: '', time: '', price: '', payLink: '' };
+    logistics[e] = logistics[e] || { price: '', payLink: '', venue: '', time: '' };
     logistics[e][input.dataset.field] = input.value;
   }
   return {
-    deadline: { es: $('adPayDeadlineEs').value, en: $('adPayDeadlineEn').value },
     methods: [...$('adPayMethods').querySelectorAll('.ad-pay-method')].map((row) => {
       const [label, detail] = row.querySelectorAll('input');
       return { label: label.value, detail: detail.value };
@@ -718,6 +716,16 @@ function readPayForm() {
     bring: { es: lines('adPayBringEs'), en: lines('adPayBringEn') },
     logistics,
   };
+}
+
+/* Not a blocker for the invitation — only for the email after payment. */
+function showDetailsMissing(gaps) {
+  const n = $('adPayDetailsMissing');
+  n.textContent = gaps && gaps.length
+    ? 'Sin esto, quien pague no recibe los detalles solos (se los puedes mandar después desde su tarjeta): falta '
+      + gaps.join('; ') + '.'
+    : '';
+  n.hidden = !n.textContent;
 }
 
 function showMissing(missing) {
@@ -731,7 +739,7 @@ function showMissing(missing) {
    the date is matched however it is written — 10-11, 10 y 11, nov-10-11. */
 function parsePaste(text) {
   const strip = (x) => x.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
-  const out = { general: {}, events: {}, bring: [] };
+  const out = { events: {}, bring: [] };
 
   const whichEvent = (s) => {
     const digits = (s.match(/\d+/g) || []).join('-');
@@ -759,8 +767,7 @@ function parsePaste(text) {
       else if (key.startsWith('hora')) slot.time = value;
       continue;
     }
-    if (key.startsWith('fecha') || key.startsWith('limite')) out.general.deadline = value;
-    else if (key.startsWith('traer') || key.startsWith('que traer')) {
+    if (key.startsWith('traer') || key.startsWith('que traer')) {
       out.bring = value.split(/[;,]/).map((x) => x.trim()).filter(Boolean);
     }
   }
@@ -770,9 +777,6 @@ function parsePaste(text) {
 $('adPayPasteFill').addEventListener('click', () => {
   const parsed = parsePaste($('adPayPaste').value);
   let filled = 0;
-
-  const set = (id, v) => { if (v) { $(id).value = v; filled++; } };
-  set('adPayDeadlineEs', parsed.general.deadline);
   if (parsed.bring.length) { $('adPayBringEs').value = parsed.bring.join('\n'); filled++; }
 
   for (const input of $('adPayLogistics').querySelectorAll('input')) {
@@ -795,6 +799,7 @@ $('adPayOpen').addEventListener('click', async () => {
     payment = data.payment;
     fillPayForm(payment);
     showMissing(data.missing);
+    showDetailsMissing(data.detailsMissing);
   } catch (err) {
     flash($('adPayError'), err.message);
   }
@@ -813,6 +818,7 @@ $('adPaySave').addEventListener('click', async () => {
     payment = data.payment;
     fillPayForm(payment);
     showMissing(data.missing);
+    showDetailsMissing(data.detailsMissing);
     $('adPaySaved').textContent = data.missing.length
       ? 'Guardado. Todavía falta algo para poder mandar invitaciones.'
       : 'Guardado. Ya puedes mandar invitaciones.';
@@ -843,7 +849,7 @@ function renderInvite(a, isArchived) {
   } else {
     box.append(
       el('div', 'ad-consent-title', '📧 Todavía no le mandas la invitación'),
-      el('div', 'ad-consent-sub', 'El correo lleva la fecha, el lugar y cómo hacer el pago. ' +
+      el('div', 'ad-consent-sub', 'El correo lleva la fecha, el costo y su botón de pago. ' +
         'Te lo enseñamos antes de enviarlo.'),
     );
   }
@@ -857,9 +863,12 @@ function renderInvite(a, isArchived) {
 }
 
 let inviteId = 0;
+let inviteKind = '';   // '' = the invitation, 'details' = venue and time after paying
 
-async function openInviteModal(a) {
+async function openInviteModal(a, kind = '') {
   inviteId = a.id;
+  inviteKind = kind;
+  $('adIvTitle').textContent = kind === 'details' ? 'MANDAR DETALLES DEL EVENTO' : 'ENVIAR INVITACIÓN';
   $('adIvTo').textContent = 'Para: ' + a.email;
   $('adIvSubject').textContent = '…';
   $('adIvFrame').removeAttribute('srcdoc');
@@ -871,13 +880,17 @@ async function openInviteModal(a) {
 
   let data;
   try {
-    data = await api('GET', '/api/invite?id=' + a.id);
+    data = await api('GET', '/api/invite?id=' + a.id + (kind ? '&kind=' + kind : ''));
   } catch (err) {
     return flash($('adIvError'), err.message);
   }
 
   $('adIvTo').textContent = 'Para: ' + [data.to, data.asks.parent && data.parentEmail ? data.parentEmail : '']
     .filter(Boolean).join(' · ');
+  if (data.notice) {
+    $('adIvAsks').textContent = data.notice;
+    $('adIvAsks').hidden = false;
+  }
   $('adIvSubject').textContent = data.subject;
   $('adIvFrame').srcdoc = data.html;
 
@@ -905,7 +918,7 @@ $('adIvSend').addEventListener('click', async () => {
   btn.disabled = true;
   flash($('adIvError'), '');
   try {
-    const res = await api('POST', '/api/invite?id=' + inviteId, {});
+    const res = await api('POST', '/api/invite?id=' + inviteId + (inviteKind ? '&kind=' + inviteKind : ''), {});
     replaceActive(res.applicant);
     closeModal('adInviteModal');
     openPanel(inviteId);
@@ -914,6 +927,72 @@ $('adIvSend').addEventListener('click', async () => {
     flash($('adIvError'), err.message);
     btn.disabled = false;
   }
+});
+
+/* ---------- payments ----------
+   Stripe marks the player paid by itself (api/stripe.js) and sends the
+   details. The card shows where that stands, and lets the coach send the
+   details by hand: a resend, or a family that paid in cash. */
+function renderPaid(a, isArchived) {
+  const box = $('adPPaid');
+  box.replaceChildren();
+  box.className = '';
+  if (isArchived || (!a.paidAt && a.status !== 'selected')) return;
+
+  box.className = 'ad-invite ' + (a.paidAt ? 'ad-invite-paid' : '');
+  if (a.paidAt) {
+    box.append(
+      el('div', 'ad-consent-title', '💰 Pagado' + (a.paidAmount ? ' · ' + a.paidAmount : '')),
+      el('div', 'ad-consent-sub', 'Stripe · ' + fmtDate(a.paidAt)),
+      el('div', 'ad-consent-sub', a.detailsSentAt
+        ? '✓ Detalles enviados a ' + a.detailsTo + ' · ' + fmtDate(a.detailsSentAt)
+        : '⚠ Todavía no le llegan los detalles (lugar y hora). Llénalos en “Datos del pago” y mándalos aquí.'),
+    );
+  } else {
+    box.append(
+      el('div', 'ad-consent-title', 'Sin pago registrado'),
+      el('div', 'ad-consent-sub', 'Cuando pague con su botón de Stripe, aparece aquí solo y le llegan los detalles. ' +
+        'Si pagó de otra forma, mándale los detalles tú.'),
+    );
+  }
+  const send = el('button', 'btn btn-secondary btn-sm', a.detailsSentAt ? 'Reenviar detalles' : '📧 Mandar detalles');
+  send.type = 'button';
+  send.addEventListener('click', () => openInviteModal(a, 'details'));
+  const row = el('div', 'ad-parent-form');
+  row.append(send);
+  box.append(row);
+}
+
+$('adPaymentsOpen').addEventListener('click', async () => {
+  openModal('adPayments');
+  flash($('adPmError'), '');
+  let list = [];
+  try { list = (await api('GET', '/api/settings?payments=1')).payments; }
+  catch (err) { return flash($('adPmError'), err.message); }
+
+  $('adPmEmpty').hidden = list.length > 0;
+  $('adPmList').replaceChildren(...list.map((pm) => {
+    const card = el('div', 'ad-share ' + (pm.applicantId ? 'ad-share-live' : 'ad-share-off'));
+    const head = el('div', 'ad-share-head');
+    head.append(
+      el('div', 'ad-share-name', pm.applicantName || 'Sin identificar'),
+      el('span', 'ad-chip ' + (pm.applicantId ? 'ad-chip-paid' : 'ad-chip-warn'), pm.amount || '—'),
+    );
+    card.append(
+      head,
+      el('div', 'ad-share-sub', [pm.event ? eventLabel(pm.event) : '', fmtDate(pm.createdAt)].filter(Boolean).join(' · ')),
+      el('div', 'ad-share-sub', 'Pagó: ' + [pm.payerName, pm.payerEmail].filter(Boolean).join(' · ')),
+    );
+    if (pm.applicantId && find(pm.applicantId)) {
+      const open = el('button', 'btn btn-secondary btn-sm', 'Ver jugador');
+      open.type = 'button';
+      open.addEventListener('click', () => { closeModal('adPayments'); openPanel(pm.applicantId); });
+      const actions = el('div', 'ad-share-actions');
+      actions.append(open);
+      card.append(actions);
+    }
+    return card;
+  }));
 });
 
 /* ---------- share links ---------- */
@@ -926,11 +1005,11 @@ function openModal(id) {
 function closeModal(id) {
   $(id).hidden = true;
   if ($('adOverlay').hidden && $('adShareModal').hidden && $('adShares').hidden
-      && $('adInviteModal').hidden && $('adPayModal').hidden) {
+      && $('adInviteModal').hidden && $('adPayModal').hidden && $('adPayments').hidden) {
     document.body.classList.remove('ad-noscroll');
   }
 }
-['adShareModal', 'adShares', 'adInviteModal', 'adPayModal'].forEach((id) => {
+['adShareModal', 'adShares', 'adInviteModal', 'adPayModal', 'adPayments'].forEach((id) => {
   $(id).addEventListener('click', (e) => {
     if (e.target === $(id) || e.target.closest('[data-close]')) closeModal(id);
   });
@@ -941,6 +1020,7 @@ document.addEventListener('keydown', (e) => {
   else if (!$('adInviteModal').hidden) closeModal('adInviteModal');
   else if (!$('adShareModal').hidden) closeModal('adShareModal');
   else if (!$('adShares').hidden) closeModal('adShares');
+  else if (!$('adPayments').hidden) closeModal('adPayments');
 });
 
 function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
@@ -1204,6 +1284,9 @@ $('adCsv').addEventListener('click', () => {
     ['Fecha autorización', (a) => a.consentShareAt || ''],
     ['Autorización retirada', (a) => a.consentWithdrawnAt || ''],
     ['Descargo aceptado', (a) => a.waiverAcceptedAt],
+    ['Pagado', (a) => (a.paidAt ? 'Sí' : 'No')],
+    ['Monto pagado', (a) => a.paidAmount || ''],
+    ['Fecha de pago', (a) => a.paidAt || ''],
     ['Notas', (a) => a.note],
     ['Registrado', (a) => a.createdAt],
   ];
