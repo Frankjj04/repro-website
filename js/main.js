@@ -11,18 +11,37 @@ class BeProParticles {
     if (!this.canvas) return;
     this.ctx = this.canvas.getContext('2d');
     this.particles = [];
-    this.running = true;
     this.maxDist = 130;
+    this.visible = true;
     this.resize();
-    this.spawnParticles();
     window.addEventListener('resize', () => this.resize(), { passive: true });
+
+    // People who asked their phone for less motion get the dots, standing still.
+    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      this.draw();
+      return;
+    }
+
+    // Drawing ~85 dots and every line between them each frame is real work for
+    // a phone: only do it while the hero is on screen and the tab is open.
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(([e]) => { this.visible = e.isIntersecting; this.wake(); })
+        .observe(this.canvas);
+    }
+    document.addEventListener('visibilitychange', () => this.wake());
     this.loop();
+  }
+
+  wake() {
+    if (!this.frame && this.visible && !document.hidden) this.loop();
   }
 
   resize() {
     this.canvas.width  = window.innerWidth;
     this.canvas.height = window.innerHeight;
     this.count = window.innerWidth < 600 ? 35 : window.innerWidth < 1024 ? 55 : 85;
+    // A rotated phone or a resized window gets dots spread over the new size.
+    this.spawnParticles();
   }
 
   spawnParticles() {
@@ -84,9 +103,11 @@ class BeProParticles {
   }
 
   loop() {
+    this.frame = 0;
+    if (!this.visible || document.hidden) return;
     this.tick();
     this.draw();
-    requestAnimationFrame(() => this.loop());
+    this.frame = requestAnimationFrame(() => this.loop());
   }
 }
 
@@ -123,11 +144,8 @@ function initNav() {
 function initNavbarScroll() {
   const nav = document.querySelector('.navbar');
   if (!nav) return;
-  let last = 0;
   window.addEventListener('scroll', () => {
-    const y = window.scrollY;
-    nav.classList.toggle('scrolled', y > 40);
-    last = y;
+    nav.classList.toggle('scrolled', window.scrollY > 40);
   }, { passive: true });
 }
 
@@ -205,28 +223,6 @@ function initSmoothScroll() {
   });
 }
 
-/* ===================== ADD TO CART (UI) ===================== */
-function initCart() {
-  document.querySelectorAll('.add-to-cart').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (btn.disabled) return;
-      const orig        = btn.textContent;
-      btn.textContent   = 'ADDED ✓';
-      btn.style.background  = '#22c55e';
-      btn.style.borderColor = '#22c55e';
-      btn.style.color       = '#fff';
-      btn.disabled          = true;
-      setTimeout(() => {
-        btn.textContent       = orig;
-        btn.style.background  = '';
-        btn.style.borderColor = '';
-        btn.style.color       = '';
-        btn.disabled          = false;
-      }, 2200);
-    });
-  });
-}
-
 /* ===================== INIT ===================== */
 document.addEventListener('DOMContentLoaded', () => {
   /* Particles only on hero page */
@@ -240,5 +236,4 @@ document.addEventListener('DOMContentLoaded', () => {
   initReveal();
   initCounters();
   initSmoothScroll();
-  initCart();
 });

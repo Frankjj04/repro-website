@@ -11,18 +11,12 @@
   from { opacity: 0; transform: translateX(-32px); }
   to   { opacity: 1; transform: translateX(0); }
 }
-@keyframes fadeInRight {
-  from { opacity: 0; transform: translateX(32px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
-@keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.88); }
-  to   { opacity: 1; transform: scale(1); }
-}
+
 @keyframes dotPulse {
   0%, 100% { transform: scale(1); opacity: 1; }
   50%       { transform: scale(1.5); opacity: 0.6; }
@@ -33,30 +27,12 @@
   51%  { opacity: 1; transform: scaleY(1); transform-origin: bottom; }
   100% { opacity: 0; transform: scaleY(0); transform-origin: bottom; }
 }
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(-10px); }
-}
-@keyframes shimmer {
-  0%   { background-position: -200% center; }
-  100% { background-position:  200% center; }
-}
-@keyframes borderGlow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 26, 0); }
-  50%       { box-shadow: 0 0 20px 4px rgba(255, 107, 26, 0.3); }
-}
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
+
 @keyframes slideDown {
   from { opacity: 0; transform: translateY(-18px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-@keyframes countUp {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
+
 @keyframes orangePulseRing {
   0%   { box-shadow: 0 0 0 0   rgba(255, 107, 26, 0.4); }
   70%  { box-shadow: 0 0 0 12px rgba(255, 107, 26, 0); }
@@ -119,23 +95,8 @@
 .d5  { transition-delay: 0.33s; }
 .d6  { transition-delay: 0.40s; }
 .d7  { transition-delay: 0.47s; }
-.d8  { transition-delay: 0.54s; }
 
 /* ===================== UTILITY ANIMATIONS ===================== */
-.anim-float { animation: float 4s ease-in-out infinite; }
-.anim-spin  { animation: spin  8s linear infinite; }
-.anim-pulse-ring { animation: orangePulseRing 2s ease-out infinite; }
-
-.shimmer-bg {
-  background: linear-gradient(
-    90deg,
-    var(--navy-card) 0%,
-    var(--navy-light) 50%,
-    var(--navy-card) 100%
-  );
-  background-size: 200% auto;
-  animation: shimmer 2s linear infinite;
-}
 
 /* ===================== NAVBAR SLIDE IN ===================== */
 .navbar { animation: slideDown 0.5s ease both; }
@@ -157,8 +118,4 @@
 .mobile-nav.open a:nth-child(6) { animation: fadeInLeft 0.3s ease 0.30s both; }
 
 /* ===================== HOVER EFFECTS ===================== */
-.testimonial-card:hover {
-  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
-}
-.product-card:hover .product-visual { transition: transform 0.3s ease; }
-.product-card:hover .product-visual { transform: scale(1.03); }
+

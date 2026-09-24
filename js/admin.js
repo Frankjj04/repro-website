@@ -524,7 +524,7 @@ function renderConsent(a, isArchived) {
       el('div', 'ad-consent-title', '🔒 No autorizó compartir'),
       el('div', 'ad-consent-sub', a.consentWithdrawnAt
         ? 'Autorización retirada el ' + fmtDate(a.consentWithdrawnAt) + ' — ya no aparece en ningún link.'
-        : 'Su información solo la ve Be Pro. No se puede incluir en links para scouts.'),
+        : 'Su información solo la ve BE PRO. No se puede incluir en links para scouts.'),
     );
   }
 }
@@ -644,30 +644,9 @@ function renderParent(a, isArchived) {
    between events, and it must never sit in a file the public can read. */
 let payment = null;
 
-function methodRow(m) {
-  const row = el('div', 'ad-pay-method');
-  const label = el('input');
-  label.type = 'text';
-  label.maxLength = 60;
-  label.placeholder = 'Zelle';
-  label.value = m.label || '';
-  const detail = el('input');
-  detail.type = 'text';
-  detail.maxLength = 200;
-  detail.placeholder = 'pagos@bepro.futbol — a nombre de Rondo Time LLC';
-  detail.value = m.detail || '';
-  const drop = el('button', 'ad-link', 'Quitar');
-  drop.type = 'button';
-  drop.addEventListener('click', () => row.remove());
-  row.append(label, detail, drop);
-  return row;
-}
-
 function fillPayForm(p) {
   $('adPayBringEs').value = (p.bring.es || []).join('\n');
   $('adPayBringEn').value = (p.bring.en || []).join('\n');
-  $('adPayMethods').replaceChildren(
-    ...(p.methods.length ? p.methods : [{ label: '', detail: '' }]).map(methodRow));
 
   $('adPayLogistics').replaceChildren(...EVENTS.map((e) => {
     const l = (p.logistics || {})[e.id] || {};
@@ -709,10 +688,6 @@ function readPayForm() {
     logistics[e][input.dataset.field] = input.value;
   }
   return {
-    methods: [...$('adPayMethods').querySelectorAll('.ad-pay-method')].map((row) => {
-      const [label, detail] = row.querySelectorAll('input');
-      return { label: label.value, detail: detail.value };
-    }),
     bring: { es: lines('adPayBringEs'), en: lines('adPayBringEn') },
     logistics,
   };
@@ -803,10 +778,6 @@ $('adPayOpen').addEventListener('click', async () => {
   } catch (err) {
     flash($('adPayError'), err.message);
   }
-});
-
-$('adPayAddMethod').addEventListener('click', () => {
-  $('adPayMethods').append(methodRow({ label: '', detail: '' }));
 });
 
 $('adPaySave').addEventListener('click', async () => {

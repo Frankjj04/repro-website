@@ -501,16 +501,14 @@ await test('the email refuses to go out while the payment details are missing', 
   const empty = cleanPayment({});
   assert.equal(isReady(empty), false);
   assert.ok(missingDetails(empty).some((m) => m.startsWith('el costo del')));
-  assert.ok(missingDetails(empty).some((m) => m.startsWith('cómo se paga')));
+  assert.ok(missingDetails(empty).some((m) => m.startsWith('el link de pago del')));
 
   // Everything filled in: ready.
   const full = cleanPayment({
-    methods: [{ label: 'Zelle', detail: 'pagos@bepro.futbol' }],
-    deadline: { es: '1 de noviembre', en: 'November 1' },
     logistics: {
-      'nov-10-11': { venue: 'Cancha A', time: '9:00 AM', price: '$365' },
-      'nov-17-18': { venue: 'Cancha A', time: '9:00 AM', price: '$365' },
-      'nov-24-25': { venue: 'Cancha A', time: '9:00 AM', price: '$95' },
+      'nov-10-11': { price: '$365', payLink: 'https://buy.stripe.com/a' },
+      'nov-17-18': { price: '$365', payLink: 'https://buy.stripe.com/a' },
+      'nov-24-25': { price: '$95', payLink: 'https://buy.stripe.com/b' },
     },
   });
   assert.deepEqual(missingDetails(full), []);
@@ -519,13 +517,11 @@ await test('the email refuses to go out while the payment details are missing', 
 
 await test("the coach's typing is cleaned before it can reach an email", () => {
   const p = cleanPayment({
-    methods: [{ label: 'Zelle', detail: 'x'.repeat(500) }, { label: '', detail: '' }],
-    bring: { es: ['Agua', '', '  Botines '], en: [] },
+    bring: { es: ['Agua', '', '  Botines ', 'x'.repeat(500)], en: [] },
     logistics: { 'nov-10-11': { venue: 'Cancha A', time: '9 AM' }, 'no-such-event': { venue: 'x' } },
   });
-  assert.equal(p.methods.length, 1);
-  assert.equal(p.methods[0].detail.length, 200);
-  assert.deepEqual(p.bring.es, ['Agua', 'Botines']);
+  assert.deepEqual(p.bring.es.slice(0, 2), ['Agua', 'Botines']);
+  assert.equal(p.bring.es[2].length, 120);
   assert.equal(p.logistics['no-such-event'], undefined);
   assert.equal(p.logistics['nov-10-11'].venue, 'Cancha A');
 });
@@ -605,7 +601,7 @@ await test('the social names are stored without the @ or the link', () => {
   assert.equal(r.application.tiktok, 'diego10');
 });
 
-await test('a checkout link on every date counts as a way to pay', () => {
+await test('every date needs its own checkout link', () => {
   const base = {
     deadline: { es: '1 de noviembre', en: '' },
     logistics: {
@@ -614,13 +610,12 @@ await test('a checkout link on every date counts as a way to pay', () => {
       'nov-24-25': { venue: 'Cancha A', time: '9 AM', price: '$95', payLink: 'https://buy.stripe.com/bbb' },
     },
   };
-  // No Zelle, no transfer — just the links. That is enough.
   assert.deepEqual(missingDetails(cleanPayment(base)), []);
 
   // Drop one link and it is not: nobody on that date could pay.
   const short = JSON.parse(JSON.stringify(base));
   short.logistics['nov-24-25'].payLink = '';
-  assert.ok(missingDetails(cleanPayment(short)).some((m) => m.startsWith('cómo se paga')));
+  assert.deepEqual(missingDetails(cleanPayment(short)), ['el link de pago del 24 y 25 de noviembre']);
 });
 
 await test('only an https link is ever put in front of a family', () => {
