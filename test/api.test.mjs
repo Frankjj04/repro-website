@@ -837,6 +837,13 @@ await test('the webhook refuses anything not signed by Stripe, before touching t
   await stripeHook({ method: 'POST', body: Buffer.from(other), headers: { 'stripe-signature': stripe.signForTest(other, 'whsec_x') } }, ok);
   assert.equal(ok.statusCode, 200);
   assert.equal(ok.body.ignored, 'customer.created');
+
+  // A signed test event is acknowledged without touching the database.
+  const testEv = JSON.stringify({ type: 'checkout.session.completed', livemode: false, data: { object: session() } });
+  const t = mockRes();
+  await stripeHook({ method: 'POST', body: Buffer.from(testEv), headers: { 'stripe-signature': stripe.signForTest(testEv, 'whsec_x') } }, t);
+  assert.equal(t.statusCode, 200);
+  assert.equal(t.body.test, true);
   delete process.env.STRIPE_WEBHOOK_SECRET;
 });
 

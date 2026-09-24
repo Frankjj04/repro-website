@@ -44,6 +44,9 @@ export default async function handler(req, res) {
 
   // Anything else Stripe may send is acknowledged and ignored.
   if (!HANDLED.has(event.type)) return res.status(200).json({ received: true, ignored: event.type });
+  // A test event (from Stripe's "send test event", or test mode) proves the
+  // connection works; it must never land in the coach's real payments list.
+  if (event.livemode === false) return res.status(200).json({ received: true, test: true });
   if (!isConfigured()) return res.status(503).json({ error: 'not_configured' });
 
   const session = (event.data || {}).object || {};
