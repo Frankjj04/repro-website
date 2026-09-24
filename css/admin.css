@@ -372,16 +372,16 @@ a.ad-chip-video:hover { background: rgba(0,212,255,0.1); }
   font-size: 0.75rem; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase;
   color: var(--orange); margin-bottom: 0.7rem;
 }
-.ad-pay-event input { margin-bottom: 0.6rem; }
-.ad-pay-event input:last-child { margin-bottom: 0; }
+.ad-pay-event input, .ad-pay-event textarea { margin-bottom: 0.6rem; }
+.ad-pay-event > :last-child { margin-bottom: 0; }
 /* These inputs are built in JS, outside a .form-group, so they need the same
    look spelled out. */
-.ad-pay-event input {
+.ad-pay-event input, .ad-pay-event textarea {
   width: 100%; padding: 0.7rem 0.8rem; font-family: inherit; font-size: 0.92rem;
   color: var(--white); background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.14); border-radius: var(--radius);
 }
-.ad-pay-event input:focus {
+.ad-pay-event input:focus, .ad-pay-event textarea:focus {
   outline: none; border-color: var(--electric); background: rgba(0, 212, 255, 0.06);
 }
 #adPayLogistics { margin: 0.7rem 0 1.4rem; }

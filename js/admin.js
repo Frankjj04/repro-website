@@ -659,7 +659,12 @@ function fillPayForm(p) {
       return i;
     };
     const venue = input('venue', 'text', 160, 'Lugar — cancha y dirección (se manda al pagar)');
-    const time = input('time', 'text', 80, 'Hora — ej. 9:00 AM (se manda al pagar)');
+    // Check-in changes by birth year, so one line per group; each player is
+    // sent only their own line.
+    const time = el('textarea');
+    time.rows = 3; time.maxLength = 700;
+    time.placeholder = 'Check-in por año, uno por línea (se manda al pagar):\n2003, 2004, 2005: 9:30 AM\n2006, 2007, 2008: 11:00 AM';
+    time.value = l.time || ''; time.dataset.event = e.id; time.dataset.field = 'time';
     const price = el('input');
     price.type = 'text';
     price.maxLength = 100;
@@ -682,7 +687,7 @@ function fillPayForm(p) {
 function readPayForm() {
   const lines = (id) => $(id).value.split('\n').map((x) => x.trim()).filter(Boolean);
   const logistics = {};
-  for (const input of $('adPayLogistics').querySelectorAll('input')) {
+  for (const input of $('adPayLogistics').querySelectorAll('input, textarea')) {
     const e = input.dataset.event;
     logistics[e] = logistics[e] || { price: '', payLink: '', venue: '', time: '' };
     logistics[e][input.dataset.field] = input.value;
@@ -739,7 +744,7 @@ function parsePaste(text) {
       if (key.startsWith('costo') || key.startsWith('precio')) slot.price = value;
       else if (key.startsWith('link') || key.startsWith('pago')) slot.payLink = value;
       else if (key.startsWith('lugar') || key.startsWith('cancha')) slot.venue = value;
-      else if (key.startsWith('hora')) slot.time = value;
+      else if (key.startsWith('hora') || key.startsWith('check')) slot.time = slot.time ? slot.time + '\n' + value : value;
       continue;
     }
     if (key.startsWith('traer') || key.startsWith('que traer')) {
@@ -754,7 +759,7 @@ $('adPayPasteFill').addEventListener('click', () => {
   let filled = 0;
   if (parsed.bring.length) { $('adPayBringEs').value = parsed.bring.join('\n'); filled++; }
 
-  for (const input of $('adPayLogistics').querySelectorAll('input')) {
+  for (const input of $('adPayLogistics').querySelectorAll('input, textarea')) {
     const v = (parsed.events[input.dataset.event] || {})[input.dataset.field];
     if (v) { input.value = v; filled++; }
   }

@@ -433,10 +433,10 @@ await test('the invitation is written in the language the player used', () => {
   const es = buildInvite(invitee());
   const en = buildInvite(invitee({ formLang: 'en' }));
   assert.equal(es.lang, 'es');
-  assert.match(es.subject, /Estás invitado/);
+  assert.match(es.subject, /fuiste seleccionado/);
   assert.match(es.text, /Hola Diego,/);
   assert.equal(en.lang, 'en');
-  assert.match(en.subject, /You're invited/);
+  assert.match(en.subject, /you've been selected/);
   assert.match(en.text, /Hi Diego,/);
 });
 
@@ -791,6 +791,37 @@ await test('the details email has the venue, time, map and what to bring — in 
   const en = buildDetails(invitee({ formLang: 'en' }), { settings: detailSettings() });
   assert.match(en.subject, /Payment received/);
   assert.match(en.text, /- Agua/, 'no English list, so the Spanish one is used');
+});
+
+await test("each player is told only their own birth year's check-in (coach's schedule, 2026-09-24)", async () => {
+  const { checkInFor } = await import('../lib/details.js');
+  const d1011 = '2003, 2004, 2005: 9:30 AM\n2006, 2007, 2008: 11:00 AM';
+  const d1718 = '2008, 2009: 9:30 AM\n2010, 2011: 11 AM';
+  const d2425 = '2011, 2012: 11:30 AM\n2013, 2014: 1 PM';
+  assert.equal(checkInFor(d1011, '2003-02-01'), '9:30 AM');
+  assert.equal(checkInFor(d1011, '2005-12-31'), '9:30 AM');
+  assert.equal(checkInFor(d1011, '2006-01-01'), '11:00 AM');
+  assert.equal(checkInFor(d1011, '2008-06-15'), '11:00 AM');
+  assert.equal(checkInFor(d1718, '2008-06-15'), '9:30 AM');
+  assert.equal(checkInFor(d1718, '2011-03-03'), '11 AM');
+  assert.equal(checkInFor(d2425, '2011-03-03'), '11:30 AM');
+  assert.equal(checkInFor(d2425, '2014-09-09'), '1 PM');
+  // Ranges work too, and a year nobody listed gets no guess.
+  assert.equal(checkInFor('2003-2005: 9:30 AM\n2006-2008: 11:00 AM', '2004-01-01'), '9:30 AM');
+  assert.equal(checkInFor(d1011, '2010-01-01'), null);
+  assert.equal(checkInFor('9:00 AM', '2010-01-01'), null);
+
+  const settings = cleanPayment({
+    bring: { es: ['Short y calcetas negras'], en: [] },
+    logistics: { 'nov-10-11': { venue: 'Ed Fountain Park #1, 1400 N Decatur Blvd, Las Vegas, NV 89108', time: d1011 } },
+  });
+  assert.equal(settings.logistics['nov-10-11'].time, d1011, 'the lines survive saving');
+  const mail = buildDetails(invitee({ event: 'nov-10-11', dob: '2007-04-04' }), { settings });
+  assert.match(mail.text, /Check-in: 11:00 AM/);
+  assert.doesNotMatch(mail.text + mail.html, /9:30/, 'never the other group\'s time');
+  // One time for everybody is shown as typed.
+  const one = buildDetails(invitee(), { settings: cleanPayment({ logistics: { 'nov-24-25': { venue: 'X', time: '9:00 AM' } } }) });
+  assert.match(one.text, /\nX\n9:00 AM\n/);
 });
 
 await test('no venue or time: the details email waits instead of going out half empty', async () => {
