@@ -44,8 +44,22 @@ export default async function handler(req, res) {
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!secret) return res.status(503).json({ error: 'not_configured' });
 
-  const event = verifyEvent(await rawBody(req), (req.headers || {})['stripe-signature'], secret);
-  if (!event) return res.status(400).json({ error: 'bad_signature' });
+  const raw = await rawBody(req);
+  const sigHeader = (req.headers || {})['stripe-signature'];
+  const event = verifyEvent(raw, sigHeader, secret);
+  if (!event) {
+    // Enough to tell an empty body from a wrong secret, and nothing that could
+    // be used to forge a message: no secret, no signature, no payment data.
+    const t = Number((/(?:^|,)t=(\d+)/.exec(sigHeader || '') || [])[1]);
+    console.warn('stripe bad_signature', JSON.stringify({
+      bytes: raw.length,
+      contentType: (req.headers || {})['content-type'] || null,
+      header: sigHeader ? { t: Number.isFinite(t), v1: /(?:^|,)v1=/.test(sigHeader) } : null,
+      ageSeconds: Number.isFinite(t) ? Math.floor(Date.now() / 1000) - t : null,
+      secret: { whsec: secret.startsWith('whsec_'), length: secret.length, trimmed: secret === secret.trim() },
+    }));
+    return res.status(400).json({ error: 'bad_signature' });
+  }
 
   // Anything else Stripe may send is acknowledged and ignored.
   if (!HANDLED.has(event.type)) return res.status(200).json({ received: true, ignored: event.type });
