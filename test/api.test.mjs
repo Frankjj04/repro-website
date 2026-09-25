@@ -6,6 +6,7 @@
 
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { EventEmitter } from 'node:events';
 
 process.env.DATABASE_URL = 'postgres://test/test';
 process.env.ADMIN_PASSWORD = 'correct-horse';
@@ -845,33 +846,43 @@ await test('the details go to the player, the parent and whoever paid — each o
   assert.equal(db.applicants[0].detailsSentAt, 'now');
 });
 
+// A request shaped the way Vercel hands it over: the bytes come only through
+// 'data'/'end', and req.body is already parsed JSON (useless for the signature).
+// Passing a ready Buffer as req.body is how a broken webhook passed these tests.
+function hookReq(method, raw, headers) {
+  const req = new EventEmitter();
+  Object.assign(req, { method, headers, body: raw ? JSON.parse(raw) : undefined });
+  setImmediate(() => { if (raw) req.emit('data', Buffer.from(raw)); req.emit('end'); });
+  return req;
+}
+
 await test('the webhook refuses anything not signed by Stripe, before touching the database', async () => {
   const body = JSON.stringify({ type: 'checkout.session.completed', data: { object: session() } });
   const call = async (headers, secret) => {
     if (secret === undefined) delete process.env.STRIPE_WEBHOOK_SECRET; else process.env.STRIPE_WEBHOOK_SECRET = secret;
     const res = mockRes();
-    await stripeHook({ method: 'POST', body: Buffer.from(body), headers }, res);
+    await stripeHook(hookReq('POST', body, headers), res);
     return res;
   };
   assert.equal((await call({}, undefined)).statusCode, 503);
   assert.equal((await call({}, 'whsec_x')).statusCode, 400);
   assert.equal((await call({ 'stripe-signature': stripe.signForTest(body, 'whsec_wrong') }, 'whsec_x')).statusCode, 400);
   const res = mockRes();
-  await stripeHook({ method: 'GET', headers: {} }, res);
+  await stripeHook(hookReq('GET', '', {}), res);
   assert.equal(res.statusCode, 405);
 
   // A correctly signed message about something else is acknowledged and ignored.
   const other = JSON.stringify({ type: 'customer.created', data: { object: {} } });
   const ok = mockRes();
   process.env.STRIPE_WEBHOOK_SECRET = 'whsec_x';
-  await stripeHook({ method: 'POST', body: Buffer.from(other), headers: { 'stripe-signature': stripe.signForTest(other, 'whsec_x') } }, ok);
+  await stripeHook(hookReq('POST', other, { 'stripe-signature': stripe.signForTest(other, 'whsec_x') }), ok);
   assert.equal(ok.statusCode, 200);
   assert.equal(ok.body.ignored, 'customer.created');
 
   // A signed test event is acknowledged without touching the database.
   const testEv = JSON.stringify({ type: 'checkout.session.completed', livemode: false, data: { object: session() } });
   const t = mockRes();
-  await stripeHook({ method: 'POST', body: Buffer.from(testEv), headers: { 'stripe-signature': stripe.signForTest(testEv, 'whsec_x') } }, t);
+  await stripeHook(hookReq('POST', testEv, { 'stripe-signature': stripe.signForTest(testEv, 'whsec_x') }), t);
   assert.equal(t.statusCode, 200);
   assert.equal(t.body.test, true);
   delete process.env.STRIPE_WEBHOOK_SECRET;

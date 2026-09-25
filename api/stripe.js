@@ -23,12 +23,17 @@ export const config = { api: { bodyParser: false } };
 
 const HANDLED = new Set(['checkout.session.completed', 'checkout.session.async_payment_succeeded']);
 
-async function rawBody(req) {
-  if (Buffer.isBuffer(req.body)) return req.body;
-  if (typeof req.body === 'string') return Buffer.from(req.body);
-  const chunks = [];
-  for await (const c of req) chunks.push(typeof c === 'string' ? Buffer.from(c) : c);
-  return Buffer.concat(chunks);
+// On Vercel the request has already been read before this runs, and only
+// 'data'/'end' listeners get the bytes again — `for await (… of req)` gets
+// nothing, and an empty body never matches the signature. So: listeners, and
+// never touch req.body (Stripe sends JSON, which Vercel would hand back parsed).
+function rawBody(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    req.on('data', (c) => chunks.push(typeof c === 'string' ? Buffer.from(c) : c));
+    req.on('end', () => resolve(Buffer.concat(chunks)));
+    req.on('error', reject);
+  });
 }
 
 export default async function handler(req, res) {
