@@ -153,7 +153,7 @@ async function previewDetails(res, id) {
     html: mail.html,
     text: mail.text,
     lang: mail.lang,
-    asks: { parent: false, video: false },
+    asks: { parent: false },
     // Not a blocker: a family that paid in cash still needs the venue.
     notice: a.paidAt ? '' : 'Este jugador no tiene un pago registrado en Stripe. Mándalo solo si ya pagó de otra forma.',
     blockers: detailBlockers(a, settings),

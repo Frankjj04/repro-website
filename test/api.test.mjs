@@ -419,14 +419,12 @@ const invitee = (over = {}) => ({
 
 await test('the email asks for what this player is actually missing', () => {
   const now = new Date('2026-10-01T00:00:00Z');
-  // 12 years old, nobody gave permission, no video: both asks.
-  assert.deepEqual(asksFor(invitee(), now), { parent: true, video: true });
-  // Permission on record: only the video.
-  assert.deepEqual(asksFor(invitee({ parentConfirmedAt: '2026-09-20T00:00:00Z' }), now),
-    { parent: false, video: true });
-  // A 17-year-old is not a child: never the parent block, whatever we hold.
-  assert.deepEqual(asksFor(invitee({ dob: '2008-05-02', videoUrl: 'https://v.example' }), now),
-    { parent: false, video: false });
+  // 12 years old, nobody gave permission: ask the parent.
+  assert.deepEqual(asksFor(invitee(), now), { parent: true });
+  // Permission on record: nothing to ask.
+  assert.deepEqual(asksFor(invitee({ parentConfirmedAt: '2026-09-20T00:00:00Z' }), now), { parent: false });
+  // A 17-year-old is not a child: never the parent block.
+  assert.deepEqual(asksFor(invitee({ dob: '2008-05-02' }), now), { parent: false });
 });
 
 await test('the invitation is written in the language the player used', () => {
@@ -483,10 +481,11 @@ await test('the permission block appears only when a link was made for it', () =
   assert.equal(/permiso\.html/.test(grown.text), false);
 });
 
-await test('the video block appears only when we have no link', () => {
-  assert.match(buildInvite(invitee()).text, /wa\.me/);
-  const has = buildInvite(invitee({ videoUrl: 'https://youtu.be/abc' }));
-  assert.equal(/NOS FALTA TU VIDEO/.test(has.text), false);
+await test('the invitation never asks for a video, even when none was sent (coach, 2026-09-24)', () => {
+  for (const lang of ['es', 'en']) {
+    const m = buildInvite(invitee({ videoUrl: '', formLang: lang }));
+    assert.doesNotMatch(m.text + m.html, /video/i);
+  }
 });
 
 await test('a name with html in it cannot break out into the email', () => {

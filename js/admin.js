@@ -873,7 +873,6 @@ async function openInviteModal(a, kind = '') {
   // What else this particular email is asking the family for.
   const asks = [];
   if (data.asks.parent) asks.push('el permiso del papá, mamá o tutor (con su propio link)');
-  if (data.asks.video) asks.push('el video, por WhatsApp');
   if (asks.length) {
     $('adIvAsks').textContent = 'Este correo también pide: ' + asks.join(' y ') + '.';
     $('adIvAsks').hidden = false;
