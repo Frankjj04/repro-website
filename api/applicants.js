@@ -40,7 +40,10 @@ export const COLUMNS = `id, event, name, dob, birthplace, nationalities, phone, 
   invited_at, invite_count, invite_to,
   parent_confirm_name, parent_reply, parent_reply_at,
   paid_at, paid_amount, details_sent_at, details_to,
-  (photo IS NOT NULL) AS has_photo`;
+  (photo IS NOT NULL) AS has_photo,
+  (SELECT COALESCE(json_agg(json_build_object('kind', e.kind, 'to', e.recipient, 'status', e.status,
+            'detail', e.status_detail, 'at', COALESCE(e.status_at, e.created_at)) ORDER BY e.created_at), '[]'::json)
+     FROM emails e WHERE e.applicant_id = applicants.id) AS emails`;
 
 export function toJson(r) {
   return {
@@ -87,6 +90,8 @@ export function toJson(r) {
     paidAmount: r.paid_amount || '',
     detailsSentAt: r.details_sent_at,
     detailsTo: r.details_to || '',
+    // What Resend said about each invitation / details email (lib/mail-status.js).
+    emails: Array.isArray(r.emails) ? r.emails : [],
     status: r.status,
     note: r.coach_note,
     createdAt: r.created_at,

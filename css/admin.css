@@ -241,6 +241,8 @@ a.ad-chip-video:hover { background: rgba(0,212,255,0.1); }
 .ad-consent-title { font-weight: 700; font-size: 0.92rem; color: var(--white); }
 .ad-consent-yes .ad-consent-title { color: #7DD3FC; }
 .ad-consent-sub { font-size: 0.8rem; color: var(--gray-light); margin-top: 3px; }
+.ad-mail-ok { color: #7DEBA8; }
+.ad-mail-bad { color: #FFB86B; font-weight: 600; }
 .ad-consent-actions { display: flex; align-items: center; gap: 1rem; margin-top: 0.75rem; flex-wrap: wrap; }
 
 /* share modal */

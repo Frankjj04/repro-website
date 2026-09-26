@@ -717,6 +717,10 @@ function fakeDb(applicants) {
       a.paidAmount = params[1];
       return { rows: [] };
     }
+    if (/^\s*INSERT INTO emails/.test(text)) {
+      (db.emails = db.emails || []).push({ id: params[0], applicantId: params[1], kind: params[2], to: params[3] });
+      return { rows: [] };
+    }
     if (/UPDATE applicants SET details_sent_at/.test(text)) {
       const a = applicants.find((x) => x.id === params[0]);
       a.detailsSentAt = 'now'; a.detailsTo = params[1];
@@ -908,6 +912,109 @@ await test('the payments list and the details email stay behind the password', a
   const r2 = mockRes();
   await invite({ method: 'POST', query: { id: '7', kind: 'details' }, headers: {} }, r2);
   assert.equal(r2.statusCode, 401);
+});
+
+
+
+/* ---------- did the email arrive? (Resend → /api/resend) ---------- */
+
+const mailStatus = await import('../lib/mail-status.js');
+const { default: resendHook } = await import('../api/resend.js');
+const RESEND_SECRET = 'whsec_' + Buffer.from('a-test-key-that-is-long-enough!!').toString('base64');
+
+await test('a Resend message is accepted only with a valid, fresh signature over the exact bytes', () => {
+  const body = JSON.stringify({ type: 'email.delivered', data: { email_id: 're_1' } });
+  const h = mailStatus.signResendForTest(body, RESEND_SECRET);
+  assert.equal(mailStatus.verifyResend(Buffer.from(body), h, RESEND_SECRET).type, 'email.delivered');
+  // Wrong secret, changed body, no signature, stale timestamp: all refused.
+  const other = 'whsec_' + Buffer.from('some-other-key-entirely-here!!!!').toString('base64');
+  assert.equal(mailStatus.verifyResend(body, h, other), null);
+  assert.equal(mailStatus.verifyResend(body.replace('delivered', 'bounced'), h, RESEND_SECRET), null);
+  assert.equal(mailStatus.verifyResend(body, { ...h, 'svix-signature': '' }, RESEND_SECRET), null);
+  const old = mailStatus.signResendForTest(body, RESEND_SECRET, 'msg_1', Math.floor(Date.now() / 1000) - 600);
+  assert.equal(mailStatus.verifyResend(body, old, RESEND_SECRET), null);
+  // Several signatures (Resend sends more while a secret is being rotated): one good one is enough.
+  const multi = { ...h, 'svix-signature': 'v1,AAAA ' + h['svix-signature'] };
+  assert.ok(mailStatus.verifyResend(body, multi, RESEND_SECRET));
+});
+
+/* A stand-in for the emails table: rows, and the rank rule applied like the SQL does. */
+function fakeMailDb(rows) {
+  const db = { rows, inserts: [] };
+  db.query = async (text, params) => {
+    if (/^\s*INSERT INTO emails/.test(text)) { db.inserts.push(params); return { rows: [] }; }
+    if (/^\s*UPDATE emails/.test(text)) {
+      const r = rows.find((x) => x.resend_id === params[0]);
+      if (!r || mailStatus.RANK[r.status] > params[3]) return { rows: [] };
+      Object.assign(r, { status: params[1], status_detail: params[2] });
+      return { rows: [{ applicant_id: r.applicant_id }] };
+    }
+    throw new Error('unexpected query: ' + text);
+  };
+  return db;
+}
+
+await test('delivered, bounced and delayed land on the right email; a late weaker event never undoes a stronger one', async () => {
+  const db = fakeMailDb([{ resend_id: 're_1', applicant_id: 7, status: 'sent' }]);
+  const ev = (type, extra = {}) => ({ type, data: { email_id: 're_1', ...extra } });
+
+  assert.deepEqual(await mailStatus.applyEvent(db.query, ev('email.delivered')), { updated: 'delivered', applicantId: 7 });
+  assert.deepEqual(await mailStatus.applyEvent(db.query, ev('email.delivery_delayed')), { unchanged: 'delayed' });
+  assert.equal(db.rows[0].status, 'delivered');
+
+  await mailStatus.applyEvent(db.query, ev('email.bounced', { bounce: { message: 'Mailbox does not exist' } }));
+  assert.equal(db.rows[0].status, 'bounced');
+  assert.equal(db.rows[0].status_detail, 'Mailbox does not exist');
+
+  // Not ours to track, or about an email we never logged: acknowledged, nothing changes.
+  assert.deepEqual(await mailStatus.applyEvent(db.query, ev('email.opened')), { ignored: 'email.opened' });
+  assert.deepEqual(await mailStatus.applyEvent(db.query, { type: 'email.delivered', data: { email_id: 're_x' } }),
+    { unchanged: 'delivered' });
+});
+
+await test('every email sent is written down with its Resend id — and a failed write never stops the email', async () => {
+  const db = fakeMailDb([]);
+  await mailStatus.logSent(db.query, { result: { id: 're_9' }, applicantId: 7, kind: 'details', to: 'a@example.com' });
+  assert.deepEqual(db.inserts, [['re_9', 7, 'details', 'a@example.com']]);
+  // No id back from the mailer (or a test double): nothing to track, no query.
+  await mailStatus.logSent(db.query, { result: undefined, applicantId: 7, kind: 'details', to: 'a@example.com' });
+  assert.equal(db.inserts.length, 1);
+  // A broken database is logged, not thrown.
+  const quiet = console.error; console.error = () => {};
+  try {
+    await mailStatus.logSent(async () => { throw new Error('db down'); }, { result: { id: 're_1' }, applicantId: 7, kind: 'invite', to: 'x@y.z' });
+  } finally { console.error = quiet; }
+});
+
+await test('the details email logs one row per address it went to', async () => {
+  const db = fakeDb([invitee({ parentEmail: 'mama@example.com' })]);
+  let n = 0;
+  await sendDetails(db.applicants[0], {
+    query: db.query, settings: detailSettings(), send: async () => ({ id: 're_' + (++n) }),
+  });
+  assert.deepEqual(db.emails.map((e) => [e.id, e.kind, e.to]),
+    [['re_1', 'details', 'diego@example.com'], ['re_2', 'details', 'mama@example.com']]);
+});
+
+await test('the Resend webhook refuses anything not signed, and is off until its secret is set', async () => {
+  const body = JSON.stringify({ type: 'email.opened', data: { email_id: 're_1' } });
+  const call = async (headers, secret) => {
+    if (secret === undefined) delete process.env.RESEND_WEBHOOK_SECRET; else process.env.RESEND_WEBHOOK_SECRET = secret;
+    const res = mockRes();
+    await resendHook(hookReq('POST', body, headers), res);
+    return res;
+  };
+  assert.equal((await call({}, undefined)).statusCode, 503);
+  const quiet = console.warn; console.warn = () => {};
+  try {
+    assert.equal((await call({}, RESEND_SECRET)).statusCode, 400);
+    const other = 'whsec_' + Buffer.from('some-other-key-entirely-here!!!!').toString('base64');
+    assert.equal((await call(mailStatus.signResendForTest(body, other), RESEND_SECRET)).statusCode, 400);
+  } finally { console.warn = quiet; }
+  const get = mockRes();
+  await resendHook(hookReq('GET', '', {}), get);
+  assert.equal(get.statusCode, 405);
+  delete process.env.RESEND_WEBHOOK_SECRET;
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

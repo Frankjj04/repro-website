@@ -18,6 +18,16 @@ const CHILD_AGE = 13;
 const isChild = (a) => age(a.dob) < CHILD_AGE;
 const needsParent = (a) => isChild(a) && !a.parentConfirmedAt;
 
+/* What Resend said about each address, per kind ('invite' | 'details'). A
+   resend to the same address replaces the older word on it. */
+function latestEmails(a, kind) {
+  const out = new Map();
+  for (const e of a.emails || []) if (e.kind === kind) out.set(String(e.to).toLowerCase(), e);
+  return [...out.values()];
+}
+const bounced = (a) => ['invite', 'details'].some((k) =>
+  latestEmails(a, k).some((e) => e.status === 'bounced' || e.status === 'complained'));
+
 let active = [];        // applicants not archived
 let archived = [];
 let tab = 'all';
@@ -257,6 +267,11 @@ function render() {
     }
     // Paid says it all. Otherwise only an invited player can be waiting on
     // the email, so only they say where it stands.
+    if (bounced(a)) {
+      const warn = el('span', 'ad-chip ad-chip-warn', '⚠ Correo rebotó');
+      warn.title = 'Un correo que le mandamos no llegó. Ábrelo para ver cuál.';
+      side.append(warn);
+    }
     if (a.paidAt) {
       side.append(el('span', 'ad-chip ad-chip-paid', '💰 Pagado' + (a.paidAmount ? ' ' + a.paidAmount : '')));
     } else if (a.status === 'selected') {
@@ -821,6 +836,7 @@ function renderInvite(a, isArchived) {
     box.append(
       el('div', 'ad-consent-title', '✓ Invitación enviada'),
       el('div', 'ad-consent-sub', (a.inviteTo || a.email) + ' · ' + fmtDate(a.invitedAt) + times),
+      ...deliveryLines(a, 'invite'),
     );
   } else {
     box.append(
@@ -915,6 +931,27 @@ $('adIvSend').addEventListener('click', async () => {
    Stripe marks the player paid by itself (api/stripe.js) and sends the
    details. The card shows where that stands, and lets the coach send the
    details by hand: a resend, or a family that paid in cash. */
+/* One line per address: did it get there? Emails sent before delivery
+   tracking existed have no line — the "enviada/enviados" line above covers them. */
+function deliveryLines(a, kind) {
+  return latestEmails(a, kind).map((e) => {
+    const when = e.at ? ' · ' + fmtDate(e.at) : '';
+    switch (e.status) {
+      case 'delivered':
+        return el('div', 'ad-consent-sub ad-mail-ok', '✓ Llegó a ' + e.to + when);
+      case 'bounced':
+        return el('div', 'ad-consent-sub ad-mail-bad', '⚠ No llegó a ' + e.to + ': ese correo no existe o no recibe. ' +
+          'Pídele otro correo por WhatsApp.' + (e.detail ? ' (' + e.detail + ')' : ''));
+      case 'complained':
+        return el('div', 'ad-consent-sub ad-mail-bad', '⚠ ' + e.to + ' lo marcó como spam. Avísale por WhatsApp.');
+      case 'delayed':
+        return el('div', 'ad-consent-sub', '⏳ Con retraso a ' + e.to + ': su correo lo está deteniendo, se sigue intentando.');
+      default:
+        return el('div', 'ad-consent-sub', '📨 Enviado a ' + e.to + ' · esperando confirmación de entrega');
+    }
+  });
+}
+
 function renderPaid(a, isArchived) {
   const box = $('adPPaid');
   box.replaceChildren();
@@ -929,6 +966,7 @@ function renderPaid(a, isArchived) {
       el('div', 'ad-consent-sub', a.detailsSentAt
         ? '✓ Detalles enviados a ' + a.detailsTo + ' · ' + fmtDate(a.detailsSentAt)
         : '⚠ Todavía no le llegan los detalles (lugar y hora). Llénalos en “Datos del pago” y mándalos aquí.'),
+      ...deliveryLines(a, 'details'),
     );
   } else {
     box.append(

@@ -21,6 +21,7 @@ import { loadPayment, missingDetails } from '../lib/settings.js';
 import { toJson, COLUMNS } from './applicants.js';
 import { buildDetails, detailsMissing, recipients } from '../lib/details.js';
 import { sendDetails } from '../lib/payments.js';
+import { logSent } from '../lib/mail-status.js';
 
 const SITE = (process.env.SITE_URL || 'https://bepro.futbol').replace(/\/+$/, '');
 
@@ -123,8 +124,9 @@ async function send(res, id) {
   const to = [a.email, ...(asks.parent && a.parentEmail ? [a.parentEmail] : [])];
   try {
     for (const address of to) {
-      await sendEmail({ from: FROM, to: address, replyTo: REPLY_TO,
+      const result = await sendEmail({ from: FROM, to: address, replyTo: REPLY_TO,
         subject: mail.subject, html: mail.html, text: mail.text });
+      await logSent(query, { result, applicantId: a.id, kind: 'invite', to: address });
     }
   } catch (err) {
     return res.status(502).json({ error: 'email_failed', message: String(err.message || err) });
