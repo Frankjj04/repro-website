@@ -18,7 +18,7 @@ const { default: applicants } = await import('../api/applicants.js');
 const auth = await import('../lib/auth.js');
 const { validateApplication, videoUrl, phone, handle } = await import('../lib/validate.js');
 const { REFUSALS } = await import('../js/registro.js');
-const { default: invite } = await import('../api/invite.js');
+const { default: invite, blockers } = await import('../api/invite.js');
 const { default: permiso } = await import('../api/permiso.js');
 const { buildInvite, asksFor } = await import('../lib/invite.js');
 const { missingDetails, cleanPayment, isReady, EMPTY } = await import('../lib/settings.js');
@@ -547,6 +547,18 @@ await test('signed in: a bad id never reaches the database', async () => {
     assert.equal(res.statusCode, 400, id);
     assert.equal(res.body.error, 'bad_id');
   }
+});
+
+await test('a player who already paid is never sent another invitation (it would ask them to pay twice)', () => {
+  const settings = { logistics: { 'nov-24-25': { price: '$95', payLink: 'https://buy.stripe.com/b' } } };
+  const paid = blockers(invitee({ status: 'selected', paidAt: '2026-09-25T00:18:00Z' }), settings);
+  assert.equal(paid.length, 1);
+  assert.match(paid[0], /ya pagó/);
+  assert.match(paid[0], /Reenviar detalles/);
+  // Even a paid player who is somehow not marked Invitado gets the one clear reason.
+  assert.match(blockers(invitee({ status: 'pending', paidAt: '2026-09-25T00:18:00Z' }), settings)[0], /ya pagó/);
+  // Not paid: the usual checks, and no mention of paying.
+  assert.ok(!blockers(invitee({ status: 'selected', paidAt: null }), settings).some((b) => /ya pagó/.test(b)));
 });
 
 /* ---------- the parent's permission link ---------- */

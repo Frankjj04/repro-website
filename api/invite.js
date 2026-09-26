@@ -53,8 +53,15 @@ async function load(id) {
 
 /* Everything standing between the coach and a send, in the order he can fix
    them. Empty means the button is safe to press. */
-function blockers(a, payment) {
+export function blockers(a, payment) {
   const out = [];
+  // The invitation says "pay for your spot" — sent to a family that already
+  // paid, it asks them to pay twice. What they need now is the details email.
+  if (a.paidAt) {
+    out.push('Este jugador ya pagó — no le mandes otra invitación, le pediría pagar otra vez. ' +
+      'Si le faltan los detalles, usa “Reenviar detalles”.');
+    return out;
+  }
   if (a.status !== 'selected') out.push('Marca al jugador como Invitado primero.');
   for (const m of missingDetails(payment)) out.push('Falta ' + m + ' — ponlo en “Datos del pago”.');
   if (!isEmailConfigured()) out.push('Falta conectar el servicio de correo (RESEND_API_KEY).');

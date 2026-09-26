@@ -830,6 +830,13 @@ function renderInvite(a, isArchived) {
     );
   }
 
+  // Paid: another invitation would ask them to pay again (the server refuses it too).
+  if (a.paidAt) {
+    box.append(el('div', 'ad-consent-sub', '💰 Ya pagó — no necesita otra invitación. ' +
+      'Si le faltan los detalles, usa “Reenviar detalles” abajo.'));
+    return;
+  }
+
   const send = el('button', 'btn btn-primary btn-sm', a.invitedAt ? 'Reenviar invitación' : '📧 Enviar invitación');
   send.type = 'button';
   send.addEventListener('click', () => openInviteModal(a));
