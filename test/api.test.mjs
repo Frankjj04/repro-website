@@ -278,7 +278,6 @@ console.log('sharing');
 
 const { default: shares } = await import('../api/shares.js');
 const { default: share } = await import('../api/share.js');
-const { default: sharePhoto } = await import('../api/share-photo.js');
 const { scoutProfile, isToken } = await import('../lib/scout.js');
 
 await test('managing share links needs the password', async () => {
@@ -302,7 +301,7 @@ await test('a malformed share token is refused before touching the database', as
     await share({ method: 'GET', headers: {}, query: { t } }, res);
     assert.equal(res.statusCode, 404);
     const res2 = mockRes();
-    await sharePhoto({ method: 'GET', headers: {}, query: { t, id: '1' } }, res2);
+    await share({ method: 'GET', headers: {}, query: { t, photo: '1' } }, res2);
     assert.equal(res2.statusCode, 404);
   }
   assert.ok(isToken('A'.repeat(43)));

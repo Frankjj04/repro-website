@@ -1,4 +1,7 @@
-/* GET /api/share?t=TOKEN — what a scout sees. No password: the unguessable
+/* GET /api/share?t=TOKEN — what a scout sees.
+   GET /api/share?t=TOKEN&photo=N — one headshot on that link (was its own
+   file, api/share-photo.js; merged because the free Vercel plan allows 12
+   functions). No password: the unguessable
    token in the link is the key, and it expires or can be turned off.
 
    Every answer is the same "not available" for a wrong, expired or turned-off
@@ -18,6 +21,7 @@ export default async function handler(req, res) {
 
   const token = (req.query || {}).t;
   if (!isToken(token)) return res.status(404).json({ error: 'unavailable' });
+  if ((req.query || {}).photo !== undefined) return photo(res, token, (req.query || {}).photo);
 
   try {
     const { rows: shares } = await query(LIVE_SHARE, [token]);
@@ -37,6 +41,29 @@ export default async function handler(req, res) {
     });
   } catch (err) {
     console.error('share failed:', err);
+    return res.status(500).json({ error: 'server_error' });
+  }
+}
+
+/* A headshot, only for a player the live link is allowed to show right now. */
+async function photo(res, token, id) {
+  const n = Number(id);
+  if (!Number.isInteger(n) || n < 1) return res.status(404).json({ error: 'unavailable' });
+  try {
+    const { rows: shares } = await query(LIVE_SHARE, [token]);
+    if (!shares.length) return res.status(404).json({ error: 'unavailable' });
+
+    const { rows } = await query(
+      `SELECT photo, photo_type FROM applicants WHERE ${VISIBLE} AND id = $2`,
+      [shares[0].applicant_ids, n]);
+    if (!rows.length || !rows[0].photo) return res.status(404).json({ error: 'unavailable' });
+
+    res.setHeader('Content-Type', rows[0].photo_type || 'image/jpeg');
+    // Never kept: once a link is turned off, its photos must stop showing too
+    // (the handler already set private, no-store).
+    return res.status(200).send(rows[0].photo);
+  } catch (err) {
+    console.error('share photo failed:', err);
     return res.status(500).json({ error: 'server_error' });
   }
 }
