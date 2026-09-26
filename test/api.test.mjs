@@ -966,6 +966,12 @@ await test('delivered, bounced and delayed land on the right email; a late weake
   assert.equal(db.rows[0].status, 'bounced');
   assert.equal(db.rows[0].status_detail, 'Mailbox does not exist');
 
+  // Suppressed (Resend refused: this address bounced before) and failed also mean it never arrived.
+  const db2 = fakeMailDb([{ resend_id: 're_1', applicant_id: 7, status: 'sent' }, { resend_id: 're_2', applicant_id: 7, status: 'sent' }]);
+  await mailStatus.applyEvent(db2.query, ev('email.suppressed', { suppressed: { message: 'on suppression list' } }));
+  await mailStatus.applyEvent(db2.query, { type: 'email.failed', data: { email_id: 're_2', failed: { reason: 'quota' } } });
+  assert.deepEqual(db2.rows.map((r) => [r.status, r.status_detail]), [['bounced', 'on suppression list'], ['bounced', 'quota']]);
+
   // Not ours to track, or about an email we never logged: acknowledged, nothing changes.
   assert.deepEqual(await mailStatus.applyEvent(db.query, ev('email.opened')), { ignored: 'email.opened' });
   assert.deepEqual(await mailStatus.applyEvent(db.query, { type: 'email.delivered', data: { email_id: 're_x' } }),
