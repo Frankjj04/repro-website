@@ -209,6 +209,7 @@ function renderYears() {
 
 function render() {
   renderYears();
+  renderResendAll();
   const evList = inYear(inEvent(active));
   const counts = {
     all: evList.length,
@@ -1273,6 +1274,59 @@ $('adCopy').addEventListener('click', () => {
 });
 
 /* ---------- CSV of what is on screen ---------- */
+/* ---------- resend the invitation to everyone who has not paid ----------
+   Coach, 2026-11-05: many invitations sat unseen in spam and he was writing
+   to each player on WhatsApp. One button sends it again to every invited
+   player in the event (and birth year) on screen who has not paid. It uses
+   the same per-player send as the card, one at a time, so every check the
+   server makes (payment link set, under-13 permission…) still applies. */
+function unpaidInvited() {
+  return inYear(inEvent(active)).filter((a) => a.status === 'selected' && a.invitedAt && !a.paidAt);
+}
+function renderResendAll() {
+  const n = unpaidInvited().length;
+  const btn = $('adResendAll');
+  if (btn.dataset.busy) return;
+  btn.textContent = '📧 Reenviar a los que no han pagado (' + n + ')';
+  btn.disabled = n === 0;
+}
+const pause = (ms) => new Promise((r) => setTimeout(r, ms));
+
+$('adResendAll').addEventListener('click', async () => {
+  const list = unpaidInvited();
+  if (!list.length) return;
+  const where = ($('adEvent').value ? eventLabel($('adEvent').value) : 'todos los eventos') + (year ? ' · categoría ' + year : '');
+  if (!confirm('¿Reenviar la invitación a ' + list.length + (list.length === 1 ? ' jugador' : ' jugadores') +
+      ' que no han pagado?\n\n' + where + '\n\nLes llega el mismo correo otra vez, con su botón de pago.')) return;
+
+  const btn = $('adResendAll');
+  btn.dataset.busy = '1';
+  btn.disabled = true;
+  const sent = [];
+  const failed = [];
+  for (let i = 0; i < list.length; i++) {
+    const a = list[i];
+    btn.textContent = 'Enviando ' + (i + 1) + ' de ' + list.length + '…';
+    try {
+      const res = await api('POST', '/api/invite?id=' + a.id, {});
+      replaceActive(res.applicant);
+      sent.push(a.name);
+    } catch (err) {
+      failed.push(a.name + ': ' + err.message);
+      // The mail service refused (daily limit, or it is down): the rest would fail too.
+      if (/^email_/.test(err.message)) {
+        failed.push('Se detuvo aquí. Los que faltan no se mandaron; inténtalo más tarde.');
+        break;
+      }
+    }
+    await pause(700);   // the mail service takes a couple of emails per second at most
+  }
+  delete btn.dataset.busy;
+  render();
+  alert('Listo. Se reenvió a ' + sent.length + (sent.length === 1 ? ' jugador.' : ' jugadores.') +
+    (failed.length ? '\n\nNo se pudo:\n' + failed.join('\n') : ''));
+});
+
 $('adCsv').addEventListener('click', () => {
   const rows = current();
   const cols = [
