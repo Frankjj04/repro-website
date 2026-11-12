@@ -1022,5 +1022,54 @@ await test('the Resend webhook refuses anything not signed, and is off until its
   delete process.env.RESEND_WEBHOOK_SECRET;
 });
 
+/* ---------- the invitation by WhatsApp (coach, 2026-11-12) ---------- */
+const { buildWhatsApp, waDigits } = await import('../lib/invite.js');
+const { waBlockers } = await import('../api/invite.js');
+
+await test('the WhatsApp message carries the price and this player\'s own payment link', () => {
+  const settings = cleanPayment({ logistics: { 'nov-24-25': { price: '$95', payLink: 'https://buy.stripe.com/b' } } });
+  const now = new Date('2026-11-12T00:00:00Z');
+  const es = buildWhatsApp(invitee({ dob: '2008-05-02' }), { settings, now });
+  assert.match(es.text, /^¡Hola Diego!/);
+  assert.match(es.text, /24 y 25 de noviembre/);
+  assert.match(es.text, /\(\$95\)/);
+  assert.match(es.text, /https:\/\/buy\.stripe\.com\/b\?client_reference_id=bp-7/);
+  // Not emailed yet: no "check your spam" line.
+  assert.doesNotMatch(es.text, /spam/);
+  const en = buildWhatsApp(invitee({ dob: '2008-05-02', formLang: 'en', invitedAt: '2026-11-01T00:00:00Z' }), { settings, now });
+  assert.match(en.text, /^Hi Diego!/);
+  assert.match(en.text, /check your spam folder/);
+  assert.doesNotMatch(en.text, /parent/);
+  // Under 13 without permission, already emailed: points to the email for the permission link.
+  const kid = buildWhatsApp(invitee({ invitedAt: '2026-11-01T00:00:00Z' }), { settings, now });
+  assert.match(kid.text, /menor de 13/);
+});
+
+await test('WhatsApp numbers: 10 digits without + are US, everything else keeps its country code', () => {
+  assert.equal(waDigits('(702) 555-1234'), '17025551234');
+  assert.equal(waDigits('+52 33 1234 5678'), '523312345678');
+  assert.equal(waDigits('+1 702 555 1234'), '17025551234');
+  assert.equal(waDigits('523312345678'), '523312345678');
+  assert.equal(waDigits(''), '');
+});
+
+await test('no WhatsApp payment message for a player who paid, is not invited, or has no link for the date', () => {
+  const settings = cleanPayment({ logistics: { 'nov-24-25': { price: '$95', payLink: 'https://buy.stripe.com/b' } } });
+  const ok = invitee({ phone: '+52 33 1234 5678' });
+  assert.deepEqual(waBlockers(ok, settings), []);
+  assert.equal(waBlockers({ ...ok, paidAt: '2026-11-02T00:00:00Z' }, settings).length, 1);
+  assert.match(waBlockers({ ...ok, status: 'pending' }, settings).join(), /Invitado/);
+  assert.match(waBlockers({ ...ok, event: 'nov-10-11' }, settings).join(), /link de pago/);
+  assert.match(waBlockers({ ...ok, phone: '' }, settings).join(), /teléfono/);
+});
+
+await test('the WhatsApp preview is behind the password too', async () => {
+  for (const method of ['GET', 'POST']) {
+    const res = mockRes();
+    await invite({ method, headers: {}, query: { id: '1', kind: 'wa' } }, res);
+    assert.equal(res.statusCode, 401);
+  }
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

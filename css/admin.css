@@ -393,3 +393,18 @@ a.ad-chip-video:hover { background: rgba(0,212,255,0.1); }
 .ad-pay-paste { margin: 0 0 1.4rem; border: 1px dashed rgba(255,255,255,0.18); border-radius: var(--radius); padding: 0.8rem 1rem; }
 .ad-pay-paste summary { cursor: pointer; font-size: 0.85rem; font-weight: 600; color: var(--electric); }
 .ad-pay-paste textarea { width: 100%; margin: 0.6rem 0; font-family: ui-monospace, Menlo, monospace; font-size: 0.85rem; }
+
+/* WhatsApp invitation (2026-11-12) */
+.ad-wa-btn { background: #25D366; border-color: #25D366; color: #06210F; }
+.ad-wa-btn:hover { background: #1EBE5A; border-color: #1EBE5A; color: #06210F; }
+.ad-wa-phone, .ad-wa-text {
+  width: 100%; box-sizing: border-box; margin: 4px 0 6px; padding: 10px 12px;
+  border-radius: 8px; border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.05);
+  color: inherit; font: 400 15px/1.5 'DM Sans', sans-serif;
+}
+.ad-wa-text { resize: vertical; min-height: 200px; }
+.ad-wa-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0 4px; }
+.ad-wa-actions .btn { flex: 1 1 200px; text-align: center; }
+.ad-wa-done { color: #7DEBA8; margin: 8px 0 0; }
+.ad-chip-wa { background: rgba(37, 211, 102, 0.12); color: #7DEBA8; border-color: rgba(37, 211, 102, 0.4); }
+.ad-disabled { opacity: 0.45; pointer-events: none; }

@@ -210,6 +210,7 @@ function renderYears() {
 function render() {
   renderYears();
   renderResendAll();
+  renderWaAll();
   const evList = inYear(inEvent(active));
   const counts = {
     all: evList.length,
@@ -279,6 +280,7 @@ function render() {
       side.append(a.invitedAt
         ? el('span', 'ad-chip ad-chip-sent', '📧 Invitado · sin pagar')
         : el('span', 'ad-chip ad-chip-warn', '📧 Sin enviar'));
+      if (a.waSentAt) side.append(el('span', 'ad-chip ad-chip-wa', '💬 Mensaje'));
     }
 
     if (tab !== 'archived') {
@@ -839,12 +841,14 @@ function renderInvite(a, isArchived) {
       el('div', 'ad-consent-sub', (a.inviteTo || a.email) + ' · ' + fmtDate(a.invitedAt) + times),
       ...deliveryLines(a, 'invite'),
     );
+    if (a.waSentAt) box.append(waLine(a));
   } else {
     box.append(
       el('div', 'ad-consent-title', '📧 Todavía no le mandas la invitación'),
       el('div', 'ad-consent-sub', 'El correo lleva la fecha, el costo y su botón de pago. ' +
         'Te lo enseñamos antes de enviarlo.'),
     );
+    if (a.waSentAt) box.append(waLine(a));
   }
 
   // Paid: another invitation would ask them to pay again (the server refuses it too).
@@ -857,10 +861,122 @@ function renderInvite(a, isArchived) {
   const send = el('button', 'btn btn-primary btn-sm', a.invitedAt ? 'Reenviar invitación' : '📧 Enviar invitación');
   send.type = 'button';
   send.addEventListener('click', () => openInviteModal(a));
+  const wa = el('button', 'btn btn-primary btn-sm ad-wa-btn', '💬 Mandar WhatsApp o mensaje');
+  wa.type = 'button';
+  wa.addEventListener('click', () => openWaModal([a.id]));
   const row = el('div', 'ad-parent-form');
-  row.append(send);
+  row.append(send, wa);
   box.append(row);
 }
+
+function waLine(a) {
+  const times = a.waCount > 1 ? ' · ' + a.waCount + ' veces' : '';
+  return el('div', 'ad-consent-sub ad-mail-ok', '💬 Le abriste WhatsApp o mensaje de texto · ' + fmtDate(a.waSentAt) + times);
+}
+
+/* ---------- the invitation by WhatsApp / text message ----------
+   Coach, 2026-11-12: emails land in spam, a message from his own number gets
+   opened. The page writes the message (with this player's own payment link,
+   so the payment is still matched to them) and opens WhatsApp or Messages;
+   the coach taps send. With several players it walks through them one by one. */
+let waQueue = [];
+let waPos = 0;
+let waCurrent = null;
+
+function waHrefs() {
+  const digits = $('adWaPhone').value.replace(/\D/g, '');
+  const text = $('adWaText').value;
+  $('adWaOpen').href = 'https://wa.me/' + digits + '?text=' + encodeURIComponent(text);
+  // "?&body=" is understood by both iPhone and Android.
+  $('adWaSms').href = 'sms:+' + digits + '?&body=' + encodeURIComponent(text);
+  const ok = digits.length >= 7 && text.trim() && $('adWaBlockers').hidden;
+  [$('adWaOpen'), $('adWaSms')].forEach((x) => x.classList.toggle('ad-disabled', !ok));
+  return ok;
+}
+$('adWaPhone').addEventListener('input', waHrefs);
+$('adWaText').addEventListener('input', waHrefs);
+
+function openWaModal(ids) {
+  waQueue = ids;
+  waPos = 0;
+  openModal('adWaModal');
+  showWa();
+}
+
+async function showWa() {
+  const a = find(waQueue[waPos]);
+  waCurrent = a;
+  const many = waQueue.length > 1;
+  $('adWaWho').textContent = (a ? a.name : '') + (many ? ' · ' + (waPos + 1) + ' de ' + waQueue.length : '');
+  $('adWaPhone').value = '';
+  $('adWaText').value = '…';
+  $('adWaBlockers').hidden = true;
+  $('adWaNotice').hidden = true;
+  $('adWaDone').hidden = true;
+  $('adWaNext').hidden = !many;
+  $('adWaNext').textContent = waPos + 1 < waQueue.length ? 'Siguiente jugador →' : 'Terminar';
+  flash($('adWaError'), '');
+  waHrefs();
+  if (!a) return;
+
+  let data;
+  try {
+    data = await api('GET', '/api/invite?kind=wa&id=' + a.id);
+  } catch (err) {
+    return flash($('adWaError'), err.message);
+  }
+  if (waCurrent !== a) return;   // moved on while this was loading
+  $('adWaPhone').value = data.phone;
+  $('adWaText').value = data.text;
+  if (data.notice) { $('adWaNotice').textContent = data.notice; $('adWaNotice').hidden = false; }
+  if (data.blockers.length) {
+    $('adWaBlockers').replaceChildren(...data.blockers.map((b) => el('li', null, b)));
+    $('adWaBlockers').hidden = false;
+  }
+  if (a.waSentAt) {
+    $('adWaDone').textContent = 'Ya le abriste el mensaje el ' + fmtDate(a.waSentAt) + '.';
+    $('adWaDone').hidden = false;
+  }
+  waHrefs();
+}
+
+/* The link opens straight away (a phone only lets a tap open WhatsApp);
+   the note that it was opened follows in the background. */
+function waOpened(e) {
+  if (!waHrefs()) { e.preventDefault(); return; }
+  const a = waCurrent;
+  if (!a) return;
+  $('adWaDone').textContent = '✓ Abierto. Cuando lo mandes, regresa aquí' +
+    (waPos + 1 < waQueue.length ? ' y dale “Siguiente jugador”.' : '.');
+  $('adWaDone').hidden = false;
+  api('POST', '/api/invite?kind=wa&id=' + a.id, {})
+    .then((res) => { replaceActive(res.applicant); render(); if (openId === a.id) openPanel(a.id); })
+    .catch(() => { /* only the note failed; the message itself is in the coach's hands */ });
+}
+$('adWaOpen').addEventListener('click', waOpened);
+$('adWaSms').addEventListener('click', waOpened);
+
+$('adWaNext').addEventListener('click', () => {
+  if (waPos + 1 >= waQueue.length) return closeModal('adWaModal');
+  waPos++;
+  showWa();
+});
+
+/* Everyone invited (by email or not) who has not paid, in the event and
+   birth year on screen — the ones not messaged yet first. */
+function unpaidSelected() {
+  return inYear(inEvent(active)).filter((a) => a.status === 'selected' && !a.paidAt)
+    .sort((x, y) => (x.waSentAt ? 1 : 0) - (y.waSentAt ? 1 : 0));
+}
+function renderWaAll() {
+  const n = unpaidSelected().length;
+  $('adWaAll').textContent = '💬 Mensaje a los que no han pagado (' + n + ')';
+  $('adWaAll').disabled = n === 0;
+}
+$('adWaAll').addEventListener('click', () => {
+  const list = unpaidSelected();
+  if (list.length) openWaModal(list.map((a) => a.id));
+});
 
 let inviteId = 0;
 let inviteKind = '';   // '' = the invitation, 'details' = venue and time after paying
@@ -1026,18 +1142,20 @@ function openModal(id) {
 function closeModal(id) {
   $(id).hidden = true;
   if ($('adOverlay').hidden && $('adShareModal').hidden && $('adShares').hidden
-      && $('adInviteModal').hidden && $('adPayModal').hidden && $('adPayments').hidden) {
+      && $('adInviteModal').hidden && $('adPayModal').hidden && $('adPayments').hidden
+      && $('adWaModal').hidden) {
     document.body.classList.remove('ad-noscroll');
   }
 }
-['adShareModal', 'adShares', 'adInviteModal', 'adPayModal', 'adPayments'].forEach((id) => {
+['adShareModal', 'adShares', 'adInviteModal', 'adPayModal', 'adPayments', 'adWaModal'].forEach((id) => {
   $(id).addEventListener('click', (e) => {
     if (e.target === $(id) || e.target.closest('[data-close]')) closeModal(id);
   });
 });
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
-  if (!$('adPayModal').hidden) closeModal('adPayModal');
+  if (!$('adWaModal').hidden) closeModal('adWaModal');
+  else if (!$('adPayModal').hidden) closeModal('adPayModal');
   else if (!$('adInviteModal').hidden) closeModal('adInviteModal');
   else if (!$('adShareModal').hidden) closeModal('adShareModal');
   else if (!$('adShares').hidden) closeModal('adShares');

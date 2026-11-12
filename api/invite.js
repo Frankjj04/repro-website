@@ -8,13 +8,17 @@
    what to bring. Stripe sends that one by itself when a family pays; this is
    for resending it, or for a family that paid another way.
 
+   With &kind=wa, the invitation as a WhatsApp / text message: GET gives the
+   text and the number, POST only notes that the coach opened it (he sends it
+   from his own phone — nothing leaves from here).
+
    Sending is deliberately a second, separate step from marking somebody
    "Invitado": a status can be undone with another tap, an email cannot. */
 
 import { randomBytes } from 'node:crypto';
 import { query, isConfigured } from '../lib/db.js';
 import { requireAdmin } from '../lib/auth.js';
-import { buildInvite, asksFor } from '../lib/invite.js';
+import { buildInvite, asksFor, buildWhatsApp, waDigits } from '../lib/invite.js';
 import { isEmailConfigured, sendEmail } from '../lib/email.js';
 import { FROM, REPLY_TO, PARENT_LINK_DAYS } from '../js/invite-config.js';
 import { loadPayment, missingDetails } from '../lib/settings.js';
@@ -33,8 +37,13 @@ export default async function handler(req, res) {
   const id = Number((req.query || {}).id);
   if (!Number.isInteger(id) || id < 1) return res.status(400).json({ error: 'bad_id' });
 
-  const details = (req.query || {}).kind === 'details';
+  const kind = (req.query || {}).kind;
+  const details = kind === 'details';
   try {
+    if (kind === 'wa') {
+      if (req.method === 'GET') return await previewWa(res, id);
+      if (req.method === 'POST') return await noteWa(res, id);
+    }
     if (req.method === 'GET') return await (details ? previewDetails : preview)(res, id);
     if (req.method === 'POST') return await (details ? sendDetailsNow : send)(res, id);
   } catch (err) {
@@ -184,4 +193,41 @@ async function sendDetailsNow(res, id) {
   }
   const { rows } = await query(`SELECT ${COLUMNS} FROM applicants WHERE id = $1`, [id]);
   return res.status(200).json({ sent: out.sent, applicant: toJson(rows[0]) });
+}
+
+/* ---------- the invitation by WhatsApp / text message ---------- */
+
+export function waBlockers(a, settings) {
+  if (a.paidAt) return ['Este jugador ya pagó — no le mandes el link de pago otra vez.'];
+  const out = [];
+  if (a.status !== 'selected') out.push('Marca al jugador como Invitado primero.');
+  const log = (settings.logistics || {})[a.event] || {};
+  if (!log.payLink) out.push('Falta el link de pago de esta fecha — ponlo en “Datos del pago”.');
+  if (waDigits(a.phone).length < 7) out.push('Este jugador no tiene un teléfono que sirva.');
+  return out;
+}
+
+async function previewWa(res, id) {
+  const a = await load(id);
+  if (!a) return res.status(404).json({ error: 'not_found' });
+  const settings = await loadPayment();
+  const msg = buildWhatsApp(a, { settings });
+  return res.status(200).json({
+    text: msg.text,
+    phone: waDigits(a.phone),
+    lang: msg.lang,
+    // Under 13 with no permission yet: the permission link only exists in the email.
+    notice: msg.asks.parent && !a.invitedAt
+      ? 'Es menor de 13 y falta el permiso del tutor. Mándale también la invitación por correo: ahí va el link del permiso.'
+      : '',
+    blockers: waBlockers(a, settings),
+  });
+}
+
+async function noteWa(res, id) {
+  const { rows } = await query(
+    `UPDATE applicants SET wa_sent_at = NOW(), wa_count = wa_count + 1, updated_at = NOW()
+      WHERE id = $1 AND deleted_at IS NULL RETURNING ${COLUMNS}`, [id]);
+  if (!rows.length) return res.status(404).json({ error: 'not_found' });
+  return res.status(200).json({ applicant: toJson(rows[0]) });
 }

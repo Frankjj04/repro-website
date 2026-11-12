@@ -60,6 +60,7 @@
       <button type="button" class="btn btn-secondary btn-sm" id="adCopy">Copiar lista</button>
       <button type="button" class="btn btn-secondary btn-sm" id="adCsv">Descargar CSV</button>
       <button type="button" class="btn btn-primary btn-sm" id="adResendAll">📧 Reenviar a los que no han pagado</button>
+      <button type="button" class="btn btn-primary btn-sm ad-wa-btn" id="adWaAll">💬 Mensaje a los que no han pagado</button>
     </div>
   </div>
 
@@ -241,6 +242,34 @@
     <p class="rg-error" id="adIvError" hidden></p>
     <button type="button" class="btn btn-primary rg-submit" id="adIvSend">CONFIRMAR Y ENVIAR</button>
     <p class="rg-help">Una vez enviado no se puede deshacer. Revisa el correo arriba antes de mandarlo.</p>
+  </div>
+</div>
+
+<!-- The invitation as a WhatsApp / text message, sent by the coach from his phone -->
+<div class="ad-overlay ad-modal-wrap" id="adWaModal" hidden>
+  <div class="ad-modal" role="dialog" aria-modal="true" aria-labelledby="adWaTitle">
+    <button type="button" class="ad-close" data-close aria-label="Cerrar">×</button>
+    <h2 id="adWaTitle">MANDAR MENSAJE</h2>
+
+    <p class="ad-sm-count" id="adWaWho"></p>
+    <ul class="ad-iv-blockers" id="adWaBlockers" hidden></ul>
+    <p class="rg-help" id="adWaNotice" hidden></p>
+
+    <label class="rg-label" for="adWaPhone">Número, con la lada del país</label>
+    <input type="tel" id="adWaPhone" class="ad-wa-phone" autocomplete="off" />
+    <p class="rg-help">México empieza con 52 · Estados Unidos con 1. Si no se ve bien, corrígelo aquí.</p>
+
+    <label class="rg-label" for="adWaText">Mensaje (lo puedes cambiar)</label>
+    <textarea id="adWaText" class="ad-wa-text" rows="11"></textarea>
+
+    <p class="rg-error" id="adWaError" hidden></p>
+    <div class="ad-wa-actions">
+      <a class="btn btn-primary ad-wa-btn" id="adWaOpen" target="_blank" rel="noopener noreferrer">💬 Abrir WhatsApp</a>
+      <a class="btn btn-primary" id="adWaSms">📱 Mensaje de texto normal</a>
+    </div>
+    <p class="rg-help">¿No tiene WhatsApp? Usa “Mensaje de texto normal”: le llega como SMS. Se abre con el mensaje ya escrito, tú le das enviar y le llega de tu número. Hazlo desde tu celular.</p>
+    <p class="ad-wa-done" id="adWaDone" hidden></p>
+    <button type="button" class="btn btn-secondary rg-submit" id="adWaNext" hidden>Siguiente jugador →</button>
   </div>
 </div>
 
