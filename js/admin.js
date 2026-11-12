@@ -292,6 +292,18 @@ function render() {
         b.title = a.status === st ? 'Quitar (volver a Por revisar)' : STATUS_LABEL[st];
         quick.append(b);
       });
+      // Invited and not paid: send the email or the message straight from the list.
+      if (a.status === 'selected' && !a.paidAt) {
+        const mail = el('button', 'ad-quick-send', a.invitedAt ? '📧 Reenviar' : '📧 Correo');
+        mail.type = 'button';
+        mail.dataset.send = 'email';
+        mail.title = 'Mandar la invitación por correo';
+        const msg = el('button', 'ad-quick-send ad-quick-wa', '💬 Mensaje');
+        msg.type = 'button';
+        msg.dataset.send = 'wa';
+        msg.title = 'Mandar la invitación por WhatsApp o mensaje de texto';
+        quick.append(mail, msg);
+      }
       side.append(quick);
     }
 
@@ -308,6 +320,12 @@ $('adList').addEventListener('click', async (e) => {
 
   // Quick invite / not selected, straight from the list. Tapping the active
   // one again puts the player back to "Por revisar".
+  const send = e.target.closest('.ad-quick-send');
+  if (send) {
+    const a = active.find((x) => x.id === id);
+    if (a) send.dataset.send === 'wa' ? openWaModal([a.id]) : openInviteModal(a);
+    return;
+  }
   const quick = e.target.closest('.ad-quick button');
   if (quick) {
     const a = active.find((x) => x.id === id);
@@ -455,8 +473,13 @@ $('adPStatus').addEventListener('click', async (e) => {
   if (!b || openId == null) return;
   flash($('adPError'), '');
   try {
-    replaceActive(await api('PATCH', '/api/applicant?id=' + openId, { status: b.dataset.status }));
+    const updated = await api('PATCH', '/api/applicant?id=' + openId, { status: b.dataset.status });
+    replaceActive(updated);
     $('adPStatus').querySelectorAll('button').forEach((x) => x.classList.toggle('active', x === b));
+    // Marked Invitado: the email and message buttons show up right here,
+    // no reload needed (Frank, 2026-11-12).
+    renderInvite(updated, false);
+    renderPaid(updated, false);
     render();
   } catch (err) { flash($('adPError'), err.message); }
 });
@@ -1036,7 +1059,7 @@ $('adIvSend').addEventListener('click', async () => {
     const res = await api('POST', '/api/invite?id=' + inviteId + (inviteKind ? '&kind=' + inviteKind : ''), {});
     replaceActive(res.applicant);
     closeModal('adInviteModal');
-    openPanel(inviteId);
+    if (openId === inviteId) openPanel(inviteId);   // sent from the list: stay on the list
     render();
   } catch (err) {
     flash($('adIvError'), err.message);

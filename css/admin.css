@@ -101,7 +101,7 @@
 .ad-thumb { width: 48px; height: 58px; border-radius: 6px; font-size: 1.4rem; }
 .ad-thumb img, .ad-p-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-.ad-quick { display: flex; gap: 0.3rem; }
+.ad-quick { display: flex; flex-wrap: wrap; gap: 0.3rem; }
 .ad-quick button {
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.12);
@@ -408,3 +408,7 @@ a.ad-chip-video:hover { background: rgba(0,212,255,0.1); }
 .ad-wa-done { color: #7DEBA8; margin: 8px 0 0; }
 .ad-chip-wa { background: rgba(37, 211, 102, 0.12); color: #7DEBA8; border-color: rgba(37, 211, 102, 0.4); }
 .ad-disabled { opacity: 0.45; pointer-events: none; }
+
+.ad-quick .ad-quick-send:hover { border-color: #FF6B1A; color: #FF9A5C; }
+.ad-quick .ad-quick-wa { border-color: rgba(37,211,102,0.5); color: #7DEBA8; }
+.ad-quick .ad-quick-wa:hover { border-color: #25D366; color: #25D366; }
