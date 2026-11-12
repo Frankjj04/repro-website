@@ -1387,3 +1387,8 @@ footer {
 
 /* Academy: "Nuestros diferenciadores" — three across, one on a phone. */
 
+
+/* An event that already happened (js/event-cards.js) */
+.is-past { opacity: 0.55; }
+.is-past:hover { transform: none; }
+.ev-done { pointer-events: none; cursor: default; }

@@ -907,7 +907,7 @@ $('adPaySave').addEventListener('click', async () => {
     showMissing(data.missing);
     showDetailsMissing(data.detailsMissing);
     $('adPaySaved').textContent = data.missing.length
-      ? 'Guardado. Todavía falta algo para poder mandar invitaciones.'
+      ? 'Guardado. A las fechas de la lista todavía les falta algo: a esas no se puede invitar todavía. A las demás, sí.'
       : 'Guardado. Ya puedes mandar invitaciones.';
     $('adPaySaved').hidden = false;
   } catch (err) {

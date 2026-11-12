@@ -73,7 +73,7 @@ export function blockers(a, payment) {
     return out;
   }
   if (a.status !== 'selected') out.push('Marca al jugador como Invitado primero.');
-  for (const m of missingDetails(payment)) out.push('Falta ' + m + ' — ponlo en “Datos del pago”.');
+  for (const m of missingDetails(payment, a.event)) out.push('Falta ' + m + ' — ponlo en “Datos del pago”.');
   if (!isEmailConfigured()) out.push('Falta conectar el servicio de correo (RESEND_API_KEY).');
   if (!a.email) out.push('Este jugador no tiene email.');
   return out;

@@ -1108,5 +1108,13 @@ await test('a past event needs no price to be typed before inviting to the next 
   finally { globalThis.Date = RealNow; }
 });
 
+await test('an invitation only needs the price and link of the player\'s own event', () => {
+  const settings = cleanPayment({ logistics: { 'nov-24-25': { price: '$95', payLink: 'https://buy.stripe.com/b' } } });
+  assert.deepEqual(missingDetails(settings, 'nov-24-25'), []);
+  assert.ok(missingDetails(settings, 'nov-17-18').length === 2);
+  // The whole-list check (the "Datos del pago" screen) still names every gap.
+  assert.ok(missingDetails(settings).some((m) => /17 y 18/.test(m)));
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);
