@@ -45,6 +45,15 @@
 
 <!-- Applicants -->
 <main class="ad-main" id="adMain" hidden>
+  <!-- Upcoming events vs. events that already happened (coach, 2026-11-12):
+       players of a past event move to Historial, never deleted. -->
+  <div class="ad-views" id="adViews" role="tablist">
+    <button type="button" role="tab" data-view="now" class="active">Eventos próximos <span></span></button>
+    <button type="button" role="tab" data-view="history">📁 Historial <span></span></button>
+  </div>
+  <p class="ad-hist-note" id="adHistNote" hidden>Jugadores de los eventos que ya pasaron. Aquí no se borra nada.
+    <strong>💰 Pagados</strong> = los que participaron. Busca un nombre para ver si ya vino antes.</p>
+
   <div class="ad-bar">
     <div class="form-group ad-event">
       <label for="adEvent">Evento</label>

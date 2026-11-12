@@ -412,3 +412,15 @@ a.ad-chip-video:hover { background: rgba(0,212,255,0.1); }
 .ad-quick .ad-quick-send:hover { border-color: #FF6B1A; color: #FF9A5C; }
 .ad-quick .ad-quick-wa { border-color: rgba(37,211,102,0.5); color: #7DEBA8; }
 .ad-quick .ad-quick-wa:hover { border-color: #25D366; color: #25D366; }
+
+/* Upcoming vs. Historial (2026-11-12) */
+.ad-views { display: flex; gap: 0.5rem; margin: 0 0 1rem; }
+.ad-views button {
+  flex: 1 1 0; padding: 0.8rem 1rem; border-radius: 10px; cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.03);
+  color: #A3ABCB; font: 700 0.95rem 'DM Sans', sans-serif;
+}
+.ad-views button span { opacity: 0.7; margin-left: 0.25rem; font-weight: 400; }
+.ad-views button.active { border-color: #FF6B1A; color: #fff; background: rgba(255,107,26,0.12); }
+.ad-hist-note { margin: -0.25rem 0 1rem; color: #A3ABCB; font-size: 0.9rem; line-height: 1.5; }
+.ad-chip-played { background: rgba(255, 200, 60, 0.12); color: #FFD36B; border-color: rgba(255, 200, 60, 0.45); }

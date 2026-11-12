@@ -4,7 +4,7 @@
    see and fix before sending. Every refusal code the server can send has an
    entry in REFUSALS; a test fails if one is missing. */
 
-import { EVENTS, POSITIONS, MINOR_AGE, CHILD_AGE } from './registro-config.js';
+import { EVENTS, POSITIONS, MINOR_AGE, CHILD_AGE, isOpen } from './registro-config.js';
 
 /* server code → [data-field to highlight, i18n key]. Codes that are not about
    one field highlight nothing. */
@@ -56,7 +56,7 @@ function init() {
 
   let lastError = null;          // [field, key] — re-translated on language change
 
-  const openEvents = EVENTS.filter((e) => e.open);
+  const openEvents = EVENTS.filter((e) => isOpen(e));
   if (!openEvents.length) {
     form.hidden = true;
     $('rgClosed').hidden = false;

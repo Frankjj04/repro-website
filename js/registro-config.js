@@ -3,9 +3,11 @@
    Shared by the sign-up page (in the browser) and the API (on the server), so
    the list of events and positions can never disagree between the two.
 
-   To open a new event: add it to EVENTS with open: true. To close one, set
-   open: false — its applicants stay on the admin page, but nobody new can
-   apply to it. Never change an event's id once people have applied. */
+   To open a new event: add it to EVENTS with open: true and its last day as
+   `end`. The day after `end` (Las Vegas time) it closes by itself on the
+   sign-up page and moves to Historial on the admin page — its players are
+   never deleted. To close one early, set open: false. Never change an
+   event's id once people have applied. */
 
 /* November Scouting Madness 2026 — the coach's three events.
 
@@ -15,6 +17,7 @@
 export const EVENTS = [
   {
     id: 'nov-10-11',
+    end: '2026-11-11',
     dates: { es: '10 y 11 de noviembre', en: 'November 10 & 11' },
     leagues: ['Liga de Expansión', '2da Premier', 'USL'],
     years: [2003, 2008],
@@ -24,6 +27,7 @@ export const EVENTS = [
   },
   {
     id: 'nov-17-18',
+    end: '2026-11-18',
     dates: { es: '17 y 18 de noviembre', en: 'November 17 & 18' },
     leagues: ['Liga MX'],
     years: [2008, 2011],
@@ -33,6 +37,7 @@ export const EVENTS = [
   },
   {
     id: 'nov-24-25',
+    end: '2026-11-25',
     dates: { es: '24 y 25 de noviembre', en: 'November 24 & 25' },
     leagues: ['MLS'],
     years: [2011, 2014],
@@ -41,6 +46,15 @@ export const EVENTS = [
     open: true,
   },
 ];
+
+/* Today in Las Vegas, as YYYY-MM-DD — the coach's calendar, not the server's. */
+export function vegasToday(now = new Date()) {
+  return now.toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
+}
+/* An event is over the day after its last day. */
+export const isPast = (e, now) => Boolean(e && e.end && vegasToday(now) > e.end);
+/* Taking sign-ups: open, and not over yet. */
+export const isOpen = (e, now) => Boolean(e && e.open && !isPast(e, now));
 
 export const POSITIONS = [
   { id: 'GK',  es: 'Portero (GK)',                    en: 'Goalkeeper (GK)' },

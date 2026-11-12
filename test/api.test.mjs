@@ -8,6 +8,15 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { EventEmitter } from 'node:events';
 
+/* The tests run on a fixed day, before the November events end — otherwise
+   they would start failing on their own as real event dates pass. */
+const FIXED_NOW = Date.parse('2026-11-05T18:00:00Z');
+const RealDate = Date;
+globalThis.Date = class extends RealDate {
+  constructor(...args) { super(...(args.length ? args : [FIXED_NOW])); }
+  static now() { return FIXED_NOW; }
+};
+
 process.env.DATABASE_URL = 'postgres://test/test';
 process.env.ADMIN_PASSWORD = 'correct-horse';
 process.env.SESSION_SECRET = 'test-secret-not-a-real-one';
@@ -1069,6 +1078,34 @@ await test('the WhatsApp preview is behind the password too', async () => {
     await invite({ method, headers: {}, query: { id: '1', kind: 'wa' } }, res);
     assert.equal(res.statusCode, 401);
   }
+});
+
+/* ---------- past events close by themselves (coach, 2026-11-12) ---------- */
+const cfg = await import('../js/registro-config.js');
+
+await test('an event is over the day after it ends, in Las Vegas time', () => {
+  const ev = cfg.EVENTS.find((e) => e.id === 'nov-10-11');
+  // 11 Nov, 11 PM in Las Vegas is already 12 Nov in UTC: still not over.
+  assert.equal(cfg.isPast(ev, new RealDate('2026-11-12T06:30:00Z')), false);
+  assert.equal(cfg.isPast(ev, new RealDate('2026-11-12T08:30:00Z')), true);
+  assert.equal(cfg.isOpen(ev, new RealDate('2026-11-12T08:30:00Z')), false);
+  assert.equal(cfg.isOpen(ev, new RealDate('2026-11-05T08:30:00Z')), true);
+  for (const e of cfg.EVENTS) assert.match(e.end, /^\d{4}-\d{2}-\d{2}$/, e.id + ' needs an end date');
+});
+
+await test('a past event needs no price to be typed before inviting to the next ones', () => {
+  const settings = cleanPayment({ logistics: {
+    'nov-17-18': { price: '$365', payLink: 'https://buy.stripe.com/a' },
+    'nov-24-25': { price: '$95', payLink: 'https://buy.stripe.com/b' } } });
+  // On the test day (5 Nov) the 10-11 event is still ahead, so it is missing.
+  assert.ok(missingDetails(settings).some((m) => /10 y 11/.test(m)));
+  const RealNow = globalThis.Date;
+  globalThis.Date = class extends RealDate {
+    constructor(...a) { super(...(a.length ? a : ['2026-11-13T18:00:00Z'])); }
+    static now() { return RealDate.parse('2026-11-13T18:00:00Z'); }
+  };
+  try { assert.deepEqual(missingDetails(settings), []); }
+  finally { globalThis.Date = RealNow; }
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

@@ -3,7 +3,7 @@
    All player data is written with textContent, never innerHTML — everything
    here was typed by strangers on the internet. */
 
-import { EVENTS, POSITIONS } from './registro-config.js';
+import { EVENTS, POSITIONS, isPast } from './registro-config.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -31,6 +31,7 @@ const bounced = (a) => ['invite', 'details'].some((k) =>
 let active = [];        // applicants not archived
 let archived = [];
 let tab = 'all';
+let view = 'now';       // 'now' = upcoming events · 'history' = events that already happened
 let year = '';          // birth year filter; '' = every year
 let openId = null;
 
@@ -110,16 +111,72 @@ async function start() {
   render();
 }
 
+/* An event is history the day after it ends — or when it is no longer in the
+   config at all (an old event removed from the sign-up page). */
+function eventIsPast(id) {
+  const e = EVENTS.find((x) => x.id === id);
+  return e ? isPast(e) : true;
+}
+const inView = (a) => (view === 'history') === eventIsPast(a.event);
+
 function renderEvents() {
   const sel = $('adEvent');
   const keep = sel.value;
-  // Events in the config, plus any old event id still present in the data.
-  const ids = [...new Set([...EVENTS.map((e) => e.id), ...active.map((a) => a.event), ...archived.map((a) => a.event)])];
+  // Events in the config, plus any old event id still present in the data —
+  // only the ones that belong to this view.
+  const ids = [...new Set([...EVENTS.map((e) => e.id), ...active.map((a) => a.event), ...archived.map((a) => a.event)])]
+    .filter((id) => (view === 'history') === eventIsPast(id));
   sel.replaceChildren(
-    new Option('Todos los eventos', ''),
+    new Option(view === 'history' ? 'Todo el historial' : 'Todos los eventos próximos', ''),
     ...ids.map((id) => new Option(eventLabel(id), id)),
   );
-  sel.value = keep || (EVENTS.find((e) => e.open) || {}).id || '';
+  sel.value = ids.includes(keep) ? keep
+    : view === 'history' ? '' : (EVENTS.find((e) => e.open && !isPast(e)) || {}).id || '';
+}
+
+function renderViews() {
+  const n = { now: 0, history: 0 };
+  active.forEach((a) => { n[eventIsPast(a.event) ? 'history' : 'now']++; });
+  $('adViews').querySelectorAll('button').forEach((b) => {
+    b.classList.toggle('active', b.dataset.view === view);
+    b.setAttribute('aria-selected', b.dataset.view === view);
+    b.querySelector('span').textContent = n[b.dataset.view];
+  });
+  $('adHistNote').hidden = view !== 'history';
+  // Nothing more is sent for an event that already happened.
+  $('adResendAll').hidden = view === 'history';
+  $('adWaAll').hidden = view === 'history';
+}
+$('adViews').addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (!b || b.dataset.view === view) return;
+  view = b.dataset.view;
+  year = '';
+  tab = 'all';
+  renderEvents();
+  render();
+});
+
+/* Who already played: paid for an event that is over. Matched by email, or
+   by name + birth date (people change email between events). */
+function pastPlayed() {
+  const byKey = new Map();
+  active.filter((a) => a.paidAt && eventIsPast(a.event)).forEach((a) => {
+    for (const k of playerKeys(a)) {
+      if (!byKey.has(k)) byKey.set(k, []);
+      byKey.get(k).push(a);
+    }
+  });
+  return byKey;
+}
+const norm = (s) => String(s || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ');
+const playerKeys = (a) => [a.email && 'e:' + a.email.toLowerCase(), 'n:' + norm(a.name) + '|' + a.dob].filter(Boolean);
+let played = new Map();
+/* The past events this player took part in, not counting this same record. */
+function playedBefore(a) {
+  const seen = new Map();
+  for (const k of playerKeys(a)) for (const p of played.get(k) || []) if (p.id !== a.id) seen.set(p.event, p);
+  return [...seen.keys()];
 }
 
 /* ---------- list ---------- */
@@ -133,7 +190,8 @@ function age(dob) {
 
 function inEvent(list) {
   const ev = $('adEvent').value;
-  return ev ? list.filter((a) => a.event === ev) : list;
+  const here = list.filter(inView);
+  return ev ? here.filter((a) => a.event === ev) : here;
 }
 
 function matches(a, q) {
@@ -208,6 +266,8 @@ function renderYears() {
 }
 
 function render() {
+  played = pastPlayed();
+  renderViews();
   renderYears();
   renderResendAll();
   renderWaAll();
@@ -262,6 +322,12 @@ function render() {
       ? el('span', 'ad-chip ad-chip-share', '↗ Compartible')
       : el('span', 'ad-chip ad-chip-private', '🔒 Privado'));
     side.append(video || el('span', 'ad-chip ad-chip-muted', 'Sin video'));
+    const before = playedBefore(a);
+    if (before.length) {
+      const star = el('span', 'ad-chip ad-chip-played', '⭐ Ya participó');
+      star.title = 'Pagó y participó en: ' + before.map(eventLabel).join(' · ');
+      side.append(star);
+    }
     if (needsParent(a)) {
       const warn = el('span', 'ad-chip ad-chip-warn', '⚠ Falta permiso del tutor');
       warn.title = 'Menor de ' + CHILD_AGE + ' años sin permiso del papá, mamá o tutor registrado.';
@@ -293,7 +359,7 @@ function render() {
         quick.append(b);
       });
       // Invited and not paid: send the email or the message straight from the list.
-      if (a.status === 'selected' && !a.paidAt) {
+      if (a.status === 'selected' && !a.paidAt && !eventIsPast(a.event)) {
         const mail = el('button', 'ad-quick-send', a.invitedAt ? '📧 Reenviar' : '📧 Correo');
         mail.type = 'button';
         mail.dataset.send = 'email';
@@ -380,7 +446,8 @@ function openPanel(id) {
   openId = id;
   const isArchived = Boolean(a.deletedAt);
 
-  $('adPEvent').textContent = eventLabel(a.event);
+  const past = eventIsPast(a.event);
+  $('adPEvent').textContent = eventLabel(a.event) + (past ? ' · ya pasó' : '');
   $('adPName').textContent = a.name;
   $('adPPhoto').replaceWith(photoThumb(a, 'ad-p-photo'));
   $('adOverlay').querySelector('.ad-p-photo').id = 'adPPhoto';
@@ -395,8 +462,9 @@ function openPanel(id) {
 
   renderConsent(a, isArchived);
   renderParent(a, isArchived);
-  renderInvite(a, isArchived);
-  renderPaid(a, isArchived);
+  // A past event: nothing more to send, but whether they paid stays on record.
+  renderInvite(a, isArchived || past);
+  renderPaid(a, isArchived, past);
 
   const facts = [
     ['Fecha de nacimiento', a.dob],
@@ -425,6 +493,7 @@ function openPanel(id) {
          ['Permiso del tutor', a.parentConfirmedAt ? fmtDate(a.parentConfirmedAt) : 'Pendiente']]
       : []),
     ['Registrado', fmtDate(a.createdAt)],
+    ['Eventos anteriores', playedBefore(a).map(eventLabel).join(' · ') || 'Ninguno todavía'],
   ];
   $('adPFacts').replaceChildren(...facts.flatMap(([k, val, href]) => {
     const dd = el('dd');
@@ -478,8 +547,9 @@ $('adPStatus').addEventListener('click', async (e) => {
     $('adPStatus').querySelectorAll('button').forEach((x) => x.classList.toggle('active', x === b));
     // Marked Invitado: the email and message buttons show up right here,
     // no reload needed (Frank, 2026-11-12).
-    renderInvite(updated, false);
-    renderPaid(updated, false);
+    const past = eventIsPast(updated.event);
+    renderInvite(updated, past);
+    renderPaid(updated, false, past);
     render();
   } catch (err) { flash($('adPError'), err.message); }
 });
@@ -1092,7 +1162,7 @@ function deliveryLines(a, kind) {
   });
 }
 
-function renderPaid(a, isArchived) {
+function renderPaid(a, isArchived, past = false) {
   const box = $('adPPaid');
   box.replaceChildren();
   box.className = '';
@@ -1108,6 +1178,9 @@ function renderPaid(a, isArchived) {
         : '⚠ Todavía no le llegan los detalles (lugar y hora). Llénalos en “Datos del pago” y mándalos aquí.'),
       ...deliveryLines(a, 'details'),
     );
+  } else if (past) {
+    box.append(el('div', 'ad-consent-title', 'No pagó · el evento ya pasó'));
+    return;
   } else {
     box.append(
       el('div', 'ad-consent-title', 'Sin pago registrado'),
@@ -1115,6 +1188,7 @@ function renderPaid(a, isArchived) {
         'Si pagó de otra forma, mándale los detalles tú.'),
     );
   }
+  if (past) return;
   const send = el('button', 'btn btn-secondary btn-sm', a.detailsSentAt ? 'Reenviar detalles' : '📧 Mandar detalles');
   send.type = 'button';
   send.addEventListener('click', () => openInviteModal(a, 'details'));
