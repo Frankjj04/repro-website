@@ -345,8 +345,11 @@ function render() {
     } else if (a.status === 'selected') {
       side.append(a.invitedAt
         ? el('span', 'ad-chip ad-chip-sent', '📧 Invitado · sin pagar')
-        : el('span', 'ad-chip ad-chip-warn', '📧 Sin enviar'));
-      if (a.waSentAt) side.append(el('span', 'ad-chip ad-chip-wa', '💬 Mensaje'));
+        : el('span', 'ad-chip ad-chip-warn', '📧 Correo sin enviar'));
+      // Coach, 2026-11-13: see at a glance who already got the WhatsApp / text message.
+      side.append(a.waSentAt
+        ? el('span', 'ad-chip ad-chip-wa', '✓ Mensaje enviado')
+        : el('span', 'ad-chip ad-chip-warn', '💬 Mensaje sin enviar'));
     }
 
     if (tab !== 'archived') {
@@ -934,14 +937,14 @@ function renderInvite(a, isArchived) {
       el('div', 'ad-consent-sub', (a.inviteTo || a.email) + ' · ' + fmtDate(a.invitedAt) + times),
       ...deliveryLines(a, 'invite'),
     );
-    if (a.waSentAt) box.append(waLine(a));
+    if (a.waSentAt || !a.paidAt) box.append(waLine(a));   // paid: no need to nag about the message
   } else {
     box.append(
       el('div', 'ad-consent-title', '📧 Todavía no le mandas la invitación'),
       el('div', 'ad-consent-sub', 'El correo lleva la fecha, el costo y su botón de pago. ' +
         'Te lo enseñamos antes de enviarlo.'),
     );
-    if (a.waSentAt) box.append(waLine(a));
+    if (a.waSentAt || !a.paidAt) box.append(waLine(a));   // paid: no need to nag about the message
   }
 
   // Paid: another invitation would ask them to pay again (the server refuses it too).
@@ -963,8 +966,9 @@ function renderInvite(a, isArchived) {
 }
 
 function waLine(a) {
+  if (!a.waSentAt) return el('div', 'ad-consent-sub ad-wa-todo', '💬 Mensaje sin enviar (WhatsApp o texto)');
   const times = a.waCount > 1 ? ' · ' + a.waCount + ' veces' : '';
-  return el('div', 'ad-consent-sub ad-mail-ok', '💬 Le abriste WhatsApp o mensaje de texto · ' + fmtDate(a.waSentAt) + times);
+  return el('div', 'ad-consent-sub ad-mail-ok', '✓ Mensaje enviado (WhatsApp o texto) · ' + fmtDate(a.waSentAt) + times);
 }
 
 /* ---------- the invitation by WhatsApp / text message ----------
@@ -1027,7 +1031,7 @@ async function showWa() {
     $('adWaBlockers').hidden = false;
   }
   if (a.waSentAt) {
-    $('adWaDone').textContent = 'Ya le abriste el mensaje el ' + fmtDate(a.waSentAt) + '.';
+    $('adWaDone').textContent = '✓ Mensaje enviado el ' + fmtDate(a.waSentAt) + '.';
     $('adWaDone').hidden = false;
   }
   waHrefs();
