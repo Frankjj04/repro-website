@@ -40,7 +40,7 @@
 
   /* ---------- staggered entrances ---------- */
   const GROUPS = '.upcoming-grid, .ev26-grid, .needs-grid, .impact-grid, .photo-grid, .cal-list, .ev26-steps, ' +
-    '.team-grid, .tiers-grid, .steps-grid, .pillars-grid, .gallery-grid, .eco-grid, .features-grid, .ss-list';
+    '.bento, .ev-photos, .team-grid, .tiers-grid, .steps-grid, .pillars-grid, .gallery-grid, .eco-grid, .features-grid, .ss-list';
   const STEP = 60, MAX = 420;
 
   function stagger(group) {
