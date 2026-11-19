@@ -425,3 +425,58 @@ a.ad-chip-video:hover { background: rgba(0,212,255,0.1); }
 .ad-views button.active { border-color: #FF6B1A; color: #fff; background: rgba(255,107,26,0.12); }
 .ad-hist-note { margin: -0.25rem 0 1rem; color: #A3ABCB; font-size: 0.9rem; line-height: 1.5; }
 .ad-chip-played { background: rgba(255, 200, 60, 0.12); color: #FFD36B; border-color: rgba(255, 200, 60, 0.45); }
+
+/* ---------- 2026-11-19: one card per event instead of a dropdown ---------- */
+.ad-evcards-wrap { margin-bottom: 1rem; }
+.ad-evcards-wrap .rg-label { display: block; margin-bottom: 0.45rem; }
+.ad-evcards {
+  display: flex; gap: 0.5rem; overflow-x: auto; padding: 0 0 0.4rem;
+  scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch;
+}
+.ad-evcard {
+  flex: 0 0 auto; width: 168px; scroll-snap-align: start;
+  display: flex; flex-direction: column; gap: 0.2rem; text-align: left;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px; padding: 0.7rem 0.8rem; cursor: pointer;
+  color: var(--white); font-family: var(--font-body);
+}
+.ad-evcard:hover { border-color: rgba(255,107,26,0.5); }
+.ad-evcard.active { border-color: var(--orange); background: rgba(255,107,26,0.12); box-shadow: 0 0 0 1px var(--orange) inset; }
+.ad-evcard-date { font-family: var(--font-heading); font-size: 1.15rem; letter-spacing: 1px; color: var(--orange); line-height: 1; }
+.ad-evcard-name { font-size: 0.86rem; font-weight: 700; line-height: 1.2; }
+.ad-evcard-sub { font-size: 0.72rem; color: var(--gray-light); }
+.ad-evcard-stats { display: flex; gap: 0.45rem; margin-top: auto; padding-top: 0.35rem; font-size: 0.72rem; color: var(--gray-light); }
+.ad-evcard-inv { color: #6EE7A0; }
+.ad-evcard-paid { color: #FFD36B; }
+
+/* ---------- the player's card, in the coach's sections ---------- */
+.ad-facts-wrap { margin: 0 0 1.25rem; }
+.ad-facts-sec { border-top: 1px solid rgba(255,255,255,0.07); padding-top: 0.85rem; margin-top: 0.85rem; }
+.ad-facts-h {
+  font-family: var(--font-heading); font-size: 1.05rem; letter-spacing: 1.2px;
+  color: var(--orange); margin: 0 0 0.55rem;
+}
+.ad-facts-sec .ad-facts { margin-bottom: 0; }
+
+.ad-chip-more { background: rgba(0, 212, 255, 0.1); color: #7FE6FF; border-color: rgba(0, 212, 255, 0.4); }
+
+/* ---------- message to the player / to the parent ---------- */
+.ad-wa-to { display: flex; gap: 0.5rem; margin: 0.25rem 0 0.4rem; }
+.ad-wa-to button {
+  flex: 1 1 0; min-width: 0; padding: 10px 12px; border-radius: 8px; cursor: pointer;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12);
+  color: var(--gray-light); font-weight: 600; font-size: 0.86rem;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ad-wa-to button.active { border-color: #25D366; color: #fff; background: rgba(37,211,102,0.14); }
+.ad-wa-to-help { margin-bottom: 0.9rem; }
+
+@media (max-width: 600px) {
+  .ad-evcard { width: 148px; }
+}
+
+/* A player with many labels (several events, two messages…) used to squeeze
+   the name into a thin column. Now the labels drop below the name instead. */
+.ad-row { flex-wrap: wrap; row-gap: 0.6rem; }
+.ad-row-open { flex: 1 1 280px; }
+.ad-row-side { flex: 0 1 auto; max-width: 100%; }

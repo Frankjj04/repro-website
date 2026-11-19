@@ -59,14 +59,25 @@ const adult = () => ({
   dob: '2006-04-10',
   birthplace: 'Guadalajara, México',
   nationalities: 'México, USA',
+  residence: 'Las Vegas, Nevada',
   phone: '+52 33 1234 5678',
   email: 'Prueba@Example.com',
   height: '1.78 m',
   weight: '72 kg',
-  mlsNext: false,
   strongLeg: 'right',
   positionPrimary: 'CM',
   positionSecondary: 'CAM',
+  club: 'Nevada Rush',
+  level: 'mls_next',
+  yearsExp: '6',
+  contract: false,
+  proAcademy: false,
+  relocate: true,
+  passport: false,
+  travel: true,
+  available: 'now',
+  interest: 'both',
+  scholarship: false,
   videoUrl: 'youtu.be/abc123',
   emergencyName: 'María López',
   emergencyPhone: '702-555-0100',
@@ -82,6 +93,12 @@ async function post(body) {
   return res;
 }
 
+/* The 2027 dates open for sign-ups, priced — so the tests about the November
+   dates are not tripped up by the January–April ones. */
+const { EVENTS } = await import('../js/registro-config.js');
+const Y27 = Object.fromEntries(EVENTS.filter((e) => e.open && (e.start || '') >= '2027')
+  .map((e) => [e.id, { price: '$150', payLink: 'https://buy.stripe.com/z' }]));
+
 console.log('validation');
 
 await test('a complete adult application is valid and normalised', () => {
@@ -95,6 +112,11 @@ await test('a complete adult application is valid and normalised', () => {
   assert.equal(a.isMinor, false);
   assert.equal(a.guardianName, '');
   assert.equal(a.consentShare, false);
+  // Height and weight are stored in cm and kg, whatever shape they were typed in.
+  assert.equal(a.height, '178 cm');
+  assert.equal(a.weight, '72 kg');
+  assert.equal(a.mlsNext, true);   // level MLS NEXT
+  assert.deepEqual(a.events, ['nov-10-11']);
 });
 
 await test('permission to share only counts as an explicit true', () => {
@@ -128,11 +150,25 @@ for (const [field, value, code] of [
   ['dob', '1800-01-01', 'dob_bad'],
   ['birthplace', '', 'birthplace'],
   ['nationalities', ' ', 'nationalities'],
+  ['residence', '', 'residence'],
   ['phone', '12', 'phone'],
   ['email', 'x@y', 'email'],
   ['height', '', 'height'],
+  ['height', '40', 'height'],
   ['weight', '', 'weight'],
-  ['mlsNext', 'yes', 'mls_next'],
+  ['weight', '900', 'weight'],
+  ['club', '', 'club'],
+  ['level', 'world_cup', 'level'],
+  ['yearsExp', 'many', 'years_exp'],
+  ['contract', 'no', 'contract'],
+  ['proAcademy', null, 'pro_academy'],
+  ['relocate', undefined, 'relocate'],
+  ['passport', 'yes', 'passport'],
+  ['travel', 1, 'travel'],
+  ['available', 'someday', 'available'],
+  ['interest', 'tennis', 'interest'],
+  ['gpa', '9.9', 'gpa'],
+  ['scholarship', '', 'scholarship'],
   ['strongLeg', 'middle', 'strong_leg'],
   ['positionPrimary', 'QB', 'position_primary'],
   ['positionSecondary', '', 'position_secondary'],
@@ -152,7 +188,7 @@ await test('each date takes only its own birth years, both ends included', () =>
   // The coach: 2003-2008, 2008-2011, 2011-2014 — nobody older, nobody younger.
   // Players under 13 also need the parent fields; this test is about the years.
   const check = (event, dob) => validateApplication({ ...adult(), event, dob, signatureName: 'A B',
-    parentEmail: 'mama@ejemplo.com', parentConfirm: true });
+    parentEmail: 'mama@ejemplo.com', parentConfirm: true, parentName: 'Ana B', parentPhone: '702 555 0100' });
   for (const [event, ok, bad] of [
     ['nov-10-11', ['2003-01-01', '2008-12-31'], ['2002-12-31', '2009-01-01']],
     ['nov-17-18', ['2008-01-01', '2011-12-31'], ['2007-12-31', '2012-01-01']],
@@ -164,7 +200,8 @@ await test('each date takes only its own birth years, both ends included', () =>
 });
 
 await test('for a minor, the person signing is recorded as the guardian', () => {
-  const ok = validateApplication({ ...adult(), event: 'nov-17-18', dob: '2010-03-02', signatureName: 'Ana Pérez' });
+  const ok = validateApplication({ ...adult(), event: 'nov-17-18', dob: '2010-03-02', signatureName: 'Ana Pérez',
+    parentName: 'Ana Pérez', parentPhone: '702 555 0100' });
   assert.equal(ok.application.isMinor, true);
   assert.equal(ok.application.guardianName, 'Ana Pérez');
 });
@@ -322,13 +359,20 @@ await test('a scout profile never carries contact, emergency, guardian, notes or
     height: 'h', weight: 'w', mls_next: true, strong_leg: 'left', position_primary: 'ST',
     position_secondary: 'LW', video_url: 'https://v.example', status: 'selected', has_photo: true,
     phone: '+1', email: 'e@x.com', emergency_name: 'E', emergency_phone: '1', guardian_name: 'G', coach_note: 'secret',
+    parent_name: 'Papá Secreto', parent_phone: '+1999',
+    profile: { residence: 'Las Vegas', club: 'Rush', level: 'ecnl', yearsExp: 5, school: 'Secret High', gpa: '3.9',
+      passport: true, passportCountry: 'Secretland', contract: true, available: 'now' },
   };
   const p = scoutProfile(row, 'A'.repeat(43));
   const json = JSON.stringify(p);
-  for (const leak of ['+1', 'e@x.com', 'secret', '2008-05-04', '"G"', '"E"', 'selected']) assert.ok(!json.includes(leak), leak);
+  for (const leak of ['+1', 'e@x.com', 'secret', '2008-05-04', '"G"', '"E"', 'selected',
+    'Papá Secreto', 'Secret High', '3.9', 'Secretland']) assert.ok(!json.includes(leak), leak);
   assert.equal(p.birthYear, '2008');
-  assert.deepEqual(Object.keys(p).sort(), ['age', 'birthYear', 'birthplace', 'height', 'id', 'mlsNext',
-    'name', 'nationalities', 'photo', 'positionPrimary', 'positionSecondary', 'strongLeg', 'videoUrl', 'weight']);
+  // From the 2026-11-19 profile only residence, club, level and experience —
+  // what the consent text (CONSENT_VERSION 2026-11-19) names.
+  assert.deepEqual(Object.keys(p).sort(), ['age', 'birthYear', 'birthplace', 'club', 'height', 'id', 'level',
+    'levelOther', 'mlsNext', 'name', 'nationalities', 'photo', 'positionPrimary', 'positionSecondary', 'residence',
+    'strongLeg', 'videoUrl', 'weight', 'yearsExp']);
 });
 
 console.log('sign-up page');
@@ -360,7 +404,7 @@ await test('every rg_ key used exists in Spanish and English', () => {
 const childDob = () => '2014-01-15';   // 11 or 12 years old, inside the nov-24-25 years
 
 await test('under 13 needs a parent email and their confirmation', () => {
-  const base = { ...adult(), dob: childDob(), event: 'nov-24-25' };
+  const base = { ...adult(), dob: childDob(), event: 'nov-24-25', parentName: 'Ana B', parentPhone: '702 555 0100' };
   assert.equal(validateApplication(base).code, 'parent_email');
   assert.equal(validateApplication({ ...base, parentEmail: 'mama@ejemplo.com' }).code, 'parent_confirm');
   const ok = validateApplication({ ...base, parentEmail: 'Mama@Ejemplo.com', parentConfirm: true });
@@ -449,7 +493,7 @@ await test('the invitation is written in the language the player used', () => {
 
 await test('only price and payment link are needed; venue, time and deadline are not (coach, 2026-09-23)', () => {
   const settings = cleanPayment({
-    logistics: {
+    logistics: { ...Y27,
       'nov-10-11': { price: '$365', payLink: 'https://buy.stripe.com/a' },
       'nov-17-18': { price: '$365', payLink: 'https://buy.stripe.com/a' },
       'nov-24-25': { price: '$95', payLink: 'https://buy.stripe.com/b' },
@@ -513,7 +557,7 @@ await test('the email refuses to go out while the payment details are missing', 
 
   // Everything filled in: ready.
   const full = cleanPayment({
-    logistics: {
+    logistics: { ...Y27,
       'nov-10-11': { price: '$365', payLink: 'https://buy.stripe.com/a' },
       'nov-17-18': { price: '$365', payLink: 'https://buy.stripe.com/a' },
       'nov-24-25': { price: '$95', payLink: 'https://buy.stripe.com/b' },
@@ -605,26 +649,23 @@ await test('a social name is accepted however people paste it', () => {
   assert.equal(handle('tiktok.com/@diego10', 'tiktok.com/'), 'diego10');
 });
 
-await test('both social names are optional, and junk is refused', () => {
-  const ok = validateApplication({ ...adult(), instagram: '', tiktok: '' });
+await test('Instagram is optional and junk is refused; TikTok is no longer asked', () => {
+  const ok = validateApplication({ ...adult(), instagram: '', tiktok: 'whatever' });
   assert.equal(ok.code, undefined);
   assert.equal(ok.application.instagram, '');
   assert.equal(ok.application.tiktok, '');
-
   assert.equal(validateApplication({ ...adult(), instagram: 'two words' }).code, 'instagram');
-  assert.equal(validateApplication({ ...adult(), tiktok: '<script>' }).code, 'tiktok');
 });
 
-await test('the social names are stored without the @ or the link', () => {
-  const r = validateApplication({ ...adult(), instagram: '@Diego_10', tiktok: 'https://tiktok.com/@diego10' });
+await test('the Instagram name is stored without the @ or the link', () => {
+  const r = validateApplication({ ...adult(), instagram: '@Diego_10' });
   assert.equal(r.application.instagram, 'Diego_10');
-  assert.equal(r.application.tiktok, 'diego10');
 });
 
 await test('every date needs its own checkout link', () => {
   const base = {
     deadline: { es: '1 de noviembre', en: '' },
-    logistics: {
+    logistics: { ...Y27,
       'nov-10-11': { venue: 'Cancha A', time: '9 AM', price: '$365', payLink: 'https://buy.stripe.com/aaa' },
       'nov-17-18': { venue: 'Cancha A', time: '9 AM', price: '$365', payLink: 'https://buy.stripe.com/aaa' },
       'nov-24-25': { venue: 'Cancha A', time: '9 AM', price: '$95', payLink: 'https://buy.stripe.com/bbb' },
@@ -640,7 +681,7 @@ await test('every date needs its own checkout link', () => {
 
 await test('only an https link is ever put in front of a family', () => {
   const p = cleanPayment({
-    logistics: {
+    logistics: { ...Y27,
       'nov-10-11': { payLink: 'https://buy.stripe.com/ok' },
       'nov-17-18': { payLink: 'javascript:alert(1)' },
       'nov-24-25': { payLink: 'buy.stripe.com/no-scheme' },
@@ -667,7 +708,7 @@ await test('the payment button carries that date\'s own link', () => {
 
 await test('each date can cost a different amount', () => {
   const settings = cleanPayment({
-    logistics: {
+    logistics: { ...Y27,
       'nov-10-11': { venue: 'Cancha A', time: '9 AM', price: '$365', payLink: 'https://buy.stripe.com/a' },
       'nov-17-18': { venue: 'Cancha A', time: '9 AM', price: '$365', payLink: 'https://buy.stripe.com/a' },
       'nov-24-25': { venue: 'Cancha B', time: '9 AM', price: '$95', payLink: 'https://buy.stripe.com/b' },
@@ -682,7 +723,7 @@ await test('each date can cost a different amount', () => {
 await test('a price is needed on every date', () => {
   const each = cleanPayment({
     deadline: { es: '1 de noviembre', en: '' },
-    logistics: {
+    logistics: { ...Y27,
       'nov-10-11': { venue: 'A', time: '9', price: '$120', payLink: 'https://buy.stripe.com/a' },
       'nov-17-18': { venue: 'A', time: '9', price: '$120', payLink: 'https://buy.stripe.com/a' },
       'nov-24-25': { venue: 'B', time: '9', price: '$150', payLink: 'https://buy.stripe.com/b' },
@@ -1094,7 +1135,7 @@ await test('an event is over the day after it ends, in Las Vegas time', () => {
 });
 
 await test('a past event needs no price to be typed before inviting to the next ones', () => {
-  const settings = cleanPayment({ logistics: {
+  const settings = cleanPayment({ logistics: { ...Y27,
     'nov-17-18': { price: '$365', payLink: 'https://buy.stripe.com/a' },
     'nov-24-25': { price: '$95', payLink: 'https://buy.stripe.com/b' } } });
   // On the test day (5 Nov) the 10-11 event is still ahead, so it is missing.
@@ -1114,6 +1155,104 @@ await test('an invitation only needs the price and link of the player\'s own eve
   assert.ok(missingDetails(settings, 'nov-17-18').length === 2);
   // The whole-list check (the "Datos del pago" screen) still names every gap.
   assert.ok(missingDetails(settings).some((m) => /17 y 18/.test(m)));
+});
+
+/* ---------- 2027 events and the player profile (2026-11-19) ---------- */
+console.log('2027 events and player profile');
+const { parentContact } = await import('../lib/invite.js');
+const minor = (o = {}) => ({ ...adult(), dob: '2009-06-01', events: ['2027-01-colegio'],
+  parentName: 'Laura Torres', parentPhone: '702 555 0199', ...o });
+
+await test('the 2027 birth years come from the ages on the coach\'s chart', () => {
+  const by = Object.fromEntries(EVENTS.map((e) => [e.id, e]));
+  assert.deepEqual(by['2027-01-colegio'].years, [2007, 2011]);     // 16–20
+  assert.deepEqual(by['2027-02-usl'].years, [2006, 2010]);         // 17–21
+  assert.deepEqual(by['2027-04-europa'].years, [2004, 2009]);      // 18–23
+  assert.deepEqual(by['2027-11-mls'].years, [2003, 2009]);         // 18–24
+  assert.equal(new Set(EVENTS.map((e) => e.id)).size, EVENTS.length, 'ids are unique');
+  // January to April take sign-ups; the rest of 2027 is on the calendar only.
+  assert.deepEqual(EVENTS.filter((e) => e.open && e.start >= '2027').map((e) => e.id),
+    ['2027-01-colegio', '2027-02-usl', '2027-03-ligamx', '2027-03-expansion', '2027-04-europa']);
+});
+
+await test('one form can sign a player up for several dates', () => {
+  const r = validateApplication(minor({ events: ['2027-01-colegio', '2027-02-usl', '2027-02-usl', '2027-04-europa'] }));
+  assert.equal(r.code, undefined);
+  assert.deepEqual(r.application.events, ['2027-01-colegio', '2027-02-usl', '2027-04-europa']);
+});
+
+await test('every date picked must fit the birth year, and the refusal names which one', () => {
+  // Born 2011: Colegio (2007–2011) yes, USL (2006–2010) no.
+  const r = validateApplication(minor({ dob: '2011-02-02', events: ['2027-01-colegio', '2027-02-usl'] }));
+  assert.equal(r.code, 'event_age');
+  assert.equal(r.event, '2027-02-usl');
+});
+
+await test('no date picked, or a date not open yet, is refused', () => {
+  assert.equal(validateApplication(minor({ events: [] })).code, 'event');
+  assert.equal(validateApplication(minor({ events: ['2027-05-femenil'] })).code, 'event_closed');
+  assert.equal(validateApplication(minor({ events: ['nope'] })).code, 'event');
+});
+
+await test('under 18 needs the parent\'s name and phone; 18 and over does not keep them', () => {
+  assert.equal(validateApplication(minor({ parentName: '' })).code, 'parent_name');
+  assert.equal(validateApplication(minor({ parentPhone: '12' })).code, 'parent_phone');
+  const ok = validateApplication(minor()).application;
+  assert.equal(ok.parentPhone, '7025550199');
+  const grown = validateApplication({ ...adult(), parentName: 'X', parentPhone: '702 555 0199' }).application;
+  assert.equal(grown.parentName, '');
+  assert.equal(grown.parentPhone, '');
+});
+
+await test('follow-up questions are required only after the answer that opens them', () => {
+  assert.equal(validateApplication({ ...adult(), level: 'otro' }).code, 'level_other');
+  assert.equal(validateApplication({ ...adult(), proAcademy: true }).code, 'pro_academy_name');
+  assert.equal(validateApplication({ ...adult(), passport: true }).code, 'passport_country');
+  const ok = validateApplication({ ...adult(), level: 'otro', levelOther: 'Liga local', proAcademy: true,
+    proAcademyName: 'Chivas', passport: true, passportCountry: 'México' }).application.profile;
+  assert.equal(ok.levelOther, 'Liga local');
+  assert.equal(ok.proAcademyName, 'Chivas');
+  assert.equal(ok.passportCountry, 'México');
+  // An answer to a question that was closed again is not kept.
+  const no = validateApplication({ ...adult(), proAcademy: false, proAcademyName: 'Chivas' }).application.profile;
+  assert.equal(no.proAcademyName, '');
+});
+
+await test('school questions are optional except the scholarship one', () => {
+  const r = validateApplication({ ...adult(), school: '', grade: '', gpa: '' });
+  assert.equal(r.code, undefined);
+  assert.equal(validateApplication({ ...adult(), gpa: '3,5' }).application.profile.gpa, '3.5');
+});
+
+await test('the parent gets their own version of the message, with the same payment link', () => {
+  const settings = { logistics: { '2027-01-colegio': { price: '$150', payLink: 'https://buy.stripe.com/c' } } };
+  const a = { id: 53, event: '2027-01-colegio', name: 'Gael Torres', dob: '2009-05-04', formLang: 'es',
+    phone: '7025550101', parentName: 'Laura Torres', parentPhone: '7025550199', emergencyPhone: '1', status: 'selected' };
+  const kid = buildWhatsApp(a, { settings });
+  const mom = buildWhatsApp(a, { settings, to: 'parent' });
+  assert.match(kid.text, /¡Hola Gael!/);
+  assert.match(mom.text, /¡Hola Laura!/);
+  assert.match(mom.text, /Gael fue seleccionado/);
+  assert.equal(kid.payHref, mom.payHref);
+  assert.ok(mom.text.includes(mom.payHref));
+  assert.match(buildWhatsApp({ ...a, formLang: 'en' }, { settings, to: 'parent' }).text, /Gael has been selected/);
+});
+
+await test('who the parent message goes to: the form\'s parent, else the emergency contact, never for adults', () => {
+  const base = { dob: '2009-05-04', emergencyName: 'Rosa', emergencyPhone: '7025550111', emergencyRelationship: 'Mamá' };
+  assert.equal(parentContact({ ...base, parentName: 'Laura', parentPhone: '7025550199' }).phone, '7025550199');
+  const old = parentContact(base);
+  assert.equal(old.phone, '7025550111');
+  assert.equal(old.fromForm, false);
+  assert.equal(parentContact({ ...base, dob: '2000-01-01' }), null);
+});
+
+await test('closed calendar dates never ask the coach for a price', () => {
+  const settings = cleanPayment({ logistics: { ...Y27,
+    'nov-10-11': { price: '$1', payLink: 'https://buy.stripe.com/a' },
+    'nov-17-18': { price: '$1', payLink: 'https://buy.stripe.com/a' },
+    'nov-24-25': { price: '$1', payLink: 'https://buy.stripe.com/a' } } });
+  assert.deepEqual(missingDetails(settings), []);
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

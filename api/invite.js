@@ -18,7 +18,7 @@
 import { randomBytes } from 'node:crypto';
 import { query, isConfigured } from '../lib/db.js';
 import { requireAdmin } from '../lib/auth.js';
-import { buildInvite, asksFor, buildWhatsApp, waDigits } from '../lib/invite.js';
+import { buildInvite, asksFor, buildWhatsApp, waDigits, parentContact } from '../lib/invite.js';
 import { isEmailConfigured, sendEmail } from '../lib/email.js';
 import { FROM, REPLY_TO, PARENT_LINK_DAYS } from '../js/invite-config.js';
 import { loadPayment, missingDetails } from '../lib/settings.js';
@@ -42,7 +42,7 @@ export default async function handler(req, res) {
   try {
     if (kind === 'wa') {
       if (req.method === 'GET') return await previewWa(res, id);
-      if (req.method === 'POST') return await noteWa(res, id);
+      if (req.method === 'POST') return await noteWa(res, id, (req.query || {}).to === 'parent');
     }
     if (req.method === 'GET') return await (details ? previewDetails : preview)(res, id);
     if (req.method === 'POST') return await (details ? sendDetailsNow : send)(res, id);
@@ -212,9 +212,19 @@ async function previewWa(res, id) {
   if (!a) return res.status(404).json({ error: 'not_found' });
   const settings = await loadPayment();
   const msg = buildWhatsApp(a, { settings });
+  // Under 18: the parent's version too, to send from the same window.
+  const pc = parentContact(a);
+  const parent = pc && {
+    name: pc.name,
+    relation: pc.relation,
+    fromForm: pc.fromForm,
+    phone: waDigits(pc.phone),
+    text: buildWhatsApp(a, { settings, to: 'parent' }).text,
+  };
   return res.status(200).json({
     text: msg.text,
     phone: waDigits(a.phone),
+    parent: parent || null,
     lang: msg.lang,
     // Under 13 with no permission yet: the permission link only exists in the email.
     notice: msg.asks.parent && !a.invitedAt
@@ -224,10 +234,12 @@ async function previewWa(res, id) {
   });
 }
 
-async function noteWa(res, id) {
-  const { rows } = await query(
-    `UPDATE applicants SET wa_sent_at = NOW(), wa_count = wa_count + 1, updated_at = NOW()
-      WHERE id = $1 AND deleted_at IS NULL RETURNING ${COLUMNS}`, [id]);
+async function noteWa(res, id, toParent) {
+  const { rows } = await query(toParent
+    ? `UPDATE applicants SET wa_parent_sent_at = NOW(), wa_parent_count = wa_parent_count + 1, updated_at = NOW()
+        WHERE id = $1 AND deleted_at IS NULL RETURNING ${COLUMNS}`
+    : `UPDATE applicants SET wa_sent_at = NOW(), wa_count = wa_count + 1, updated_at = NOW()
+        WHERE id = $1 AND deleted_at IS NULL RETURNING ${COLUMNS}`, [id]);
   if (!rows.length) return res.status(404).json({ error: 'not_found' });
   return res.status(200).json({ applicant: toJson(rows[0]) });
 }

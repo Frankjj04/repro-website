@@ -70,7 +70,11 @@
     <section class="rg-events" id="rgEvents">
       <h2 class="rg-events-title" data-i18n-html="rg_events_title">NOVEMBER SCOUTING <span style="color:var(--orange);">MADNESS</span></h2>
       <p class="rg-events-sub" data-i18n="rg_events_sub">Tres fechas, tres grupos de edad. Elige la que te toca por tu año de nacimiento.</p>
-      <div class="rg-events-grid" id="rgEventCards"></div>
+      <div class="form-group rg-events-field" data-field="event">
+        <span class="rg-label" data-i18n="rg_events_lbl">Eventos *</span>
+        <small class="rg-help" data-i18n="rg_events_help"></small>
+        <div class="rg-events-grid" id="rgEventCards" role="group"></div>
+      </div>
     </section>
 
     <p class="rg-closed" id="rgClosed" hidden data-i18n-html="rg_closed">No hay eventos con registro abierto en este momento. Síguenos en Instagram, <a href="https://instagram.com/beproscouting" target="_blank" rel="noopener">@beproscouting</a>, para enterarte de los próximos.</p>
@@ -84,53 +88,53 @@
         <input type="text" id="rgWebsite" name="website" tabindex="-1" autocomplete="off" />
       </div>
 
-      <div class="form-group" id="rgEventGroup" data-field="event">
-        <label for="rgEvent" data-i18n="rg_event">Evento</label>
-        <select id="rgEvent" name="event" required></select>
-      </div>
 
       <fieldset class="rg-block">
-        <legend data-i18n="rg_s1">1 · Datos personales</legend>
+        <legend data-i18n="rg_s1">1 · Información personal</legend>
         <div class="form-group" data-field="name">
-          <label for="rgName" data-i18n="rg_name">Nombre completo *</label>
-          <input type="text" id="rgName" name="name" autocomplete="name" maxlength="100" required />
+          <label for="rgName" data-i18n="rg_name"></label>
+          <input type="text" id="rgName" name="name" maxlength="100" autocomplete="name" required />
         </div>
         <div class="form-row">
-          <div class="form-group" data-field="dob">
-            <label for="rgDob" data-i18n="rg_dob">Fecha de nacimiento *</label>
-            <input type="date" id="rgDob" name="dob" autocomplete="bday" required />
-          </div>
+        <div class="form-group" data-field="dob">
+          <label for="rgDob" data-i18n="rg_dob"></label>
+          <input type="date" id="rgDob" name="dob" autocomplete="bday" required />
+        </div>
+        <div class="form-group" data-field="nationalities">
+          <label for="rgNat" data-i18n="rg_nat"></label>
+          <input type="text" id="rgNat" name="nationalities" maxlength="120" data-i18n-placeholder="rg_ph_nat" required />
+        </div>
+        </div>
+        <div class="form-row">
           <div class="form-group" data-field="birthplace">
             <label for="rgBirthplace" data-i18n="rg_birthplace">Lugar de nacimiento *</label>
             <input type="text" id="rgBirthplace" name="birthplace" maxlength="120" data-i18n-placeholder="rg_ph_birthplace" placeholder="Ciudad, país" required />
           </div>
-        </div>
-        <div class="form-group" data-field="nationalities">
-          <label for="rgNat" data-i18n="rg_nat">Nacionalidad(es) *</label>
-          <input type="text" id="rgNat" name="nationalities" maxlength="120" data-i18n-placeholder="rg_ph_nat" placeholder="Ej. México, USA" required />
-        </div>
-        <div class="form-row">
-          <div class="form-group" data-field="phone">
-            <label for="rgPhone" data-i18n="rg_phone">Teléfono / WhatsApp *</label>
-            <input type="tel" id="rgPhone" name="phone" autocomplete="tel" maxlength="25" placeholder="+1 702 555 0100" required />
-            <small class="rg-help" data-i18n="rg_phone_help">Con código de país si no es de USA.</small>
-          </div>
-          <div class="form-group" data-field="email">
-            <label for="rgEmail" data-i18n="rg_email">Email *</label>
-            <input type="email" id="rgEmail" name="email" autocomplete="email" maxlength="120" required />
+          <div class="form-group" data-field="residence">
+            <label for="rgResidence" data-i18n="rg_residence"></label>
+            <input type="text" id="rgResidence" name="residence" maxlength="120" data-i18n-placeholder="rg_ph_residence" required />
           </div>
         </div>
         <div class="form-row">
-          <div class="form-group" data-field="instagram">
-            <label for="rgInstagram" data-i18n="rg_instagram">Instagram</label>
-            <input type="text" id="rgInstagram" name="instagram" maxlength="60" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="@tunombre" />
-          </div>
-          <div class="form-group" data-field="tiktok">
-            <label for="rgTiktok" data-i18n="rg_tiktok">TikTok</label>
-            <input type="text" id="rgTiktok" name="tiktok" maxlength="60" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="@tunombre" />
+        <div class="form-group" data-field="height">
+          <label for="rgHeight" data-i18n="rg_height"></label>
+          <input type="text" id="rgHeight" name="height" maxlength="10" data-i18n-placeholder="rg_ph_height" inputmode="decimal" required />
+          <small class="rg-help" data-i18n="rg_height_help"></small>
+        </div>
+        <div class="form-group" data-field="weight">
+          <label for="rgWeight" data-i18n="rg_weight"></label>
+          <input type="text" id="rgWeight" name="weight" maxlength="10" data-i18n-placeholder="rg_ph_weight" inputmode="decimal" required />
+          <small class="rg-help" data-i18n="rg_weight_help"></small>
+        </div>
+        </div>
+        <div class="form-group" data-field="strong_leg">
+          <span class="rg-label" id="rgLegLbl" data-i18n="rg_leg">Pierna hábil *</span>
+          <div class="rg-choices" role="radiogroup" aria-labelledby="rgLegLbl">
+            <label class="rg-choice"><input type="radio" name="strongLeg" value="right" /> <span data-i18n="rg_right">Derecha</span></label>
+            <label class="rg-choice"><input type="radio" name="strongLeg" value="left" /> <span data-i18n="rg_left">Izquierda</span></label>
+            <label class="rg-choice"><input type="radio" name="strongLeg" value="both" /> <span data-i18n="rg_both">Ambas</span></label>
           </div>
         </div>
-        <small class="rg-help" data-i18n="rg_social_help">Opcional. Solo tu nombre de usuario, sin el link.</small>
         <div class="form-group" data-field="photo">
           <span class="rg-label" data-i18n="rg_photo">Foto de tu cara *</span>
           <div class="rg-photo">
@@ -148,32 +152,7 @@
       </fieldset>
 
       <fieldset class="rg-block">
-        <legend data-i18n="rg_s2">2 · Datos del jugador</legend>
-        <div class="form-row">
-          <div class="form-group" data-field="height">
-            <label for="rgHeight" data-i18n="rg_height">Estatura *</label>
-            <input type="text" id="rgHeight" name="height" maxlength="20" data-i18n-placeholder="rg_ph_height" placeholder="Ej. 1.75 m o 5'9&quot;" required />
-          </div>
-          <div class="form-group" data-field="weight">
-            <label for="rgWeight" data-i18n="rg_weight">Peso *</label>
-            <input type="text" id="rgWeight" name="weight" maxlength="20" data-i18n-placeholder="rg_ph_weight" placeholder="Ej. 70 kg o 154 lb" required />
-          </div>
-        </div>
-        <div class="form-group" data-field="mls_next">
-          <span class="rg-label" id="rgMlsLbl" data-i18n="rg_mls">¿Ya jugaste MLS NEXT? *</span>
-          <div class="rg-choices" role="radiogroup" aria-labelledby="rgMlsLbl">
-            <label class="rg-choice"><input type="radio" name="mlsNext" value="yes" /> <span data-i18n="rg_yes">Sí</span></label>
-            <label class="rg-choice"><input type="radio" name="mlsNext" value="no" /> <span data-i18n="rg_no">No</span></label>
-          </div>
-        </div>
-        <div class="form-group" data-field="strong_leg">
-          <span class="rg-label" id="rgLegLbl" data-i18n="rg_leg">Pierna hábil *</span>
-          <div class="rg-choices" role="radiogroup" aria-labelledby="rgLegLbl">
-            <label class="rg-choice"><input type="radio" name="strongLeg" value="right" /> <span data-i18n="rg_right">Derecha</span></label>
-            <label class="rg-choice"><input type="radio" name="strongLeg" value="left" /> <span data-i18n="rg_left">Izquierda</span></label>
-            <label class="rg-choice"><input type="radio" name="strongLeg" value="both" /> <span data-i18n="rg_both">Ambas</span></label>
-          </div>
-        </div>
+        <legend data-i18n="rg_s2">2 · Información futbolística</legend>
         <div class="form-row">
           <div class="form-group" data-field="position_primary">
             <label for="rgPos1" data-i18n="rg_pos1">Posición principal *</label>
@@ -184,10 +163,143 @@
             <select id="rgPos2" name="positionSecondary" class="rg-position" required></select>
           </div>
         </div>
+        <div class="form-row">
+        <div class="form-group" data-field="club">
+          <label for="rgClub" data-i18n="rg_club"></label>
+          <input type="text" id="rgClub" name="club" maxlength="120" data-i18n-placeholder="rg_ph_club" required />
+        </div>
+        <div class="form-group" data-field="last_club">
+          <label for="rgLastClub" data-i18n="rg_last_club"></label>
+          <input type="text" id="rgLastClub" name="lastClub" maxlength="120" data-i18n-placeholder="rg_ph_last_club" />
+        </div>
+        </div>
+        <div class="form-row">
+        <div class="form-group" data-field="level">
+          <label for="rgLevel" data-i18n="rg_level"></label>
+          <select id="rgLevel" name="level" required></select>
+        </div>
+        <div class="form-group" data-field="years_exp">
+          <label for="rgYearsExp" data-i18n="rg_years_exp"></label>
+          <input type="text" id="rgYearsExp" name="yearsExp" maxlength="2" inputmode="numeric" placeholder="0" required />
+        </div>
+        </div>
+        <div class="form-group" data-field="level_other" hidden id="rgLevelOtherGroup">
+          <label for="rgLevelOther" data-i18n="rg_level_other"></label>
+          <input type="text" id="rgLevelOther" name="levelOther" maxlength="80" />
+        </div>
+        <div class="form-group" data-field="contract">
+          <span class="rg-label" id="rgLbl_contract" data-i18n="rg_contract"></span>
+          <div class="rg-choices" role="radiogroup" aria-labelledby="rgLbl_contract">
+            <label class="rg-choice"><input type="radio" name="contract" value="yes" /> <span data-i18n="rg_yes">Sí</span></label>
+            <label class="rg-choice"><input type="radio" name="contract" value="no" /> <span data-i18n="rg_no">No</span></label>
+          </div>
+        </div>
+        <div class="form-group" data-field="pro_academy">
+          <span class="rg-label" id="rgLbl_proAcademy" data-i18n="rg_pro_academy"></span>
+          <div class="rg-choices" role="radiogroup" aria-labelledby="rgLbl_proAcademy">
+            <label class="rg-choice"><input type="radio" name="proAcademy" value="yes" /> <span data-i18n="rg_yes">Sí</span></label>
+            <label class="rg-choice"><input type="radio" name="proAcademy" value="no" /> <span data-i18n="rg_no">No</span></label>
+          </div>
+        </div>
+        <div class="form-group" data-field="pro_academy_name" hidden id="rgProAcademyGroup">
+          <label for="rgProAcademyName" data-i18n="rg_pro_academy_name"></label>
+          <input type="text" id="rgProAcademyName" name="proAcademyName" maxlength="120" />
+        </div>
       </fieldset>
 
       <fieldset class="rg-block">
-        <legend data-i18n="rg_s3">3 · Video</legend>
+        <legend data-i18n="rg_s3">3 · Disponibilidad y oportunidades</legend>
+        <div class="form-group" data-field="relocate">
+          <span class="rg-label" id="rgLbl_relocate" data-i18n="rg_relocate"></span>
+          <div class="rg-choices" role="radiogroup" aria-labelledby="rgLbl_relocate">
+            <label class="rg-choice"><input type="radio" name="relocate" value="yes" /> <span data-i18n="rg_yes">Sí</span></label>
+            <label class="rg-choice"><input type="radio" name="relocate" value="no" /> <span data-i18n="rg_no">No</span></label>
+          </div>
+        </div>
+        <div class="form-group" data-field="passport">
+          <span class="rg-label" id="rgLbl_passport" data-i18n="rg_passport"></span>
+          <div class="rg-choices" role="radiogroup" aria-labelledby="rgLbl_passport">
+            <label class="rg-choice"><input type="radio" name="passport" value="yes" /> <span data-i18n="rg_yes">Sí</span></label>
+            <label class="rg-choice"><input type="radio" name="passport" value="no" /> <span data-i18n="rg_no">No</span></label>
+          </div>
+        </div>
+        <div class="form-group" data-field="passport_country" hidden id="rgPassportGroup">
+          <label for="rgPassportCountry" data-i18n="rg_passport_country"></label>
+          <input type="text" id="rgPassportCountry" name="passportCountry" maxlength="80" />
+        </div>
+        <div class="form-group" data-field="travel">
+          <span class="rg-label" id="rgLbl_travel" data-i18n="rg_travel"></span>
+          <div class="rg-choices" role="radiogroup" aria-labelledby="rgLbl_travel">
+            <label class="rg-choice"><input type="radio" name="travel" value="yes" /> <span data-i18n="rg_yes">Sí</span></label>
+            <label class="rg-choice"><input type="radio" name="travel" value="no" /> <span data-i18n="rg_no">No</span></label>
+          </div>
+        </div>
+        <div class="form-row">
+        <div class="form-group" data-field="available">
+          <label for="rgAvailable" data-i18n="rg_available"></label>
+          <select id="rgAvailable" name="available" required></select>
+        </div>
+        <div class="form-group" data-field="interest">
+          <label for="rgInterest" data-i18n="rg_interest"></label>
+          <select id="rgInterest" name="interest" required></select>
+        </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="rg-block">
+        <legend data-i18n="rg_s4">4 · Información académica</legend>
+        <p class="rg-help" data-i18n="rg_school_note"></p>
+        <div class="form-row">
+        <div class="form-group" data-field="school">
+          <label for="rgSchool" data-i18n="rg_school"></label>
+          <input type="text" id="rgSchool" name="school" maxlength="120" />
+        </div>
+        <div class="form-group" data-field="grade">
+          <label for="rgGrade" data-i18n="rg_grade"></label>
+          <input type="text" id="rgGrade" name="grade" maxlength="40" data-i18n-placeholder="rg_ph_grade" />
+        </div>
+        </div>
+        <div class="form-group" data-field="gpa">
+          <label for="rgGpa" data-i18n="rg_gpa"></label>
+          <input type="text" id="rgGpa" name="gpa" maxlength="5" data-i18n-placeholder="rg_ph_gpa" inputmode="decimal" />
+          <small class="rg-help" data-i18n="rg_gpa_help"></small>
+        </div>
+        <div class="form-group" data-field="scholarship">
+          <span class="rg-label" id="rgLbl_scholarship" data-i18n="rg_scholarship"></span>
+          <div class="rg-choices" role="radiogroup" aria-labelledby="rgLbl_scholarship">
+            <label class="rg-choice"><input type="radio" name="scholarship" value="yes" /> <span data-i18n="rg_yes">Sí</span></label>
+            <label class="rg-choice"><input type="radio" name="scholarship" value="no" /> <span data-i18n="rg_no">No</span></label>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="rg-block">
+        <legend data-i18n="rg_s5">5 · Contacto y material</legend>
+        <div class="form-row">
+          <div class="form-group" data-field="phone">
+            <label for="rgPhone" data-i18n="rg_phone">Teléfono / WhatsApp del jugador *</label>
+            <input type="tel" id="rgPhone" name="phone" autocomplete="tel" maxlength="25" placeholder="+1 702 555 0100" required />
+            <small class="rg-help" data-i18n="rg_phone_help">Con código de país si no es de USA.</small>
+          </div>
+          <div class="form-group" data-field="email">
+            <label for="rgEmail" data-i18n="rg_email">Correo electrónico *</label>
+            <input type="email" id="rgEmail" name="email" autocomplete="email" maxlength="120" required />
+          </div>
+        </div>
+        <div class="rg-parent" id="rgParentBlock" hidden>
+          <p class="rg-parent-h" data-i18n="rg_parent_h">Papá, mamá o tutor</p>
+          <p class="rg-help" data-i18n="rg_parent_why"></p>
+          <div class="form-row">
+            <div class="form-group" data-field="parent_name">
+              <label for="rgParentName" data-i18n="rg_parent_name"></label>
+              <input type="text" id="rgParentName" name="parentName" maxlength="100" autocomplete="off" />
+            </div>
+            <div class="form-group" data-field="parent_phone">
+              <label for="rgParentPhone" data-i18n="rg_parent_phone"></label>
+              <input type="tel" id="rgParentPhone" name="parentPhone" maxlength="25" placeholder="+1 702 555 0100" />
+            </div>
+          </div>
+        </div>
         <div class="form-group" data-field="video_url">
           <label for="rgVideo" data-i18n="rg_video">Link de tu video de jugadas</label>
           <input type="url" id="rgVideo" name="videoUrl" inputmode="url" maxlength="500" placeholder="https://youtube.com/…" />
@@ -197,10 +309,19 @@
             <span data-i18n="rg_video_wa">¿Problemas con el link? Mándanos tu video por WhatsApp</span>
           </a>
         </div>
+        <div class="form-group" data-field="instagram">
+          <label for="rgInstagram" data-i18n="rg_instagram">Instagram del jugador</label>
+          <input type="text" id="rgInstagram" name="instagram" maxlength="60" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="@tunombre" />
+          <small class="rg-help" data-i18n="rg_social_help">Opcional.</small>
+        </div>
       </fieldset>
 
       <fieldset class="rg-block">
-        <legend data-i18n="rg_s4">4 · Contacto de emergencia</legend>
+        <legend data-i18n="rg_s6">6 · Contacto de emergencia</legend>
+        <label class="rg-agree rg-em-same" id="rgEmSameWrap" hidden>
+          <input type="checkbox" id="rgEmSame" />
+          <span data-i18n="rg_em_same">Es el mismo papá, mamá o tutor de arriba</span>
+        </label>
         <div class="form-group" data-field="emergency_name">
           <label for="rgEmName" data-i18n="rg_em_name">Nombre *</label>
           <input type="text" id="rgEmName" name="emergencyName" maxlength="100" required />
@@ -218,7 +339,7 @@
       </fieldset>
 
       <fieldset class="rg-block">
-        <legend data-i18n="rg_s5">5 · Descargo de responsabilidad</legend>
+        <legend data-i18n="rg_s7">7 · Descargo de responsabilidad</legend>
         <p class="rg-help" data-i18n="rg_waiver_note">El descargo está en inglés.</p>
         <div class="rg-waiver" tabindex="0" lang="en">
           <h4>WAIVER</h4>
@@ -254,7 +375,7 @@
       </fieldset>
 
       <fieldset class="rg-block">
-        <legend data-i18n="rg_s6">6 · Autorización para compartir</legend>
+        <legend data-i18n="rg_s8">8 · Autorización para compartir</legend>
         <div class="rg-consent" data-i18n-html="rg_consent_html">
           <p>BE PRO Futbol conecta jugadores con clubes, entrenadores, scouts, universidades y agencias.</p>
         </div>
@@ -268,7 +389,7 @@
       </fieldset>
 
       <fieldset class="rg-block">
-        <legend data-i18n="rg_s7">7 · Firma</legend>
+        <legend data-i18n="rg_s9">9 · Firma</legend>
         <div class="form-group" data-field="signature">
           <label for="rgSignature" id="rgSignLabel" data-i18n="rg_sign">Firma: escribe tu nombre completo *</label>
           <input type="text" id="rgSignature" name="signatureName" class="rg-signature" maxlength="100" autocomplete="off" required />

@@ -3,7 +3,7 @@
    All player data is written with textContent, never innerHTML — everything
    here was typed by strangers on the internet. */
 
-import { EVENTS, POSITIONS, isPast } from './registro-config.js';
+import { EVENTS, POSITIONS, LEVELS, AVAILABLE, INTEREST, MINOR_AGE, isPast } from './registro-config.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -11,6 +11,12 @@ const STATUS_LABEL = { pending: 'Por revisar', selected: 'Invitado', not_selecte
 const LEG_LABEL = { right: 'Derecha', left: 'Izquierda', both: 'Ambas' };
 const POS = Object.fromEntries(POSITIONS.map((p) => [p.id, p.es]));
 const eventLabel = (id) => (EVENTS.find((e) => e.id === id) || { label: { es: id } }).label.es;
+const LEVEL = Object.fromEntries(LEVELS.map((x) => [x.id, x.es]));
+const AVAIL = Object.fromEntries(AVAILABLE.map((x) => [x.id, x.es]));
+const INTER = Object.fromEntries(INTEREST.map((x) => [x.id, x.es]));
+const siNo = (v) => (v === true ? 'Sí' : v === false ? 'No' : '');
+/* The level as the coach reads it: "Otro — Liga local" when they typed one. */
+const levelText = (p) => (p.level === 'otro' && p.levelOther ? 'Otro — ' + p.levelOther : LEVEL[p.level] || '');
 
 /* Players under this age must have a parent's permission on record. Anyone who
    registered before the form asked for it shows up as missing it. */
@@ -119,20 +125,75 @@ function eventIsPast(id) {
 }
 const inView = (a) => (view === 'history') === eventIsPast(a.event);
 
+/* The events in this view, as cards: dates, name, ages, and how many signed
+   up, were invited and paid. Upcoming ones in calendar order; history newest
+   first. The hidden <select> keeps the choice for the rest of the page. */
+function eventIdsInView() {
+  const ids = [...new Set([...EVENTS.map((e) => e.id), ...active.map((a) => a.event), ...archived.map((a) => a.event)])]
+    .filter((id) => (view === 'history') === eventIsPast(id));
+  const start = (id) => (EVENTS.find((e) => e.id === id) || {}).start || '';
+  ids.sort((x, y) => start(x).localeCompare(start(y)));
+  return view === 'history' ? ids.reverse() : ids;
+}
+
 function renderEvents() {
   const sel = $('adEvent');
   const keep = sel.value;
-  // Events in the config, plus any old event id still present in the data —
-  // only the ones that belong to this view.
-  const ids = [...new Set([...EVENTS.map((e) => e.id), ...active.map((a) => a.event), ...archived.map((a) => a.event)])]
-    .filter((id) => (view === 'history') === eventIsPast(id));
-  sel.replaceChildren(
-    new Option(view === 'history' ? 'Todo el historial' : 'Todos los eventos próximos', ''),
-    ...ids.map((id) => new Option(eventLabel(id), id)),
-  );
-  sel.value = ids.includes(keep) ? keep
-    : view === 'history' ? '' : (EVENTS.find((e) => e.open && !isPast(e)) || {}).id || '';
+  // Upcoming: every open event, plus closed ones that already have players.
+  // Events not taking sign-ups yet (later in 2027) stay out until they open.
+  const ids = eventIdsInView().filter((id) => {
+    const e = EVENTS.find((x) => x.id === id);
+    return view === 'history' || !e || e.open || active.some((a) => a.event === id);
+  });
+  sel.replaceChildren(new Option('', ''), ...ids.map((id) => new Option(eventLabel(id), id)));
+  // First visit: the next event coming up — the one the coach is working on.
+  sel.value = ids.includes(keep) || keep === '' && sel.dataset.touched ? keep
+    : view === 'history' ? '' : ids[0] || '';
+  renderEventCards(ids);
 }
+
+function renderEventCards(ids = eventIdsInView()) {
+  const chosen = $('adEvent').value;
+  const here = active.filter(inView);
+  const card = (id, top, name, sub, list) => {
+    const b = el('button', 'ad-evcard' + (chosen === id ? ' active' : ''));
+    b.type = 'button';
+    b.dataset.event = id;
+    b.setAttribute('role', 'tab');
+    b.setAttribute('aria-selected', chosen === id);
+    const n = (f) => list.filter(f).length;
+    const stats = el('div', 'ad-evcard-stats');
+    stats.append(
+      el('span', null, n(() => true) + ' reg.'),
+      el('span', 'ad-evcard-inv', n((a) => a.status === 'selected') + ' inv.'),
+      el('span', 'ad-evcard-paid', '💰 ' + n((a) => a.paidAt)),
+    );
+    b.append(el('div', 'ad-evcard-date', top), el('div', 'ad-evcard-name', name));
+    if (sub) b.append(el('div', 'ad-evcard-sub', sub));
+    b.append(stats);
+    return b;
+  };
+  const cards = ids.map((id) => {
+    const e = EVENTS.find((x) => x.id === id);
+    const list = here.filter((a) => a.event === id);
+    if (!e) return card(id, id, 'Evento anterior', '', list);
+    const ages = e.ages ? e.ages[0] + '–' + e.ages[1] + ' años · ' : '';
+    return card(id, e.short.es + (e.start ? ' ' + e.start.slice(0, 4) : ''), e.name ? e.name.es : e.leagues.join(' · '),
+      ages + e.years[0] + '–' + e.years[1], list);
+  });
+  cards.unshift(card('', view === 'history' ? 'TODO' : 'TODOS', view === 'history' ? 'Todo el historial' : 'Todos los próximos', '', here));
+  $('adEventCards').replaceChildren(...cards);
+  const on = $('adEventCards').querySelector('.active');
+  if (on) on.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+}
+$('adEventCards').addEventListener('click', (e) => {
+  const b = e.target.closest('.ad-evcard');
+  if (!b) return;
+  $('adEvent').value = b.dataset.event;
+  $('adEvent').dataset.touched = '1';
+  year = '';
+  render();
+});
 
 function renderViews() {
   const n = { now: 0, history: 0 };
@@ -177,6 +238,30 @@ function playedBefore(a) {
   const seen = new Map();
   for (const k of playerKeys(a)) for (const p of played.get(k) || []) if (p.id !== a.id) seen.set(p.event, p);
   return [...seen.keys()];
+}
+
+/* The same player's other records still to come (one form, several dates). */
+function otherEvents(a) {
+  const keys = new Set(playerKeys(a));
+  return [...new Set(active.filter((x) => x.id !== a.id && !eventIsPast(x.event) &&
+    playerKeys(x).some((k) => keys.has(k))).map((x) => x.event))];
+}
+
+/* Under 18 the invitation message goes to the player and to a parent: the
+   parent's phone from the form, or for older records the emergency contact. */
+const isMinorRec = (a) => age(a.dob) < MINOR_AGE;
+const parentTarget = (a) => isMinorRec(a) && (a.parentPhone || a.emergencyPhone)
+  ? { name: a.parentName || a.emergencyName, phone: a.parentPhone || a.emergencyPhone,
+      fromForm: Boolean(a.parentPhone), relation: a.parentPhone ? '' : a.emergencyRelationship }
+  : null;
+function waState(a) {
+  const parent = parentTarget(a);
+  if (!parent) return { done: Boolean(a.waSentAt), chip: a.waSentAt ? '✓ Mensaje enviado' : '💬 Mensaje sin enviar' };
+  const p = Boolean(a.waSentAt), q = Boolean(a.waParentSentAt);
+  if (p && q) return { done: true, chip: '✓ Mensaje enviado (jugador y papá)' };
+  if (p) return { done: false, chip: '💬 Falta mensaje al papá/mamá' };
+  if (q) return { done: false, chip: '💬 Falta mensaje al jugador' };
+  return { done: false, chip: '💬 Mensaje sin enviar (jugador y papá)' };
 }
 
 /* ---------- list ---------- */
@@ -268,6 +353,7 @@ function renderYears() {
 function render() {
   played = pastPlayed();
   renderViews();
+  renderEventCards();
   renderYears();
   renderResendAll();
   renderWaAll();
@@ -311,7 +397,9 @@ function render() {
       el('div', 'ad-row-name', a.name),
       el('div', 'ad-row-sub',
         [age(a.dob) + ' años', a.positionPrimary + ' / ' + a.positionSecondary,
-         a.nationalities, a.mlsNext ? 'MLS NEXT' : null].filter(Boolean).join(' · ')),
+         levelText(a.profile) || (a.mlsNext ? 'MLS NEXT' : null),
+         a.profile.club && !/^ningun[oa]?$|^none$/i.test(a.profile.club) ? a.profile.club : null,
+         a.profile.club ? null : a.nationalities].filter(Boolean).join(' · ')),
     );
     open.append(photoThumb(a, 'ad-thumb'), main);
 
@@ -322,6 +410,13 @@ function render() {
       ? el('span', 'ad-chip ad-chip-share', '↗ Compartible')
       : el('span', 'ad-chip ad-chip-private', '🔒 Privado'));
     side.append(video || el('span', 'ad-chip ad-chip-muted', 'Sin video'));
+    // Signed up for other upcoming dates with the same form.
+    const more = otherEvents(a);
+    if (more.length) {
+      const chip = el('span', 'ad-chip ad-chip-more', '📅 +' + more.length + (more.length === 1 ? ' evento' : ' eventos'));
+      chip.title = 'También registrado en: ' + more.map(eventLabel).join(' · ');
+      side.append(chip);
+    }
     const before = playedBefore(a);
     if (before.length) {
       const star = el('span', 'ad-chip ad-chip-played', '⭐ Ya participó');
@@ -346,10 +441,10 @@ function render() {
       side.append(a.invitedAt
         ? el('span', 'ad-chip ad-chip-sent', '📧 Invitado · sin pagar')
         : el('span', 'ad-chip ad-chip-warn', '📧 Correo sin enviar'));
-      // Coach, 2026-11-13: see at a glance who already got the WhatsApp / text message.
-      side.append(a.waSentAt
-        ? el('span', 'ad-chip ad-chip-wa', '✓ Mensaje enviado')
-        : el('span', 'ad-chip ad-chip-warn', '💬 Mensaje sin enviar'));
+      // Coach, 2026-11-13: see at a glance who already got the WhatsApp / text
+      // message — and, under 18, whether the parent got it too.
+      const w = waState(a);
+      side.append(el('span', 'ad-chip ' + (w.done ? 'ad-chip-wa' : 'ad-chip-warn'), w.chip));
     }
 
     if (tab !== 'archived') {
@@ -469,46 +564,92 @@ function openPanel(id) {
   renderInvite(a, isArchived || past);
   renderPaid(a, isArchived, past);
 
-  const facts = [
-    ['Fecha de nacimiento', a.dob],
-    ['Lugar de nacimiento', a.birthplace],
-    ['Nacionalidad(es)', a.nationalities],
-    ['Teléfono', a.phone, 'tel:' + a.phone],
-    ['WhatsApp', 'Abrir chat', 'https://wa.me/' + waNumber(a.phone)],
-    ['Email', a.email, 'mailto:' + a.email],
-    ['Estatura', a.height],
-    ['Peso', a.weight],
-    ['MLS NEXT', a.mlsNext ? 'Sí' : 'No'],
-    ['Pierna hábil', LEG_LABEL[a.strongLeg] || a.strongLeg],
-    ['Posición principal', POS[a.positionPrimary] || a.positionPrimary],
-    ['Posición secundaria', POS[a.positionSecondary] || a.positionSecondary],
-    ['Instagram', a.instagram ? '@' + a.instagram : '—',
-      a.instagram ? 'https://instagram.com/' + a.instagram : ''],
-    ['TikTok', a.tiktok ? '@' + a.tiktok : '—',
-      a.tiktok ? 'https://tiktok.com/@' + a.tiktok : ''],
-    ['Video', a.videoUrl || '—', a.videoUrl],
-    ['Contacto de emergencia', a.emergencyName + ' (' + a.emergencyRelationship + ')'],
-    ['Tel. de emergencia', a.emergencyPhone, 'tel:' + a.emergencyPhone],
-    ['Firma', a.signatureName ? a.signatureName + (a.guardianName ? ' (padre, madre o tutor)' : '') : '—'],
-    ['Descargo aceptado', fmtDate(a.waiverAcceptedAt)],
-    ...(a.parentEmail
-      ? [['Correo del tutor (menor de 13)', a.parentEmail, 'mailto:' + a.parentEmail],
-         ['Permiso del tutor', a.parentConfirmedAt ? fmtDate(a.parentConfirmedAt) : 'Pendiente']]
-      : []),
-    ['Registrado', fmtDate(a.createdAt)],
-    ['Eventos anteriores', playedBefore(a).map(eventLabel).join(' · ') || 'Ninguno todavía'],
+  // The coach's five sections (2026-11-19), then the paperwork. Rows with
+  // nothing in them are left out — players who signed up before the new
+  // form simply show fewer of them.
+  const p = a.profile || {};
+  const others = otherEvents(a);
+  const sections = [
+    ['Información personal', [
+      ['Fecha de nacimiento', a.dob + ' · ' + age(a.dob) + ' años'],
+      ['Nacionalidad(es)', a.nationalities],
+      ['Ciudad donde vive', p.residence],
+      ['Lugar de nacimiento', a.birthplace],
+      ['Estatura', a.height],
+      ['Peso', a.weight],
+      ['Pierna hábil', LEG_LABEL[a.strongLeg] || a.strongLeg],
+    ]],
+    ['Información futbolística', [
+      ['Posición principal', POS[a.positionPrimary] || a.positionPrimary],
+      ['Posición secundaria', POS[a.positionSecondary] || a.positionSecondary],
+      ['Club o academia actual', p.club],
+      ['Último club', p.lastClub],
+      ['Nivel de competencia', levelText(p) || (p.level ? '' : (a.mlsNext ? 'Jugó MLS NEXT' : ''))],
+      ['Años de experiencia', p.yearsExp != null && p.yearsExp !== '' ? p.yearsExp + (p.yearsExp === 1 ? ' año' : ' años') : ''],
+      ['Contrato vigente', siNo(p.contract)],
+      ['Academia profesional', p.proAcademy === true ? 'Sí — ' + p.proAcademyName : siNo(p.proAcademy)],
+      ...(p.level ? [] : [['MLS NEXT', a.mlsNext ? 'Sí' : 'No']]),
+    ]],
+    ['Disponibilidad y oportunidades', [
+      ['Cambiar de ciudad o país', siNo(p.relocate)],
+      ['Pasaporte vigente', p.passport === true ? 'Sí — ' + p.passportCountry : siNo(p.passport)],
+      ['Viajar a pruebas', siNo(p.travel)],
+      ['Disponible para un equipo', AVAIL[p.available]],
+      ['Le interesa', INTER[p.interest]],
+    ]],
+    ['Información académica', [
+      ['Escuela', p.school],
+      ['Grado / graduación', p.grade],
+      ['GPA', p.gpa],
+      ['Beca deportiva', siNo(p.scholarship)],
+    ]],
+    ['Contacto y material', [
+      ['Teléfono', a.phone, 'tel:' + a.phone],
+      ['WhatsApp', 'Abrir chat', 'https://wa.me/' + waNumber(a.phone)],
+      ['Email', a.email, 'mailto:' + a.email],
+      ...(a.parentName || a.parentPhone ? [
+        ['Papá, mamá o tutor', a.parentName],
+        ['Tel. papá / mamá', a.parentPhone, 'tel:' + a.parentPhone],
+        ['WhatsApp papá / mamá', 'Abrir chat', 'https://wa.me/' + waNumber(a.parentPhone)],
+      ] : []),
+      ['Video', a.videoUrl || '—', a.videoUrl],
+      ['Instagram', a.instagram ? '@' + a.instagram : '—',
+        a.instagram ? 'https://instagram.com/' + a.instagram : ''],
+      ['TikTok', a.tiktok ? '@' + a.tiktok : '', a.tiktok ? 'https://tiktok.com/@' + a.tiktok : ''],
+    ]],
+    ['Emergencia y registro', [
+      ['Contacto de emergencia', a.emergencyName + (a.emergencyRelationship ? ' (' + a.emergencyRelationship + ')' : '')],
+      ['Tel. de emergencia', a.emergencyPhone, 'tel:' + a.emergencyPhone],
+      ['Firma', a.signatureName ? a.signatureName + (a.guardianName ? ' (padre, madre o tutor)' : '') : '—'],
+      ['Descargo aceptado', fmtDate(a.waiverAcceptedAt)],
+      ...(a.parentEmail
+        ? [['Correo del tutor (menor de 13)', a.parentEmail, 'mailto:' + a.parentEmail],
+           ['Permiso del tutor', a.parentConfirmedAt ? fmtDate(a.parentConfirmedAt) : 'Pendiente']]
+        : []),
+      ['Registrado', fmtDate(a.createdAt)],
+      ['También registrado en', others.map(eventLabel).join(' · ')],
+      ['Eventos anteriores', playedBefore(a).map(eventLabel).join(' · ') || 'Ninguno todavía'],
+    ]],
   ];
-  $('adPFacts').replaceChildren(...facts.flatMap(([k, val, href]) => {
-    const dd = el('dd');
-    if (href && /^(https?:|tel:|mailto:)/i.test(href)) {
-      const link = el('a', null, val);
-      link.href = href;
-      if (href.startsWith('http')) { link.target = '_blank'; link.rel = 'noopener noreferrer'; }
-      dd.append(link);
-    } else {
-      dd.textContent = val;
-    }
-    return [el('dt', null, k), dd];
+  $('adPFacts').replaceChildren(...sections.map(([title, rows]) => {
+    const kept = rows.filter(([, val]) => val !== undefined && val !== null && String(val).trim() !== '');
+    if (!kept.length) return document.createComment(title);
+    const box = el('div', 'ad-facts-sec');
+    const dl = el('dl', 'ad-facts');
+    dl.append(...kept.flatMap(([k, val, href]) => {
+      const dd = el('dd');
+      if (href && /^(https?:|tel:|mailto:)/i.test(href) && !/^(tel:|https:\/\/wa\.me\/)$/.test(href)) {
+        const link = el('a', null, val);
+        link.href = href;
+        if (href.startsWith('http')) { link.target = '_blank'; link.rel = 'noopener noreferrer'; }
+        dd.append(link);
+      } else {
+        dd.textContent = val;
+      }
+      return [el('dt', null, k), dd];
+    }));
+    box.append(el('h4', 'ad-facts-h', title), dl);
+    return box;
   }));
 
   $('adPNote').value = a.note || '';
@@ -762,10 +903,14 @@ function fillPayForm(p) {
   $('adPayBringEs').value = (p.bring.es || []).join('\n');
   $('adPayBringEn').value = (p.bring.en || []).join('\n');
 
-  $('adPayLogistics').replaceChildren(...EVENTS.map((e) => {
+  // Only dates still to come that take sign-ups (or already have players):
+  // with ten events a year, past and far-off ones would bury the next one.
+  const shown = EVENTS.filter((e) => !isPast(e) && (e.open || active.some((a) => a.event === e.id)))
+    .sort((x, y) => (x.start || '').localeCompare(y.start || ''));
+  $('adPayLogistics').replaceChildren(...shown.map((e) => {
     const l = (p.logistics || {})[e.id] || {};
     const wrap = el('div', 'ad-pay-event');
-    wrap.append(el('div', 'ad-pay-event-name', e.dates.es));
+    wrap.append(el('div', 'ad-pay-event-name', e.dates.es + (e.name ? ' · ' + e.name.es : '')));
     const input = (field, type, max, placeholder) => {
       const i = el('input');
       i.type = type; i.maxLength = max; i.placeholder = placeholder;
@@ -800,7 +945,8 @@ function fillPayForm(p) {
 
 function readPayForm() {
   const lines = (id) => $(id).value.split('\n').map((x) => x.trim()).filter(Boolean);
-  const logistics = {};
+  // Start from what is saved, so dates not shown (past ones) keep theirs.
+  const logistics = JSON.parse(JSON.stringify((payment && payment.logistics) || {}));
   for (const input of $('adPayLogistics').querySelectorAll('input, textarea')) {
     const e = input.dataset.event;
     logistics[e] = logistics[e] || { price: '', payLink: '', venue: '', time: '' };
@@ -937,14 +1083,14 @@ function renderInvite(a, isArchived) {
       el('div', 'ad-consent-sub', (a.inviteTo || a.email) + ' · ' + fmtDate(a.invitedAt) + times),
       ...deliveryLines(a, 'invite'),
     );
-    if (a.waSentAt || !a.paidAt) box.append(waLine(a));   // paid: no need to nag about the message
+    if (a.waSentAt || a.waParentSentAt || !a.paidAt) box.append(waLine(a));   // paid: no need to nag about the message
   } else {
     box.append(
       el('div', 'ad-consent-title', '📧 Todavía no le mandas la invitación'),
       el('div', 'ad-consent-sub', 'El correo lleva la fecha, el costo y su botón de pago. ' +
         'Te lo enseñamos antes de enviarlo.'),
     );
-    if (a.waSentAt || !a.paidAt) box.append(waLine(a));   // paid: no need to nag about the message
+    if (a.waSentAt || a.waParentSentAt || !a.paidAt) box.append(waLine(a));   // paid: no need to nag about the message
   }
 
   // Paid: another invitation would ask them to pay again (the server refuses it too).
@@ -966,9 +1112,15 @@ function renderInvite(a, isArchived) {
 }
 
 function waLine(a) {
-  if (!a.waSentAt) return el('div', 'ad-consent-sub ad-wa-todo', '💬 Mensaje sin enviar (WhatsApp o texto)');
-  const times = a.waCount > 1 ? ' · ' + a.waCount + ' veces' : '';
-  return el('div', 'ad-consent-sub ad-mail-ok', '✓ Mensaje enviado (WhatsApp o texto) · ' + fmtDate(a.waSentAt) + times);
+  const one = (sentAt, count, who) => {
+    if (!sentAt) return el('div', 'ad-consent-sub ad-wa-todo', '💬 Mensaje ' + who + 'sin enviar (WhatsApp o texto)');
+    const times = count > 1 ? ' · ' + count + ' veces' : '';
+    return el('div', 'ad-consent-sub ad-mail-ok', '✓ Mensaje ' + who + 'enviado (WhatsApp o texto) · ' + fmtDate(sentAt) + times);
+  };
+  if (!parentTarget(a)) return one(a.waSentAt, a.waCount, '');
+  const box = el('div');
+  box.append(one(a.waSentAt, a.waCount, 'al jugador '), one(a.waParentSentAt, a.waParentCount, 'al papá/mamá '));
+  return box;
 }
 
 /* ---------- the invitation by WhatsApp / text message ----------
@@ -979,6 +1131,9 @@ function waLine(a) {
 let waQueue = [];
 let waPos = 0;
 let waCurrent = null;
+// Under 18 there are two messages per player: { player: {phone, text}, parent: {…} | null }.
+let waData = null;
+let waTo = 'player';
 
 function waHrefs() {
   const digits = $('adWaPhone').value.replace(/\D/g, '');
@@ -990,8 +1145,41 @@ function waHrefs() {
   [$('adWaOpen'), $('adWaSms')].forEach((x) => x.classList.toggle('ad-disabled', !ok));
   return ok;
 }
-$('adWaPhone').addEventListener('input', waHrefs);
-$('adWaText').addEventListener('input', waHrefs);
+$('adWaPhone').addEventListener('input', () => { if (waData && waData[waTo]) waData[waTo].phone = $('adWaPhone').value; waHrefs(); });
+$('adWaText').addEventListener('input', () => { if (waData && waData[waTo]) waData[waTo].text = $('adWaText').value; waHrefs(); });
+
+/* The two tabs, each with a ✓ once it was opened. */
+function renderWaTo() {
+  const a = waCurrent;
+  const parent = waData && waData.parent;
+  $('adWaTo').hidden = !parent;
+  $('adWaToHelp').hidden = !parent;
+  if (!parent || !a) return;
+  const [bp, bq] = $('adWaTo').querySelectorAll('button');
+  const who = parent.name ? parent.name.split(/\s+/)[0] : '';
+  bp.textContent = (a.waSentAt ? '✓ ' : '') + 'Jugador';
+  bq.textContent = (a.waParentSentAt ? '✓ ' : '') +
+    (parent.fromForm ? 'Papá / mamá' : (parent.relation || 'Contacto de emergencia')) + (who ? ' · ' + who : '');
+  bp.classList.toggle('active', waTo === 'player');
+  bq.classList.toggle('active', waTo === 'parent');
+  bp.setAttribute('aria-selected', waTo === 'player');
+  bq.setAttribute('aria-selected', waTo === 'parent');
+}
+function showWaTarget(to) {
+  waTo = to;
+  const d = waData && waData[to];
+  $('adWaPhone').value = d ? d.phone : '';
+  $('adWaText').value = d ? d.text : '…';
+  const sentAt = to === 'parent' ? waCurrent && waCurrent.waParentSentAt : waCurrent && waCurrent.waSentAt;
+  $('adWaDone').hidden = !sentAt;
+  if (sentAt) $('adWaDone').textContent = '✓ Mensaje ' + (to === 'parent' ? 'al papá/mamá' : 'al jugador') + ' enviado el ' + fmtDate(sentAt) + '.';
+  renderWaTo();
+  waHrefs();
+}
+$('adWaTo').addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (b && waData) showWaTarget(b.dataset.to);
+});
 
 function openWaModal(ids) {
   waQueue = ids;
@@ -1003,6 +1191,8 @@ function openWaModal(ids) {
 async function showWa() {
   const a = find(waQueue[waPos]);
   waCurrent = a;
+  waData = null;
+  waTo = 'player';
   const many = waQueue.length > 1;
   $('adWaWho').textContent = (a ? a.name : '') + (many ? ' · ' + (waPos + 1) + ' de ' + waQueue.length : '');
   $('adWaPhone').value = '';
@@ -1010,6 +1200,8 @@ async function showWa() {
   $('adWaBlockers').hidden = true;
   $('adWaNotice').hidden = true;
   $('adWaDone').hidden = true;
+  $('adWaTo').hidden = true;
+  $('adWaToHelp').hidden = true;
   $('adWaNext').hidden = !many;
   $('adWaNext').textContent = waPos + 1 < waQueue.length ? 'Siguiente jugador →' : 'Terminar';
   flash($('adWaError'), '');
@@ -1023,18 +1215,14 @@ async function showWa() {
     return flash($('adWaError'), err.message);
   }
   if (waCurrent !== a) return;   // moved on while this was loading
-  $('adWaPhone').value = data.phone;
-  $('adWaText').value = data.text;
+  waData = { player: { phone: data.phone, text: data.text }, parent: data.parent || null };
   if (data.notice) { $('adWaNotice').textContent = data.notice; $('adWaNotice').hidden = false; }
   if (data.blockers.length) {
     $('adWaBlockers').replaceChildren(...data.blockers.map((b) => el('li', null, b)));
     $('adWaBlockers').hidden = false;
   }
-  if (a.waSentAt) {
-    $('adWaDone').textContent = '✓ Mensaje enviado el ' + fmtDate(a.waSentAt) + '.';
-    $('adWaDone').hidden = false;
-  }
-  waHrefs();
+  // Start with whoever has not had it yet.
+  showWaTarget(data.parent && a.waSentAt && !a.waParentSentAt ? 'parent' : 'player');
 }
 
 /* The link opens straight away (a phone only lets a tap open WhatsApp);
@@ -1043,11 +1231,26 @@ function waOpened(e) {
   if (!waHrefs()) { e.preventDefault(); return; }
   const a = waCurrent;
   if (!a) return;
+  const to = waTo;
+  const other = to === 'player' ? 'parent' : 'player';
+  const otherPending = waData && waData.parent &&
+    !(other === 'parent' ? a.waParentSentAt : a.waSentAt);
   $('adWaDone').textContent = '✓ Abierto. Cuando lo mandes, regresa aquí' +
-    (waPos + 1 < waQueue.length ? ' y dale “Siguiente jugador”.' : '.');
+    (otherPending ? ' y mándaselo también ' + (other === 'parent' ? 'al papá/mamá' : 'al jugador') + '.'
+      : waPos + 1 < waQueue.length ? ' y dale “Siguiente jugador”.' : '.');
   $('adWaDone').hidden = false;
-  api('POST', '/api/invite?kind=wa&id=' + a.id, {})
-    .then((res) => { replaceActive(res.applicant); render(); if (openId === a.id) openPanel(a.id); })
+  api('POST', '/api/invite?kind=wa&id=' + a.id + (to === 'parent' ? '&to=parent' : ''), {})
+    .then((res) => {
+      replaceActive(res.applicant);
+      if (waCurrent && waCurrent.id === a.id) {
+        waCurrent = res.applicant;
+        // Move to the other tab, so the second message is one tap away.
+        if (otherPending) setTimeout(() => { if (waCurrent && waCurrent.id === a.id) showWaTarget(other); }, 400);
+        else renderWaTo();
+      }
+      render();
+      if (openId === a.id) openPanel(a.id);
+    })
     .catch(() => { /* only the note failed; the message itself is in the coach's hands */ });
 }
 $('adWaOpen').addEventListener('click', waOpened);
@@ -1063,7 +1266,7 @@ $('adWaNext').addEventListener('click', () => {
    birth year on screen — the ones not messaged yet first. */
 function unpaidSelected() {
   return inYear(inEvent(active)).filter((a) => a.status === 'selected' && !a.paidAt)
-    .sort((x, y) => (x.waSentAt ? 1 : 0) - (y.waSentAt ? 1 : 0));
+    .sort((x, y) => (waState(x).done ? 1 : 0) - (waState(y).done ? 1 : 0));
 }
 function renderWaAll() {
   const n = unpaidSelected().length;
@@ -1557,8 +1760,11 @@ $('adCsv').addEventListener('click', () => {
     ['Edad', (a) => age(a.dob)],
     ['Lugar de nacimiento', (a) => a.birthplace],
     ['Nacionalidades', (a) => a.nationalities],
+    ['Ciudad donde vive', (a) => a.profile.residence],
     ['Teléfono', (a) => a.phone],
     ['Email', (a) => a.email],
+    ['Papá/mamá/tutor', (a) => a.parentName],
+    ['Tel. papá/mamá', (a) => a.parentPhone],
     ['Instagram', (a) => (a.instagram ? '@' + a.instagram : '')],
     ['TikTok', (a) => (a.tiktok ? '@' + a.tiktok : '')],
     ['Estatura', (a) => a.height],
@@ -1567,6 +1773,21 @@ $('adCsv').addEventListener('click', () => {
     ['Pierna hábil', (a) => LEG_LABEL[a.strongLeg]],
     ['Posición principal', (a) => a.positionPrimary],
     ['Posición secundaria', (a) => a.positionSecondary],
+    ['Club actual', (a) => a.profile.club],
+    ['Último club', (a) => a.profile.lastClub],
+    ['Nivel', (a) => levelText(a.profile)],
+    ['Años de experiencia', (a) => a.profile.yearsExp],
+    ['Contrato vigente', (a) => siNo(a.profile.contract)],
+    ['Academia profesional', (a) => (a.profile.proAcademy ? 'Sí — ' + a.profile.proAcademyName : siNo(a.profile.proAcademy))],
+    ['Cambiar de ciudad/país', (a) => siNo(a.profile.relocate)],
+    ['Pasaporte', (a) => (a.profile.passport ? 'Sí — ' + a.profile.passportCountry : siNo(a.profile.passport))],
+    ['Viajar a pruebas', (a) => siNo(a.profile.travel)],
+    ['Disponible', (a) => AVAIL[a.profile.available]],
+    ['Interés', (a) => INTER[a.profile.interest]],
+    ['Escuela', (a) => a.profile.school],
+    ['Grado / graduación', (a) => a.profile.grade],
+    ['GPA', (a) => a.profile.gpa],
+    ['Beca deportiva', (a) => siNo(a.profile.scholarship)],
     ['Video', (a) => a.videoUrl],
     ['Contacto de emergencia', (a) => a.emergencyName],
     ['Tel. emergencia', (a) => a.emergencyPhone],

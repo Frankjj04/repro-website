@@ -153,37 +153,28 @@
     <p data-i18n="ev26_p">Cada fecha es solo para esos años de nacimiento.</p>
   </div>
 
-  <div class="ev26-grid max-1200 reveal">
-    <article class="ev26-card" data-event="nov-10-11">
-      <div class="ev26-date" data-i18n="nov_d1">10 y 11 NOV</div>
-      <div class="ev26-years" data-i18n="nov_y1">Nacidos 2003-2008</div>
-      <ul class="ev26-leagues">
-        <li>Liga de Expansión</li>
-        <li>2da Premier</li>
-        <li>USL</li>
-      </ul>
-      <a href="registro.html" class="btn btn-outline btn-sm" data-i18n="nov_cta">Registrarme</a>
-    </article>
-    <article class="ev26-card ev26-featured" data-event="nov-17-18">
-      <div class="ev26-date" data-i18n="nov_d2">17 y 18 NOV</div>
-      <div class="ev26-years" data-i18n="nov_y2">Nacidos 2008-2011</div>
-      <ul class="ev26-leagues">
-        <li>Liga MX</li>
-      </ul>
-      <a href="registro.html" class="btn btn-primary btn-sm" data-i18n="nov_cta">Registrarme</a>
-    </article>
-    <article class="ev26-card" data-event="nov-24-25">
-      <div class="ev26-date" data-i18n="nov_d3">24 y 25 NOV</div>
-      <div class="ev26-years" data-i18n="nov_y3">Nacidos 2011-2014</div>
-      <ul class="ev26-leagues">
-        <li>MLS</li>
-      </ul>
-      <a href="registro.html" class="btn btn-outline btn-sm" data-i18n="nov_cta">Registrarme</a>
-    </article>
-  </div>
+  <!-- Built by js/event-cards.js from js/registro-config.js: every event
+       open for sign-ups, so this page and the form always agree. -->
+  <div class="ev26-grid max-1200 reveal" id="evOpenCards"></div>
 
   <p class="ev26-note reveal" data-i18n="ev26_note">Los jugadores invitados reciben el link de pago por correo, WhatsApp o mensaje de texto. Al pagar, les mandamos el lugar, el horario y qué traer.</p>
 </section>
+
+<!-- ========== 2027 CALENDAR (coach, 2026-11-16) ========== -->
+<section class="dot-bg" id="calendario">
+  <div class="section-header center reveal">
+    <span class="section-tag" data-i18n="cal_tag">Calendario 2027</span>
+    <h2 data-i18n-html="cal_h2">VISORÍAS Y <span style="color:var(--orange);">SHOWCASES</span> 2027</h2>
+    <p data-i18n="cal_p">10 eventos en 8 meses. Todos los eventos son martes y miércoles.</p>
+  </div>
+  <div class="cal-list max-1200 reveal" id="evCalendar"></div>
+  <div class="cal-free max-1200 reveal">
+    <strong data-i18n="cal_free_h">Meses libres</strong>
+    <span data-i18n="cal_free_p">Julio, agosto, septiembre y diciembre: seguimiento, pruebas con clubes y colocación de jugadores.</span>
+  </div>
+</section>
+
+<div class="section-divider"></div>
 
 <!-- ========== HOW IT WORKS ========== -->
 <section class="dot-bg">

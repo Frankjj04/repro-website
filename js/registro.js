@@ -4,7 +4,7 @@
    see and fix before sending. Every refusal code the server can send has an
    entry in REFUSALS; a test fails if one is missing. */
 
-import { EVENTS, POSITIONS, MINOR_AGE, CHILD_AGE, isOpen } from './registro-config.js';
+import { EVENTS, POSITIONS, LEVELS, AVAILABLE, INTEREST, MINOR_AGE, CHILD_AGE, isOpen } from './registro-config.js';
 
 /* server code → [data-field to highlight, i18n key]. Codes that are not about
    one field highlight nothing. */
@@ -14,10 +14,27 @@ export const REFUSALS = {
   event_age: ['event', 'rg_err_event_age'],
   name: ['name', 'rg_err_name'],
   instagram: ['instagram', 'rg_err_instagram'],
-  tiktok: ['tiktok', 'rg_err_tiktok'],
+  birthplace: ['birthplace', 'rg_err_birthplace'],
+  residence: ['residence', 'rg_err_residence'],
+  club: ['club', 'rg_err_club'],
+  level: ['level', 'rg_err_level'],
+  level_other: ['level_other', 'rg_err_level_other'],
+  years_exp: ['years_exp', 'rg_err_years_exp'],
+  contract: ['contract', 'rg_err_contract'],
+  pro_academy: ['pro_academy', 'rg_err_pro_academy'],
+  pro_academy_name: ['pro_academy_name', 'rg_err_pro_academy_name'],
+  relocate: ['relocate', 'rg_err_relocate'],
+  passport: ['passport', 'rg_err_passport'],
+  passport_country: ['passport_country', 'rg_err_passport_country'],
+  travel: ['travel', 'rg_err_travel'],
+  available: ['available', 'rg_err_available'],
+  interest: ['interest', 'rg_err_interest'],
+  gpa: ['gpa', 'rg_err_gpa'],
+  scholarship: ['scholarship', 'rg_err_scholarship'],
+  parent_name: ['parent_name', 'rg_err_parent_name'],
+  parent_phone: ['parent_phone', 'rg_err_parent_phone'],
   dob: ['dob', 'rg_err_dob'],
   dob_bad: ['dob', 'rg_err_dob_bad'],
-  birthplace: ['birthplace', 'rg_err_birthplace'],
   nationalities: ['nationalities', 'rg_err_nationalities'],
   phone: ['phone', 'rg_err_phone'],
   email: ['email', 'rg_err_email'],
@@ -27,7 +44,6 @@ export const REFUSALS = {
   photo_type: ['photo', 'rg_err_photo_type'],
   height: ['height', 'rg_err_height'],
   weight: ['weight', 'rg_err_weight'],
-  mls_next: ['mls_next', 'rg_err_mls_next'],
   strong_leg: ['strong_leg', 'rg_err_strong_leg'],
   position_primary: ['position_primary', 'rg_err_position_primary'],
   position_secondary: ['position_secondary', 'rg_err_position_secondary'],
@@ -63,71 +79,102 @@ function init() {
     return;
   }
 
-  /* ---------- the three events, above the form ---------- */
+  /* ---------- the events, above the form: pick one or several ----------
+     Once the birth date is in, the dates that are not for that age are
+     greyed out, so nobody picks one the server would refuse. */
+  const picked = new Set(openEvents.length === 1 ? [openEvents[0].id] : []);
+  const fits = (e, dob) => {
+    const y = Number(String(dob).slice(0, 4));
+    return y >= e.years[0] && y <= e.years[1];
+  };
+  const dobNow = () => (/^\d{4}-\d{2}-\d{2}$/.test($('rgDob').value) ? $('rgDob').value : '');
+  const fill = (key, a, b) => t(key).replace('{a}', a).replace('{b}', b);
+  const evName = (e) => (e.name ? e.name[lang()] : e.leagues.join(' · '));
+
   function renderEventCards() {
+    const dob = dobNow();
     $('rgEventCards').replaceChildren(...openEvents.map((e) => {
+      const ok = !dob || fits(e, dob);
+      const on = picked.has(e.id);
       const card = document.createElement('button');
       card.type = 'button';
-      card.className = 'rg-event-card' + ($('rgEvent').value === e.id ? ' active' : '');
+      card.className = 'rg-event-card' + (on ? ' active' : '') + (ok ? '' : ' rg-event-off');
       card.dataset.event = e.id;
+      card.setAttribute('aria-pressed', on ? 'true' : 'false');
+      if (!ok) card.setAttribute('aria-disabled', 'true');
 
       const dates = document.createElement('div');
       dates.className = 'rg-event-dates';
       dates.textContent = e.dates[lang()];
 
-      const leagues = document.createElement('ul');
-      leagues.className = 'rg-event-leagues';
-      e.leagues.forEach((l) => {
-        const li = document.createElement('li');
-        li.textContent = l;
-        leagues.append(li);
-      });
+      const name = document.createElement('div');
+      name.className = 'rg-event-name';
+      name.textContent = evName(e);
 
       const years = document.createElement('div');
       years.className = 'rg-event-years';
-      years.textContent = t('rg_ev_born') + ' ' + e.years[0] + '-' + e.years[1];
+      const line = (text) => { const x = document.createElement('span'); x.textContent = text; return x; };
+      if (e.ages) years.append(line(fill('rg_ev_ages', e.ages[0], e.ages[1])));
+      years.append(line(t('rg_ev_born') + ' ' + e.years[0] + '–' + e.years[1]));
 
       const pick = document.createElement('span');
       pick.className = 'rg-event-pick';
-      pick.textContent = t('rg_ev_pick');
+      pick.textContent = !ok ? t('rg_ev_noage') : on ? t('rg_ev_picked') : t('rg_ev_pick');
 
-      card.append(dates, leagues, years, pick);
+      card.append(dates, name, years, pick);
       return card;
     }));
   }
 
-  // Tapping a card is the same as choosing it in the dropdown.
   $('rgEventCards').addEventListener('click', (e) => {
     const card = e.target.closest('.rg-event-card');
-    if (!card) return;
-    $('rgEvent').value = card.dataset.event;
+    if (!card || card.classList.contains('rg-event-off')) return;
+    const id = card.dataset.event;
+    picked.has(id) ? picked.delete(id) : picked.add(id);
     renderEventCards();
-    clearError();
+    if (lastError && lastError[0] === 'event') clearError();
   });
-  $('rgEvent').addEventListener('change', () => { renderEventCards(); });
-
-  const fits = (e, dob) => {
-    const y = Number(String(dob).slice(0, 4));
-    return y >= e.years[0] && y <= e.years[1];
-  };
 
   /* ---------- dropdowns, in the current language ---------- */
-  function renderOptions() {
-    const ev = $('rgEvent');
-    const keepEv = ev.value;
-    ev.replaceChildren(...openEvents.map((e) => new Option(e.label[lang()], e.id)));
-    if (keepEv) ev.value = keepEv;
-    // With one open event there is nothing to choose; the dropdown just shows it.
-    ev.disabled = openEvents.length === 1;
-    renderEventCards();
-
-    document.querySelectorAll('.rg-position').forEach((sel) => {
-      const keep = sel.value;
-      const blank = new Option(t('rg_choose'), '');
-      sel.replaceChildren(blank, ...POSITIONS.map((p) => new Option(p[lang()], p.id)));
-      sel.value = keep;
-    });
+  function fillSelect(sel, list) {
+    const keep = sel.value;
+    sel.replaceChildren(new Option(t('rg_choose'), ''), ...list.map((x) => new Option(x[lang()], x.id)));
+    sel.value = keep;
   }
+  function renderOptions() {
+    renderEventCards();
+    document.querySelectorAll('.rg-position').forEach((sel) => fillSelect(sel, POSITIONS));
+    fillSelect($('rgLevel'), LEVELS);
+    fillSelect($('rgAvailable'), AVAILABLE);
+    fillSelect($('rgInterest'), INTEREST);
+  }
+
+  /* ---------- follow-up questions that only appear on the right answer ---------- */
+  const radio = (name) => (form.querySelector(`input[name="${name}"]:checked`) || {}).value;
+  function updateFollowUps() {
+    $('rgLevelOtherGroup').hidden = $('rgLevel').value !== 'otro';
+    $('rgProAcademyGroup').hidden = radio('proAcademy') !== 'yes';
+    $('rgPassportGroup').hidden = radio('passport') !== 'yes';
+  }
+  form.addEventListener('change', (e) => {
+    if (['level', 'proAcademy', 'passport'].includes(e.target.name)) updateFollowUps();
+  });
+
+  /* Under 18 the emergency contact is usually the same parent: one tap copies it. */
+  function copyParentToEmergency() {
+    if (!$('rgEmSame').checked) return;
+    $('rgEmName').value = $('rgParentName').value;
+    $('rgEmPhone').value = $('rgParentPhone').value;
+  }
+  $('rgEmSame').addEventListener('change', () => {
+    const same = $('rgEmSame').checked;
+    copyParentToEmergency();
+    $('rgEmName').readOnly = same;
+    $('rgEmPhone').readOnly = same;
+    if (!same) { $('rgEmName').value = ''; $('rgEmPhone').value = ''; }
+  });
+  $('rgParentName').addEventListener('input', copyParentToEmergency);
+  $('rgParentPhone').addEventListener('input', copyParentToEmergency);
 
   /* ---------- signature: under 18, a parent or guardian signs ---------- */
   function playerAge() {
@@ -156,6 +203,14 @@ function init() {
   }
   function updateGuardian() {
     const minor = isMinor();
+    // Under 18: the parent's name and phone, so the invitation reaches them too.
+    $('rgParentBlock').hidden = !minor;
+    $('rgEmSameWrap').hidden = !minor;
+    if (!minor && $('rgEmSame').checked) {
+      $('rgEmSame').checked = false;
+      $('rgEmName').readOnly = false;
+      $('rgEmPhone').readOnly = false;
+    }
     setKey($('rgSignLabel'), minor ? 'rg_sign_minor' : 'rg_sign');
     setKey($('rgSignHelp'), minor ? 'rg_sign_help_minor' : 'rg_sign_help');
 
@@ -240,7 +295,8 @@ function init() {
     clearError();
     lastError = [field, key];
     const box = $('rgError');
-    box.textContent = key === 'rg_err_event_age' ? eventAgeMessage() : t(key);
+    box.textContent = key === 'rg_err_event_age' ? eventAgeMessage()
+      : key === 'rg_err_duplicate' ? duplicateMessage() : t(key);
     box.hidden = false;
     const group = field && form.querySelector(`[data-field="${field}"]`);
     if (group) {
@@ -253,41 +309,60 @@ function init() {
     }
   }
 
-  /* Wrong birth year for that date: say which years it takes, and point at
-     the date that fits theirs — or say there is none. */
+  /* Wrong birth year for a picked date: say which years it takes. */
+  let badEvent = null;
   function eventAgeMessage() {
-    const chosen = openEvents.find((e) => e.id === $('rgEvent').value);
-    const dob = form.elements.dob.value;
-    let msg = chosen
-      ? t('rg_err_event_age').replace('{from}', chosen.years[0]).replace('{to}', chosen.years[1])
-      : '';
-    const other = dob && openEvents.find((e) => e !== chosen && fits(e, dob));
-    if (other) msg += ' ' + t('rg_err_event_yours').replace('{event}', other.label[lang()]);
-    else if (dob && !openEvents.some((e) => fits(e, dob))) msg += ' ' + t('rg_err_event_none');
-    return msg.trim();
+    const e = openEvents.find((x) => x.id === badEvent) || openEvents.find((x) => picked.has(x.id) && !fits(x, dobNow()));
+    let msg = e ? t('rg_err_event_age').replace('{from}', e.years[0]).replace('{to}', e.years[1]) : '';
+    const dob = dobNow();
+    if (dob && !openEvents.some((x) => fits(x, dob))) msg += ' ' + t('rg_err_event_none');
+    return (e ? e.label[lang()] + ': ' : '') + msg.trim();
+  }
+  let dupEvents = [];
+  function duplicateMessage() {
+    const names = dupEvents.map((id) => (EVENTS.find((x) => x.id === id) || { label: { es: id, en: id } }).label[lang()]);
+    return t('rg_err_duplicate').replace('{events}', names.join(' · ') || '—');
   }
 
   /* ---------- collect + quick checks (the server has the final word) ---------- */
   function collect() {
     const v = (name) => (form.elements[name].value || '').trim();
-    const radio = (name) => (form.querySelector(`input[name="${name}"]:checked`) || {}).value;
-    const mls = radio('mlsNext');
+    const yn = (name) => { const r = radio(name); return r === 'yes' ? true : r === 'no' ? false : null; };
     return {
-      event: $('rgEvent').value,
+      events: openEvents.filter((e) => picked.has(e.id)).map((e) => e.id),
       name: v('name'),
       dob: v('dob'),
       birthplace: v('birthplace'),
       nationalities: v('nationalities'),
-      phone: v('phone'),
-      email: v('email'),
-      instagram: v('instagram'),
-      tiktok: v('tiktok'),
+      residence: v('residence'),
       height: v('height'),
       weight: v('weight'),
-      mlsNext: mls === 'yes' ? true : mls === 'no' ? false : null,
       strongLeg: radio('strongLeg') || '',
       positionPrimary: v('positionPrimary'),
       positionSecondary: v('positionSecondary'),
+      club: v('club'),
+      lastClub: v('lastClub'),
+      level: v('level'),
+      levelOther: v('levelOther'),
+      yearsExp: v('yearsExp'),
+      contract: yn('contract'),
+      proAcademy: yn('proAcademy'),
+      proAcademyName: v('proAcademyName'),
+      relocate: yn('relocate'),
+      passport: yn('passport'),
+      passportCountry: v('passportCountry'),
+      travel: yn('travel'),
+      available: v('available'),
+      interest: v('interest'),
+      school: v('school'),
+      grade: v('grade'),
+      gpa: v('gpa'),
+      scholarship: yn('scholarship'),
+      phone: v('phone'),
+      email: v('email'),
+      parentName: v('parentName'),
+      parentPhone: v('parentPhone'),
+      instagram: v('instagram'),
       videoUrl: v('videoUrl'),
       emergencyName: v('emergencyName'),
       emergencyPhone: v('emergencyPhone'),
@@ -303,24 +378,47 @@ function init() {
     };
   }
 
+  /* The same order as the server, so the first thing it would refuse is the
+     first thing highlighted here. */
   function firstProblem(b) {
     const digits = (s) => s.replace(/\D/g, '').length;
+    const num = (s) => Number(String(s).replace(',', '.').replace(/[^\d.]/g, ''));
+    if (!b.events.length) return 'event';
     if (!b.name) return 'name';
     if (!b.dob) return 'dob';
-    // Each date takes only its own birth years.
-    const chosen = openEvents.find((e) => e.id === b.event);
-    if (!chosen || !fits(chosen, b.dob)) return 'event_age';
+    badEvent = null;
+    const wrong = openEvents.find((e) => b.events.includes(e.id) && !fits(e, b.dob));
+    if (wrong) { badEvent = wrong.id; return 'event_age'; }
     if (!b.birthplace) return 'birthplace';
     if (!b.nationalities) return 'nationalities';
-    if (digits(b.phone) < 7 || digits(b.phone) > 15) return 'phone';
-    if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(b.email)) return 'email';
-    if (!b.photo) return 'photo_missing';
-    if (!b.height) return 'height';
-    if (!b.weight) return 'weight';
-    if (b.mlsNext === null) return 'mls_next';
+    if (!b.residence) return 'residence';
+    if (!num(b.height)) return 'height';
+    if (!num(b.weight)) return 'weight';
     if (!b.strongLeg) return 'strong_leg';
+    if (!b.photo) return 'photo_missing';
     if (!b.positionPrimary) return 'position_primary';
     if (!b.positionSecondary) return 'position_secondary';
+    if (!b.club) return 'club';
+    if (!b.level) return 'level';
+    if (b.level === 'otro' && !b.levelOther) return 'level_other';
+    if (!/^\d{1,2}$/.test(b.yearsExp)) return 'years_exp';
+    if (b.contract === null) return 'contract';
+    if (b.proAcademy === null) return 'pro_academy';
+    if (b.proAcademy && !b.proAcademyName) return 'pro_academy_name';
+    if (b.relocate === null) return 'relocate';
+    if (b.passport === null) return 'passport';
+    if (b.passport && !b.passportCountry) return 'passport_country';
+    if (b.travel === null) return 'travel';
+    if (!b.available) return 'available';
+    if (!b.interest) return 'interest';
+    if (b.gpa && !/^\d([.,]\d{1,2})?$/.test(b.gpa)) return 'gpa';
+    if (b.scholarship === null) return 'scholarship';
+    if (digits(b.phone) < 7 || digits(b.phone) > 15) return 'phone';
+    if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(b.email)) return 'email';
+    if (isMinor()) {
+      if (!b.parentName) return 'parent_name';
+      if (digits(b.parentPhone) < 7 || digits(b.parentPhone) > 15) return 'parent_phone';
+    }
     if (!b.emergencyName) return 'emergency_name';
     if (digits(b.emergencyPhone) < 7 || digits(b.emergencyPhone) > 15) return 'emergency_phone';
     if (!b.emergencyRelationship) return 'emergency_relationship';
@@ -378,12 +476,15 @@ function init() {
       return;
     }
     const code = data.code || data.error;
+    if (code === 'event_age') badEvent = data.event || null;
+    if (code === 'duplicate') dupEvents = data.events || [];
     const hit = REFUSALS[code];
     showError(...(hit || [null, 'rg_err_server_error']));
   });
 
-  $('rgDob').addEventListener('change', updateGuardian);
-  $('rgDob').addEventListener('input', updateGuardian);
+  const onDob = () => { updateGuardian(); renderEventCards(); };
+  $('rgDob').addEventListener('change', onDob);
+  $('rgDob').addEventListener('input', onDob);
   // Fixing the highlighted field clears its message straight away.
   const clearIfFixed = (e) => {
     if (e.target.closest('.rg-invalid')) clearError();
@@ -406,6 +507,7 @@ function init() {
   });
 
   renderOptions();
+  updateFollowUps();
   updateGuardian();
   updateDate();
   updateVideoWa();

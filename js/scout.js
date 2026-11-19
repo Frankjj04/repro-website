@@ -3,7 +3,7 @@
    Everything shown comes from /api/share, which decides what a scout may see.
    All values are written with textContent. */
 
-import { POSITIONS } from './registro-config.js';
+import { POSITIONS, LEVELS } from './registro-config.js';
 
 const $ = (id) => document.getElementById(id);
 const WHATSAPP = '17028319474';
@@ -19,6 +19,7 @@ const T = {
     players: (n) => n + (n === 1 ? ' jugador' : ' jugadores'),
     all: 'Todos', category: 'Categoría', years: 'años',
     born: 'Nació en', nationality: 'Nacionalidad', height: 'Estatura', weight: 'Peso',
+    lives: 'Vive en', club: 'Club actual', level: 'Nivel', exp: 'Experiencia', exp_n: (n) => n + (n === 1 ? ' año' : ' años'),
     foot: 'Pierna hábil', positions: 'Posiciones', mls: 'Jugó MLS NEXT',
     right: 'Derecha', left: 'Izquierda', both: 'Ambas',
     video: '▶ Ver video', novideo: 'Sin video',
@@ -42,6 +43,7 @@ const T = {
     players: (n) => n + (n === 1 ? ' player' : ' players'),
     all: 'All', category: 'Birth year', years: 'years old',
     born: 'Born in', nationality: 'Nationality', height: 'Height', weight: 'Weight',
+    lives: 'Lives in', club: 'Current club', level: 'Level', exp: 'Experience', exp_n: (n) => n + (n === 1 ? ' year' : ' years'),
     foot: 'Strong leg', positions: 'Positions', mls: 'Played MLS NEXT',
     right: 'Right', left: 'Left', both: 'Both',
     video: '▶ Watch video', novideo: 'No video',
@@ -82,6 +84,11 @@ function applyStatic() {
   $('scUnavailableContact').href = wa(t('wa_general'));
 }
 
+function levelName(id) {
+  const l = LEVELS.find((x) => x.id === id);
+  return l ? l[lang] : '';
+}
+
 function position(id) {
   const p = POSITIONS.find((x) => x.id === id);
   return p ? p[lang] : id;
@@ -116,7 +123,11 @@ function card(p) {
     [t('weight'), p.weight],
     [t('nationality'), p.nationalities],
     [t('born'), p.birthplace],
-  ].forEach(([k, v]) => facts.append(el('dt', null, k), el('dd', null, v)));
+    [t('lives'), p.residence],
+    [t('club'), p.club],
+    [t('level'), p.level === 'otro' ? p.levelOther : levelName(p.level)],
+    [t('exp'), p.yearsExp === '' || p.yearsExp == null ? '' : T[lang].exp_n(Number(p.yearsExp))],
+  ].filter(([, v]) => v !== '' && v != null).forEach(([k, v]) => facts.append(el('dt', null, k), el('dd', null, v)));
   body.append(facts);
 
   if (p.mlsNext) body.append(el('span', 'sc-mls', '★ ' + t('mls')));
