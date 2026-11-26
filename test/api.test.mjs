@@ -96,7 +96,7 @@ async function post(body) {
 /* The 2027 dates open for sign-ups, priced — so the tests about the November
    dates are not tripped up by the January–April ones. */
 const { EVENTS } = await import('../js/registro-config.js');
-const Y27 = Object.fromEntries(EVENTS.filter((e) => e.open && (e.start || '') >= '2027')
+const Y27 = Object.fromEntries(EVENTS.filter((e) => e.open && (e.start || '') >= '2026-12')
   .map((e) => [e.id, { price: '$150', payLink: 'https://buy.stripe.com/z' }]));
 
 console.log('validation');
