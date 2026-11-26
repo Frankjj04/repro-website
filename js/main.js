@@ -14,7 +14,11 @@ class BeProParticles {
     this.maxDist = 130;
     this.visible = true;
     this.resize();
-    window.addEventListener('resize', () => this.resize(), { passive: true });
+    // iPhone fires 'resize' whenever the address bar slides away mid-scroll;
+    // only rebuild the dots when the width really changes (rotation, window).
+    window.addEventListener('resize', () => {
+      if (window.innerWidth !== this.canvas.width) this.resize();
+    }, { passive: true });
 
     // People who asked their phone for less motion get the dots, standing still.
     if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) {

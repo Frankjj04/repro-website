@@ -41,7 +41,7 @@
   /* ---------- staggered entrances ---------- */
   const GROUPS = '.upcoming-grid, .ev26-grid, .needs-grid, .impact-grid, .photo-grid, .cal-list, .ev26-steps, ' +
     '.bento, .ev-photos, .team-grid, .tiers-grid, .steps-grid, .pillars-grid, .gallery-grid, .eco-grid, .features-grid, .ss-list';
-  const STEP = 60, MAX = 420;
+  const STEP = 35, MAX = 175;
 
   function stagger(group) {
     [...group.children].forEach((child, i) => {
@@ -53,7 +53,7 @@
   // Sibling .reveal blocks inside one section also arrive in order.
   document.querySelectorAll('section, .stats-bar').forEach((sec) => {
     sec.querySelectorAll(':scope .reveal, :scope .reveal-left, :scope .reveal-right').forEach((el, i) => {
-      el.style.setProperty('--stagger', Math.min(i * 90, 360) + 'ms');
+      el.style.setProperty('--stagger', Math.min(i * 50, 150) + 'ms');
     });
   });
 

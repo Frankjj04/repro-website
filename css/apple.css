@@ -39,7 +39,7 @@
   --spring-soft: cubic-bezier(0.32, 0.72, 0, 1);
   --t-fast: 140ms;
   --t-med: 380ms;
-  --t-slow: 820ms;
+  --t-slow: 460ms;
 
   --shadow-1: 0 1px 0 rgba(255,255,255,0.06) inset, 0 10px 30px -12px rgba(0,0,0,0.55);
   --shadow-2: 0 1px 0 rgba(255,255,255,0.08) inset, 0 30px 60px -24px rgba(0,0,0,0.7), 0 8px 18px -10px rgba(0,0,0,0.5);
@@ -530,7 +530,7 @@ footer { background: linear-gradient(180deg, transparent, rgba(0,0,0,0.35)) !imp
 @media (hover: hover) {
   .in-view .fl-item:hover { transition-delay: 0ms !important; }
 }
-.fl-shelf { opacity: 0; transform: translateY(30px); transition: opacity 900ms var(--spring) 250ms, transform 900ms var(--spring) 250ms; }
+.fl-shelf { opacity: 0; transform: translateY(20px); transition: opacity 480ms var(--spring) 60ms, transform 480ms var(--spring) 60ms; }
 .fl-shelf.in-view { opacity: 1; transform: none; }
 
 /* ---------- refinements after the first look ---------- */
@@ -554,7 +554,7 @@ select option { background: #10142F; color: #F5F7FB; }
 /* Headings rise out of a mask as their section arrives. */
 .reveal h2, .reveal-left h2, .reveal-right h2 {
   clip-path: inset(0 0 0 0); transform: none;
-  transition: transform 1s var(--spring), opacity 1s var(--spring);
+  transition: transform var(--t-slow) var(--spring), opacity var(--t-slow) var(--spring);
 }
 .reveal:not(.in-view) h2, .reveal-left:not(.in-view) h2, .reveal-right:not(.in-view) h2 { transform: translateY(0.35em); opacity: 0.001; }
 
@@ -597,3 +597,25 @@ select option { background: #10142F; color: #F5F7FB; }
   .ev-photos .bento-tile:first-child { grid-column: 1 / -1; height: 260px; }
 }
 @media (prefers-reduced-motion: reduce) { .bento-tile img { transition: none; } }
+
+/* =========================================================================
+   SPEED PASS (2026-11-26, coach: "se alenta… no está igual de rápida")
+   Phones pay for every blurred layer on every frame, and the hero canvas
+   under them animates constantly. On touch screens and small windows the
+   small glass pieces become solid (they were 82%+ opaque already, so the
+   look barely changes) and the navbar keeps a lighter blur.
+   ========================================================================= */
+@media (hover: none), (max-width: 900px) {
+  .stat-item, .hero-eyebrow, .btn-secondary, .btn-outline {
+    backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+  }
+  .btn-secondary, .btn-outline { background: rgba(255,255,255,0.09); }
+  .hero-eyebrow { background: rgba(20, 26, 60, 0.85); }
+  .stat-item { background: rgba(12, 16, 44, 0.94) !important; }
+  .navbar, .navbar.scrolled {
+    background: rgba(10, 14, 40, 0.86) !important;
+    backdrop-filter: blur(10px) !important; -webkit-backdrop-filter: blur(10px) !important;
+  }
+  .mobile-nav { backdrop-filter: blur(14px) !important; -webkit-backdrop-filter: blur(14px) !important; }
+  .photo-item img, .gallery-item img, .bento-tile img { transition: none; }
+}
