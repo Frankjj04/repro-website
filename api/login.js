@@ -6,6 +6,8 @@ import { checkPassword, issueCookie, clearCookie, isSignedIn, isConfigured }
   from '../lib/auth.js';
 import { clientIp, readAttempts, saveAttempts, nextState, LOCK_MINUTES }
   from '../lib/lockout.js';
+import { query, isConfigured as dbConfigured } from '../lib/db.js';
+import { hit, ipOf, tooMany } from '../lib/ratelimit.js';
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
@@ -27,6 +29,16 @@ export default async function handler(req, res) {
       error: 'not_configured',
       message: 'Falta configurar ADMIN_PASSWORD en el proyecto.',
     });
+  }
+
+  // On top of the per-address lock below: an atomic count that parallel
+  // guesses can't race past, and a ceiling for all addresses together.
+  // If the count can't be checked, refuse (security pass, 2026-11-26).
+  if (dbConfigured()) {
+    const mine = await hit(query, 'login', ipOf(req), 10, 15 * 60, { failClosed: true });
+    if (!mine.ok) return tooMany(res, mine);
+    const all = await hit(query, 'login_all', '*', 60, 15 * 60, { failClosed: true });
+    if (!all.ok) return tooMany(res, all);
   }
 
   const password = (req.body && req.body.password) || '';

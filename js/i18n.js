@@ -389,6 +389,7 @@ const BEPRO_TRANSLATIONS = {
     rg_err_emergency_relationship: 'Enter the relationship.',
     rg_err_waiver: 'You must accept the waiver to register.',
     rg_err_server_error: 'We couldn\'t save your registration. Please try again.',
+    rg_err_too_many: 'Too many applications from this connection. Please wait a while and try again.',
     rg_err_not_configured: 'Registration isn\'t available yet. Message us on WhatsApp.',
     rg_err_connection: 'No connection. Check your internet and try again.',
 
@@ -942,6 +943,7 @@ const BEPRO_TRANSLATIONS = {
     rg_err_emergency_relationship: 'Escribe el parentesco.',
     rg_err_waiver: 'Tienes que aceptar el descargo para registrarte.',
     rg_err_server_error: 'No pudimos guardar tu registro. Inténtalo otra vez.',
+    rg_err_too_many: 'Demasiados registros desde esta conexión. Espera un rato e inténtalo otra vez.',
     rg_err_not_configured: 'El registro todavía no está disponible. Escríbenos por WhatsApp.',
     rg_err_connection: 'No hay conexión. Revisa tu internet e inténtalo otra vez.',
 

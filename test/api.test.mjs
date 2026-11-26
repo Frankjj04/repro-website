@@ -748,12 +748,12 @@ function fakeDb(applicants) {
   const db = { applicants, payments: [], sql: [] };
   db.query = async (text, params = []) => {
     db.sql.push(text);
-    if (/^SELECT id FROM applicants WHERE id = \$1/.test(text)) {
-      return { rows: applicants.filter((a) => a.id === params[0]).map((a) => ({ id: a.id })) };
+    if (/^SELECT id, event FROM applicants WHERE id = \$1/.test(text)) {
+      return { rows: applicants.filter((a) => a.id === params[0] && !a.deletedAt && a.status === 'selected').map((a) => ({ id: a.id, event: a.event })) };
     }
     if (/lower\(email\) = \$1 OR lower\(parent_email\) = \$1/.test(text)) {
       return { rows: applicants.filter((a) => !a.deletedAt && a.status === 'selected' &&
-        (a.email.toLowerCase() === params[0] || (a.parentEmail || '').toLowerCase() === params[0])).map((a) => ({ id: a.id })) };
+        (a.email.toLowerCase() === params[0] || (a.parentEmail || '').toLowerCase() === params[0])).map((a) => ({ id: a.id, event: a.event })) };
     }
     if (/^\s*INSERT INTO payments/.test(text)) {
       if (db.payments.some((p) => p.session === params[0])) return { rows: [] };
@@ -832,6 +832,32 @@ await test('without a reference, one invited player with that email is matched â
   const r = await recordCheckout(session({ client_reference_id: null }), two);
   assert.equal(r.applicantId, null);
   assert.equal(two.payments.length, 1, 'kept anyway, as unmatched');
+});
+
+await test('security: a cheaper payment carrying another player\'s reference does not mark them paid', async () => {
+  const { priceCents, coversEvent } = await import('../lib/payments.js');
+  assert.equal(priceCents('$365'), 36500);
+  assert.equal(priceCents('$1,250.50'), 125050);
+  assert.equal(priceCents('365 USD'), 36500);
+  assert.equal(priceCents('a definir'), null);
+  const prices = { logistics: { [invitee().event]: { price: '$365' } } };
+  assert.equal(coversEvent({ amount_total: 36500, currency: 'usd' }, invitee().event, prices), true);
+  assert.equal(coversEvent({ amount_total: 9500, currency: 'usd' }, invitee().event, prices), false);
+  assert.equal(coversEvent({ amount_total: 36500, currency: 'mxn' }, invitee().event, prices), false);
+  assert.equal(coversEvent({ amount_total: 100, currency: 'usd' }, invitee().event, { logistics: {} }), true, 'no price typed â†’ cannot check');
+
+  const cheap = fakeDb([invitee()]);
+  const r = await recordCheckout(session({ amount_total: 9500 }), { query: cheap.query, settings: prices });
+  assert.equal(r.applicantId, null, 'left for the coach to look at');
+  assert.equal(cheap.applicants[0].paidAt, undefined);
+  assert.equal(cheap.payments.length, 1, 'the payment is still recorded, as unmatched');
+
+  const right = fakeDb([invitee()]);
+  assert.equal((await recordCheckout(session(), { query: right.query, settings: prices })).applicantId, 7);
+
+  const notInvited = fakeDb([invitee({ status: 'applied' })]);
+  assert.equal((await recordCheckout(session({ customer_details: { email: 'x@example.com' } }), { query: notInvited.query, settings: prices })).applicantId, null,
+    'a reference to a player who was never invited matches nobody');
 });
 
 await test('an unpaid or empty session records nothing', async () => {

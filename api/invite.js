@@ -29,6 +29,20 @@ import { logSent } from '../lib/mail-status.js';
 
 const SITE = (process.env.SITE_URL || 'https://bepro.futbol').replace(/\/+$/, '');
 
+import { hit, ipOf, tooMany } from '../lib/ratelimit.js';
+
+/* Server-side brakes on email (security pass, 2026-11-26): the same player
+   at most 3 emails in 10 minutes, and at most 95 a day in total — Resend's
+   free plan stops at 100. A stolen session or a stuck button can't flood
+   inboxes or burn the sender's reputation. */
+async function emailBudget(res, id) {
+  const one = await hit(query, 'email_player', String(id), 3, 10 * 60);
+  if (!one.ok) { tooMany(res, one, 'A este jugador ya se le mandaron varios correos hace poco. Espera unos minutos.'); return false; }
+  const day = await hit(query, 'email_day', '*', 95, 24 * 60 * 60);
+  if (!day.ok) { tooMany(res, day, 'Se llegó al límite diario de correos (95). Mañana se pueden mandar más.'); return false; }
+  return true;
+}
+
 export default async function handler(req, res) {
   if (!requireAdmin(req, res)) return;
   if (!isConfigured()) return res.status(503).json({ error: 'not_configured' });
@@ -107,6 +121,7 @@ async function preview(res, id) {
 async function send(res, id) {
   const a = await load(id);
   if (!a) return res.status(404).json({ error: 'not_found' });
+  if (!(await emailBudget(res, id))) return;
 
   const payment = await loadPayment();
   const stop = blockers(a, payment);
@@ -181,6 +196,7 @@ async function previewDetails(res, id) {
 async function sendDetailsNow(res, id) {
   const a = await load(id);
   if (!a) return res.status(404).json({ error: 'not_found' });
+  if (!(await emailBudget(res, id))) return;
   const settings = await loadPayment();
   const stop = detailBlockers(a, settings);
   if (stop.length) return res.status(400).json({ error: 'not_ready', blockers: stop, message: stop.join(' ') });

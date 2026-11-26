@@ -59,7 +59,10 @@ export default async function handler(req, res) {
   const session = (event.data || {}).object || {};
   let result;
   try {
-    result = await recordCheckout(session, { query });
+    // Prices are needed to check the amount; if they can't be read, a 500
+    // makes Stripe retry instead of matching blind.
+    const prices = await loadPayment();
+    result = await recordCheckout(session, { query, settings: prices });
   } catch (err) {
     // A 500 makes Stripe try again later, which is what we want here.
     console.error('stripe record failed:', err);

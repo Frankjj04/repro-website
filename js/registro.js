@@ -10,6 +10,7 @@ import { EVENTS, POSITIONS, LEVELS, AVAILABLE, INTEREST, MINOR_AGE, CHILD_AGE, i
    one field highlight nothing. */
 export const REFUSALS = {
   event: ['event', 'rg_err_event'],
+  too_many: [null, 'rg_err_too_many'],
   event_closed: ['event', 'rg_err_event_closed'],
   event_age: ['event', 'rg_err_event_age'],
   name: ['name', 'rg_err_name'],

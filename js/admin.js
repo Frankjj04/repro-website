@@ -927,14 +927,14 @@ function fillPayForm(p) {
     const price = el('input');
     price.type = 'text';
     price.maxLength = 100;
-    price.placeholder = 'Costo de esta fecha — ej. $150';
+    price.placeholder = 'Costo de esta fecha';
     price.value = l.price || '';
     price.dataset.event = e.id;
     price.dataset.field = 'price';
     const link = el('input');
     link.type = 'url';
     link.maxLength = 300;
-    link.placeholder = 'Link de pago (Stripe) — https://buy.stripe.com/…';
+    link.placeholder = 'Link de pago (Stripe)';
     link.value = l.payLink || '';
     link.dataset.event = e.id;
     link.dataset.field = 'payLink';
@@ -975,7 +975,7 @@ function showMissing(missing) {
   ul.hidden = false;
 }
 
-/* One paste instead of a dozen boxes. Lines look like "costo 10-11: $365";
+/* One paste instead of a dozen boxes. Lines look like "costo 10-11: <price>";
    the date is matched however it is written — 10-11, 10 y 11, nov-10-11. */
 function parsePaste(text) {
   const strip = (x) => x.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
@@ -1736,7 +1736,7 @@ $('adResendAll').addEventListener('click', async () => {
     } catch (err) {
       failed.push(a.name + ': ' + err.message);
       // The mail service refused (daily limit, or it is down): the rest would fail too.
-      if (/^email_/.test(err.message)) {
+      if (/^email_|límite diario/.test(err.message)) {
         failed.push('Se detuvo aquí. Los que faltan no se mandaron; inténtalo más tarde.');
         break;
       }

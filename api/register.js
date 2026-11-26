@@ -4,6 +4,8 @@ import { query, isConfigured } from '../lib/db.js';
 import { validateApplication, decodePhoto, clean } from '../lib/validate.js';
 import { WAIVER_VERSION, CONSENT_VERSION } from '../js/registro-config.js';
 
+import { hit, ipOf, tooMany } from '../lib/ratelimit.js';
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -18,6 +20,11 @@ export default async function handler(req, res) {
   // Honeypot: a real person never fills a field they cannot see. Answer 200 so
   // a bot cannot tell it was caught.
   if (clean((req.body || {}).website, 80)) return res.status(200).json({ ok: true });
+
+  // 20 sign-ups an hour per address: a family or a coach with several players
+  // fits; a script filling the roster and the database does not.
+  const rl = await hit(query, 'register', ipOf(req), 20, 60 * 60);
+  if (!rl.ok) return tooMany(res, rl, 'Too many applications from this connection. Please wait a while and try again.');
 
   const { application: a, code, error, event } = validateApplication(req.body);
   if (error) return res.status(400).json({ error: 'invalid', code, message: error, ...(event ? { event } : {}) });

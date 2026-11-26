@@ -20,6 +20,8 @@ const LIVE = `SELECT id, name, dob, event, form_lang, parent_confirmed_at
   WHERE parent_token = $1 AND deleted_at IS NULL
     AND parent_token_expires_at > NOW()`;
 
+import { hit, ipOf, tooMany } from '../lib/ratelimit.js';
+
 export default async function handler(req, res) {
   if (!isConfigured()) return res.status(503).json({ error: 'not_configured' });
   // Never cached, never indexed: this page is about one child.
@@ -28,6 +30,8 @@ export default async function handler(req, res) {
   res.setHeader('Referrer-Policy', 'no-referrer');
 
   try {
+    const rl = await hit(query, 'permiso', ipOf(req), 40, 10 * 60);
+    if (!rl.ok) return tooMany(res, rl);
     if (req.method === 'GET') return await show(req, res);
     if (req.method === 'POST') return await record(req, res);
   } catch (err) {

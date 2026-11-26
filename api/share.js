@@ -10,6 +10,8 @@
 import { query, isConfigured } from '../lib/db.js';
 import { scoutProfile, isToken, LIVE_SHARE, VISIBLE, SCOUT_COLUMNS } from '../lib/scout.js';
 
+import { hit, ipOf, tooMany } from '../lib/ratelimit.js';
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
@@ -18,6 +20,11 @@ export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'private, no-store');
   res.setHeader('X-Robots-Tag', 'noindex, nofollow');
   if (!isConfigured()) return res.status(503).json({ error: 'not_configured' });
+
+  // A scout's page loads one photo per player: 400 requests per 10 minutes per
+  // address is plenty for that and stops anyone hammering the database.
+  const rl = await hit(query, 'share', ipOf(req), 400, 10 * 60);
+  if (!rl.ok) return tooMany(res, rl);
 
   const token = (req.query || {}).t;
   if (!isToken(token)) return res.status(404).json({ error: 'unavailable' });
