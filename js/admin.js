@@ -131,7 +131,9 @@ const inView = (a) => (view === 'history') === eventIsPast(a.event);
 function eventIdsInView() {
   const ids = [...new Set([...EVENTS.map((e) => e.id), ...active.map((a) => a.event), ...archived.map((a) => a.event)])]
     .filter((id) => (view === 'history') === eventIsPast(id));
-  const start = (id) => (EVENTS.find((e) => e.id === id) || {}).start || '';
+  // The camp sits right after "Todos", easy to find; the page still opens on
+  // the next scouting date (see renderEvents).
+  const start = (id) => { const e = EVENTS.find((x) => x.id === id) || {}; return e.kind === 'camp' ? '' : e.start || ''; };
   ids.sort((x, y) => start(x).localeCompare(start(y)));
   return view === 'history' ? ids.reverse() : ids;
 }
@@ -148,7 +150,7 @@ function renderEvents() {
   sel.replaceChildren(new Option('', ''), ...ids.map((id) => new Option(eventLabel(id), id)));
   // First visit: the next event coming up — the one the coach is working on.
   sel.value = ids.includes(keep) || keep === '' && sel.dataset.touched ? keep
-    : view === 'history' ? '' : ids[0] || '';
+    : view === 'history' ? '' : ids.find((id) => (EVENTS.find((x) => x.id === id) || {}).kind !== 'camp') || ids[0] || '';
   renderEventCards(ids);
 }
 
@@ -178,6 +180,10 @@ function renderEventCards(ids = eventIdsInView()) {
     const list = here.filter((a) => a.event === id);
     if (!e) return card(id, id, 'Evento anterior', '', list);
     const ages = e.ages ? e.ages[0] + '–' + e.ages[1] + ' años · ' : '';
+    if (e.kind === 'camp') {
+      return card(id, e.start ? e.short.es : 'CAMP', e.start ? 'BE PRO Camp' : 'BE PRO Camp · fechas por confirmar',
+        e.years[0] + '–' + e.years[1] + (e.cap ? ' · cupo ' + e.cap : ''), list);
+    }
     return card(id, e.short.es + (e.start ? ' ' + e.start.slice(0, 4) : ''), e.name ? e.name.es : e.leagues.join(' · '),
       ages + e.years[0] + '–' + e.years[1], list);
   });
