@@ -24,6 +24,9 @@ export const config = { api: { bodyParser: false } };
 
 const HANDLED = new Set(['checkout.session.completed', 'checkout.session.async_payment_succeeded']);
 
+import { recipients } from '../lib/details.js';
+import { hit } from '../lib/ratelimit.js';
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -78,6 +81,9 @@ export default async function handler(req, res) {
       const a = rows.length ? toJson(rows[0]) : null;
       if (a && !a.detailsSentAt) {
         const settings = await loadPayment();
+        // Counted in the day's email budget (never blocked: a family that
+        // just paid always gets their details).
+        for (const _ of recipients(a)) await hit(query, 'email_day', '*', 95, 24 * 60 * 60);
         result.details = await sendDetails(a, {
           query, settings, send: sendEmail, from: FROM, replyTo: REPLY_TO,
           extraTo: result.payerEmail ? [result.payerEmail] : [],

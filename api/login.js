@@ -32,13 +32,11 @@ export default async function handler(req, res) {
   }
 
   // On top of the per-address lock below: an atomic count that parallel
-  // guesses can't race past, and a ceiling for all addresses together.
+  // guesses can't race past, per address.
   // If the count can't be checked, refuse (security pass, 2026-11-26).
   if (dbConfigured()) {
     const mine = await hit(query, 'login', ipOf(req), 10, 15 * 60, { failClosed: true });
     if (!mine.ok) return tooMany(res, mine);
-    const all = await hit(query, 'login_all', '*', 60, 15 * 60, { failClosed: true });
-    if (!all.ok) return tooMany(res, all);
   }
 
   const password = (req.body && req.body.password) || '';

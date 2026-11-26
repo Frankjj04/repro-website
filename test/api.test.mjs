@@ -749,7 +749,7 @@ function fakeDb(applicants) {
   db.query = async (text, params = []) => {
     db.sql.push(text);
     if (/^SELECT id, event FROM applicants WHERE id = \$1/.test(text)) {
-      return { rows: applicants.filter((a) => a.id === params[0] && !a.deletedAt && a.status === 'selected').map((a) => ({ id: a.id, event: a.event })) };
+      return { rows: applicants.filter((a) => a.id === params[0] && !a.deletedAt).map((a) => ({ id: a.id, event: a.event })) };
     }
     if (/lower\(email\) = \$1 OR lower\(parent_email\) = \$1/.test(text)) {
       return { rows: applicants.filter((a) => !a.deletedAt && a.status === 'selected' &&
@@ -840,6 +840,11 @@ await test('security: a cheaper payment carrying another player\'s reference doe
   assert.equal(priceCents('$1,250.50'), 125050);
   assert.equal(priceCents('365 USD'), 36500);
   assert.equal(priceCents('a definir'), null);
+  assert.equal(priceCents('Nov 10-11: $365'), 36500, 'the $ amount wins over the dates');
+  assert.equal(priceCents('$365 o $300 si pagas antes'), null, 'two prices → not checked');
+  assert.equal(priceCents('$1.250,50'), null, 'not US style → not checked');
+  assert.equal(coversEvent({ amount_total: 32850, amount_subtotal: 36500, currency: 'usd' }, invitee().event, { logistics: { [invitee().event]: { price: '$365' } } }), true,
+    'a coupon the coach gave still matches');
   const prices = { logistics: { [invitee().event]: { price: '$365' } } };
   assert.equal(coversEvent({ amount_total: 36500, currency: 'usd' }, invitee().event, prices), true);
   assert.equal(coversEvent({ amount_total: 9500, currency: 'usd' }, invitee().event, prices), false);
@@ -855,9 +860,11 @@ await test('security: a cheaper payment carrying another player\'s reference doe
   const right = fakeDb([invitee()]);
   assert.equal((await recordCheckout(session(), { query: right.query, settings: prices })).applicantId, 7);
 
-  const notInvited = fakeDb([invitee({ status: 'applied' })]);
-  assert.equal((await recordCheckout(session({ customer_details: { email: 'x@example.com' } }), { query: notInvited.query, settings: prices })).applicantId, null,
-    'a reference to a player who was never invited matches nobody');
+  const sibling = fakeDb([invitee({ deletedAt: 'x' }), invitee({ id: 8, parentEmail: 'papa@example.com' })]);
+  assert.equal((await recordCheckout(session(), { query: sibling.query, settings: prices })).applicantId, null,
+    'a link naming a player who no longer qualifies is never handed to a sibling by email');
+  const cheapSib = fakeDb([invitee(), invitee({ id: 8, parentEmail: 'papa@example.com' })]);
+  assert.equal((await recordCheckout(session({ amount_total: 9500, amount_subtotal: 9500 }), { query: cheapSib.query, settings: prices })).applicantId, null);
 });
 
 await test('an unpaid or empty session records nothing', async () => {

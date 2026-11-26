@@ -35,10 +35,13 @@ import { hit, ipOf, tooMany } from '../lib/ratelimit.js';
    at most 3 emails in 10 minutes, and at most 95 a day in total — Resend's
    free plan stops at 100. A stolen session or a stuck button can't flood
    inboxes or burn the sender's reputation. */
-async function emailBudget(res, id) {
-  const one = await hit(query, 'email_player', String(id), 3, 10 * 60);
+async function emailBudget(res, a) {
+  const one = await hit(query, 'email_player', String(a.id), 3, 10 * 60);
   if (!one.ok) { tooMany(res, one, 'A este jugador ya se le mandaron varios correos hace poco. Espera unos minutos.'); return false; }
-  const day = await hit(query, 'email_day', '*', 95, 24 * 60 * 60);
+  // Each address counts: a player with a parent email is two emails.
+  const n = Math.max(1, recipients(a).length);
+  let day = null;
+  for (let i = 0; i < n; i++) day = await hit(query, 'email_day', '*', 95, 24 * 60 * 60);
   if (!day.ok) { tooMany(res, day, 'Se llegó al límite diario de correos (95). Mañana se pueden mandar más.'); return false; }
   return true;
 }
@@ -121,7 +124,7 @@ async function preview(res, id) {
 async function send(res, id) {
   const a = await load(id);
   if (!a) return res.status(404).json({ error: 'not_found' });
-  if (!(await emailBudget(res, id))) return;
+  if (!(await emailBudget(res, a))) return;
 
   const payment = await loadPayment();
   const stop = blockers(a, payment);
@@ -196,7 +199,7 @@ async function previewDetails(res, id) {
 async function sendDetailsNow(res, id) {
   const a = await load(id);
   if (!a) return res.status(404).json({ error: 'not_found' });
-  if (!(await emailBudget(res, id))) return;
+  if (!(await emailBudget(res, a))) return;
   const settings = await loadPayment();
   const stop = detailBlockers(a, settings);
   if (stop.length) return res.status(400).json({ error: 'not_ready', blockers: stop, message: stop.join(' ') });
