@@ -619,3 +619,44 @@ select option { background: #10142F; color: #F5F7FB; }
   .mobile-nav { backdrop-filter: blur(14px) !important; -webkit-backdrop-filter: blur(14px) !important; }
   .photo-item img, .gallery-item img, .bento-tile img { transition: none; }
 }
+
+/* =========================================================================
+   SCOUTING | CAMP — the home page in two halves (coach, 2026-11-26)
+   ========================================================================= */
+.bp-split { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; align-items: stretch; }
+@media (max-width: 860px) { .bp-split { grid-template-columns: 1fr; } }
+.bp-half {
+  position: relative; display: flex; flex-direction: column; gap: 0.9rem;
+  padding: clamp(1.6rem, 3.5vw, 2.4rem); border-radius: var(--r-xl, 28px);
+  background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+  border: 1px solid var(--hairline, rgba(255,255,255,0.12));
+  overflow: hidden;
+}
+.bp-half::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 4px; }
+.bp-half-scout::before { background: linear-gradient(90deg, #00D4FF, rgba(0,212,255,0)); }
+.bp-half-camp::before { background: linear-gradient(90deg, #FF6B1A, rgba(255,107,26,0)); }
+.bp-half-brand { font-size: 0.72rem; letter-spacing: 0.22em; font-weight: 700; color: var(--text-3, #9AA3B8); }
+.bp-half-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.6rem, 6vw, 3.6rem); line-height: 0.9; margin: 0; letter-spacing: 0.02em; }
+.bp-half-scout .bp-half-title { color: #00D4FF; }
+.bp-half-camp .bp-half-title { color: #FF6B1A; }
+.bp-half-p { margin: 0; color: var(--text-2, #C6CDDC); line-height: 1.55; }
+.bp-rows { display: flex; flex-direction: column; gap: 0.55rem; flex: 1; }
+.bp-row {
+  display: flex; gap: 0.9rem; align-items: center; text-decoration: none; color: inherit;
+  padding: 0.75rem 0.9rem; border-radius: 14px; background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+}
+.bp-row-date { min-width: 5.6rem; font-weight: 700; font-size: 0.78rem; letter-spacing: 0.06em; color: var(--text-3, #9AA3B8); }
+.bp-row-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.bp-row-main strong { font-size: 0.98rem; }
+.bp-row-main span { font-size: 0.82rem; color: var(--text-3, #9AA3B8); }
+.bp-row-main .bp-row-cap { color: #FF6B1A; font-weight: 600; }
+.bp-half .btn { align-self: flex-start; margin-top: 0.4rem; }
+/* Sign-up form: the scouting dates and the camp under their own headings. */
+.rg-group-head { grid-column: 1 / -1; font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 0.04em; margin: 0.6rem 0 -0.2rem; }
+.rg-group-head.rg-group-scout { color: #00D4FF; }
+.rg-group-head.rg-group-camp { color: #FF6B1A; margin-top: 1.2rem; }
+@media (max-width: 520px) {
+  .bp-row { flex-direction: column; align-items: flex-start; gap: 0.3rem; }
+  .bp-row-date { min-width: 0; }
+}

@@ -96,7 +96,7 @@ async function post(body) {
 /* The 2027 dates open for sign-ups, priced — so the tests about the November
    dates are not tripped up by the January–April ones. */
 const { EVENTS } = await import('../js/registro-config.js');
-const Y27 = Object.fromEntries(EVENTS.filter((e) => e.open && (e.start || '') >= '2026-12')
+const Y27 = Object.fromEntries(EVENTS.filter((e) => e.open && ((e.start || '') >= '2026-12' || e.kind === 'camp'))
   .map((e) => [e.id, { price: '$150', payLink: 'https://buy.stripe.com/z' }]));
 
 console.log('validation');
@@ -539,6 +539,18 @@ await test('the invitation never asks for a video, even when none was sent (coac
     const m = buildInvite(invitee({ videoUrl: '', formLang: lang }));
     assert.doesNotMatch(m.text + m.html, /video/i);
   }
+});
+
+await test('BE PRO Camp: the invitation and the messages talk about the camp, not scouting (coach, 2026-11-26)', () => {
+  const settings = cleanPayment({ logistics: { ...Y27 } });
+  const camper = invitee({ event: 'camp-1', dob: '2013-04-02', parentConfirmedAt: '2026-11-20' });
+  for (const lang of ['es', 'en']) {
+    const m = buildInvite({ ...camper, formLang: lang }, { settings });
+    assert.match(m.subject + m.text, /BE PRO Camp/);
+    assert.doesNotMatch(m.subject + m.text, /scouting|seleccionado|selected/i);
+  }
+  const scout = buildInvite(invitee(), { settings: cleanPayment({ logistics: { 'nov-24-25': { price: '$95', payLink: 'https://buy.stripe.com/b' } } }) });
+  assert.match(scout.text, /scouting/, 'scouting invitations unchanged');
 });
 
 await test('a name with html in it cannot break out into the email', () => {
@@ -1167,7 +1179,12 @@ await test('an event is over the day after it ends, in Las Vegas time', () => {
   assert.equal(cfg.isPast(ev, new RealDate('2026-11-12T08:30:00Z')), true);
   assert.equal(cfg.isOpen(ev, new RealDate('2026-11-12T08:30:00Z')), false);
   assert.equal(cfg.isOpen(ev, new RealDate('2026-11-05T08:30:00Z')), true);
-  for (const e of cfg.EVENTS) assert.match(e.end, /^\d{4}-\d{2}-\d{2}$/, e.id + ' needs an end date');
+  // Every scouting event needs its last day. The camp may wait for its dates
+  // (coach, 2026-11-26): until then it stays open and never closes by itself.
+  for (const e of cfg.EVENTS) {
+    if (e.kind === 'camp' && !e.end) continue;
+    assert.match(e.end, /^\d{4}-\d{2}-\d{2}$/, e.id + ' needs an end date');
+  }
 });
 
 await test('a past event needs no price to be typed before inviting to the next ones', () => {

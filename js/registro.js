@@ -4,7 +4,7 @@
    see and fix before sending. Every refusal code the server can send has an
    entry in REFUSALS; a test fails if one is missing. */
 
-import { EVENTS, POSITIONS, LEVELS, AVAILABLE, INTEREST, MINOR_AGE, CHILD_AGE, isOpen } from './registro-config.js';
+import { EVENTS, POSITIONS, LEVELS, AVAILABLE, INTEREST, MINOR_AGE, CHILD_AGE, isOpen, isCamp } from './registro-config.js';
 
 /* server code → [data-field to highlight, i18n key]. Codes that are not about
    one field highlight nothing. */
@@ -94,15 +94,15 @@ function init() {
 
   function renderEventCards() {
     const dob = dobNow();
-    $('rgEventCards').replaceChildren(...openEvents.map((e) => {
+    const card = (e) => {
       const ok = !dob || fits(e, dob);
       const on = picked.has(e.id);
-      const card = document.createElement('button');
-      card.type = 'button';
-      card.className = 'rg-event-card' + (on ? ' active' : '') + (ok ? '' : ' rg-event-off');
-      card.dataset.event = e.id;
-      card.setAttribute('aria-pressed', on ? 'true' : 'false');
-      if (!ok) card.setAttribute('aria-disabled', 'true');
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'rg-event-card' + (on ? ' active' : '') + (ok ? '' : ' rg-event-off');
+      btn.dataset.event = e.id;
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      if (!ok) btn.setAttribute('aria-disabled', 'true');
 
       const dates = document.createElement('div');
       dates.className = 'rg-event-dates';
@@ -122,9 +122,18 @@ function init() {
       pick.className = 'rg-event-pick';
       pick.textContent = !ok ? t('rg_ev_noage') : on ? t('rg_ev_picked') : t('rg_ev_pick');
 
-      card.append(dates, name, years, pick);
-      return card;
-    }));
+      if (isCamp(e) && e.cap) years.append(line(t('camp_cap').replace('{n}', e.cap)));
+      btn.append(dates, name, years, pick);
+      return btn;
+    };
+    // Scouting events and the camp in their own groups (coach, 2026-11-26).
+    const scout = openEvents.filter((e) => !isCamp(e));
+    const camp = openEvents.filter(isCamp);
+    const head = (key, cls) => { const h = document.createElement('div'); h.className = 'rg-group-head ' + cls; h.textContent = t(key); return h; };
+    const both = scout.length && camp.length;
+    $('rgEventCards').replaceChildren(
+      ...(both ? [head('rg_group_scout', 'rg-group-scout')] : []), ...scout.map(card),
+      ...(both ? [head('rg_group_camp', 'rg-group-camp')] : []), ...camp.map(card));
   }
 
   $('rgEventCards').addEventListener('click', (e) => {

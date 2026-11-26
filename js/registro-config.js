@@ -44,7 +44,35 @@ function ev(id, start, end, name, ages, divisions, open) {
   };
 }
 
+/* BE PRO Camp (coach, 2026-11-26): its own half of the site, same sign-up
+   form and same invite → pay → details flow as the scouting events. Born
+   2010–2016, limited to `cap` players. The price lives in Datos del pago like
+   every other one (never in a file). Until the coach sends the dates, start
+   and end stay empty: it shows "Fechas por confirmar" and never closes by
+   itself. When the dates arrive, fill start/end/dates/short and the label. */
+function camp(id, years, cap, open, when = null) {
+  const tbd = { es: 'Fechas por confirmar', en: 'Dates to be announced' };
+  const soon = { es: 'PRÓXIMAMENTE', en: 'COMING SOON' };
+  return {
+    id, kind: 'camp', open, years, cap,
+    start: when ? when.start : '', end: when ? when.end : '',
+    name: { es: 'BE PRO Camp', en: 'BE PRO Camp' },
+    dates: when ? when.dates : tbd,
+    short: when ? when.short : soon,
+    leagues: ['BE PRO Camp'],
+    label: {
+      es: 'BE PRO Camp — ' + (when ? when.dates.es : tbd.es) + ' (' + years[0] + '-' + years[1] + ')',
+      en: 'BE PRO Camp — ' + (when ? when.dates.en : tbd.en) + ' (' + years[0] + '-' + years[1] + ')',
+    },
+  };
+}
+export const isCamp = (e) => Boolean(e && e.kind === 'camp');
+
 export const EVENTS = [
+  // BE PRO Camp — "cupo limitado, 80 jugadores, 2016 a 2010" (coach, 2026-11-26).
+  camp('camp-1', [2010, 2016], 80, true),
+
+
   /* November Scouting Madness 2026 — the coach's three events. 2008 and 2011
      each fit two dates; the player picks. */
   {

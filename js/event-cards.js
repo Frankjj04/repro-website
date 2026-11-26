@@ -2,7 +2,7 @@
    built from js/registro-config.js — the same list the sign-up form and the
    server use — so adding an event there is the only step (2026-11-19).
    Redrawn when the language changes. */
-import { EVENTS, isOpen, isPast } from './registro-config.js';
+import { EVENTS, isOpen, isPast, isCamp } from './registro-config.js';
 
 const lang = () => (typeof I18N !== 'undefined' && I18N.current) || 'es';
 const t = (key) => ((typeof BEPRO_TRANSLATIONS !== 'undefined' && BEPRO_TRANSLATIONS[lang()]) || {})[key] || key;
@@ -21,17 +21,45 @@ function cta(primary, key = 'cal_open') {
   a.href = 'registro.html';
   return a;
 }
-const upcoming = () => EVENTS.filter((e) => isOpen(e))
+/* Scouting events and the camp are two halves of the site (coach, 2026-11-26). */
+const upcoming = () => EVENTS.filter((e) => isOpen(e) && !isCamp(e))
   .sort((x, y) => (x.start || '').localeCompare(y.start || ''));
+const camps = () => EVENTS.filter((e) => isOpen(e) && isCamp(e));
+const campText = () => {
+  const c = camps()[0];
+  return c ? fill('camp_p', c.years[0], c.years[1]) : '';
+};
+
+/* One compact line per event for the home page halves: date, name, ages. */
+function row(e, extra) {
+  const r = el('a', 'bp-row');
+  r.href = isCamp(e) ? 'registro.html' : 'events.html';
+  const main = el('div', 'bp-row-main');
+  main.append(el('strong', null, name(e)), el('span', null, ages(e)));
+  if (extra) main.append(el('span', 'bp-row-cap', extra));
+  r.append(el('div', 'bp-row-date', e.short[lang()]), main);
+  return r;
+}
 
 function home(box) {
-  box.replaceChildren(...upcoming().slice(0, 3).map((e, i) => {
-    const card = el('div', 'upcoming-card' + (i === 0 ? ' featured-event' : ''));
-    const type = el('div', 'uc-type', name(e));
-    if (i === 0) type.style.color = 'var(--orange)';
-    const btn = cta(i === 0);
-    btn.style.marginTop = '1.5rem';
-    card.append(type, el('div', 'uc-city', e.short[lang()]), el('div', 'uc-location', ages(e)), btn);
+  box.replaceChildren(...upcoming().slice(0, 4).map((e) => row(e)));
+}
+
+function homeCamp(box, text) {
+  if (text) text.textContent = campText();
+  box.replaceChildren(...camps().map((c) => row(c, c.cap ? t('camp_cap').replace('{n}', c.cap) : '')));
+}
+
+function campCards(box, text) {
+  if (text) text.textContent = campText();
+  box.replaceChildren(...camps().map((c) => {
+    const card = el('article', 'ev26-card ev26-featured');
+    const ul = el('ul', 'ev26-leagues');
+    ul.append(el('li', null, name(c)));
+    if (c.cap) ul.append(el('li', 'ev26-div', t('camp_cap').replace('{n}', c.cap)));
+    const btn = cta(true);
+    btn.textContent = t('split_camp_btn');
+    card.append(el('div', 'ev26-date', c.dates[lang()]), el('div', 'ev26-years', ages(c)), ul, btn);
     return card;
   }));
 }
@@ -71,6 +99,10 @@ function draw() {
   const h = document.getElementById('homeEventCards');
   const o = document.getElementById('evOpenCards');
   const c = document.getElementById('evCalendar');
+  const hc = document.getElementById('homeCampCards');
+  const ec = document.getElementById('evCampCards');
+  if (hc) homeCamp(hc, document.getElementById('homeCampText'));
+  if (ec) campCards(ec, document.getElementById('evCampText'));
   if (h) home(h);
   if (o) openCards(o);
   if (c) calendar(c);

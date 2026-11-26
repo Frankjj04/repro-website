@@ -199,13 +199,27 @@
 <section class="dot-bg">
   <div class="section-header center reveal">
     <span class="section-tag" data-i18n="upcoming_tag">Lo Que Viene</span>
-    <h2 data-i18n-html="upcoming_h2">NOVEMBER SCOUTING <span style="color:var(--orange);">MADNESS</span></h2>
-    <p data-i18n="upcoming_p">Tres fechas en noviembre. Elige la tuya por tu año de nacimiento y regístrate.</p>
+    <h2 data-i18n-html="split_h2">SCOUTING <span style="color:var(--orange);">Y CAMP</span></h2>
+    <p data-i18n="split_p">Dos formas de jugar con BE PRO. Con un solo registro te anotas a lo que quieras.</p>
   </div>
-  <!-- Built by js/event-cards.js: the next events open for sign-ups. -->
-  <div class="upcoming-grid max-1200 reveal" id="homeEventCards"></div>
-  <div style="text-align:center; margin-top:3rem;">
-    <a href="events.html" class="btn btn-secondary btn-lg" data-i18n="view_all_evt">Ver Detalles de los Eventos</a>
+  <!-- Two halves (coach, 2026-11-26: "la mitad de la página diga eventos BE PRO
+       Scouting, la mitad BE PRO Camp"). Both lists are built by
+       js/event-cards.js from js/registro-config.js. -->
+  <div class="bp-split max-1200 reveal">
+    <div class="bp-half bp-half-scout">
+      <span class="bp-half-brand">BE PRO</span>
+      <h3 class="bp-half-title">SCOUTING</h3>
+      <p class="bp-half-p" data-i18n="split_scout_p">Eventos de visoría frente a clubes profesionales. Te registras y, si te seleccionan, te invitamos.</p>
+      <div class="bp-rows" id="homeEventCards"></div>
+      <a href="events.html" class="btn btn-secondary" data-i18n="split_scout_btn">Ver eventos</a>
+    </div>
+    <div class="bp-half bp-half-camp">
+      <span class="bp-half-brand">BE PRO</span>
+      <h3 class="bp-half-title">CAMP</h3>
+      <p class="bp-half-p" id="homeCampText"></p>
+      <div class="bp-rows" id="homeCampCards"></div>
+      <a href="registro.html" class="btn btn-primary" data-i18n="split_camp_btn">Registrarme al Camp</a>
+    </div>
   </div>
 </section>
 
