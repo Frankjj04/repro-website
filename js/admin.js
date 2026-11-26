@@ -1404,16 +1404,54 @@ function renderPaid(a, isArchived, past = false) {
   box.append(row);
 }
 
-$('adPaymentsOpen').addEventListener('click', async () => {
-  openModal('adPayments');
-  flash($('adPmError'), '');
-  let list = [];
-  try { list = (await api('GET', '/api/settings?payments=1')).payments; }
-  catch (err) { return flash($('adPmError'), err.message); }
+/* The players a payment could belong to, most likely first: same email as
+   the payer, then invited and not paid, then everyone else not archived. */
+function paymentChoices(pm) {
+  const mail = (pm.payerEmail || '').toLowerCase();
+  const sameMail = (a) => mail && [a.email, a.parentEmail].some((x) => (x || '').toLowerCase() === mail);
+  const label = (a) => a.name + ' · ' + eventLabel(a.event) + ' · ' + birthYear(a) + (a.paidAt ? ' · ya pagó' : '');
+  const groups = [
+    ['Mismo correo que quien pagó', active.filter(sameMail)],
+    ['Invitados sin pagar', active.filter((a) => !sameMail(a) && a.status === 'selected' && !a.paidAt)],
+    ['Todos los demás', active.filter((a) => !sameMail(a) && !(a.status === 'selected' && !a.paidAt))],
+  ];
+  const sel = el('select', 'ad-pm-pick');
+  sel.append(el('option', '', 'Elige al jugador…'));
+  sel.firstChild.value = '';
+  for (const [name, list] of groups) {
+    if (!list.length) continue;
+    const g = document.createElement('optgroup');
+    g.label = name;
+    list.sort((x, y) => x.name.localeCompare(y.name, 'es')).forEach((a) => {
+      const o = el('option', '', label(a));
+      o.value = String(a.id);
+      g.append(o);
+    });
+    sel.append(g);
+  }
+  return sel;
+}
 
+async function assignPayment(pm, applicantId) {
+  flash($('adPmError'), '');
+  try {
+    const out = await api('PATCH', '/api/settings?payment=' + pm.id, { applicantId });
+    [active, archived] = await Promise.all([api('GET', '/api/applicants'), api('GET', '/api/applicants?archived=1')]);
+    render();
+    drawPayments(out.payments);
+    if (applicantId) {
+      const a = find(applicantId);
+      alert('Listo: el pago quedó con ' + (a ? a.name : 'el jugador') + '.\n\nAbre su ficha y toca "Mandar detalles" para que le llegue la sede y la hora.');
+    }
+  } catch (err) {
+    flash($('adPmError'), err.message);
+  }
+}
+
+function drawPayments(list) {
   $('adPmEmpty').hidden = list.length > 0;
   $('adPmList').replaceChildren(...list.map((pm) => {
-    const card = el('div', 'ad-share ' + (pm.applicantId ? 'ad-share-live' : 'ad-share-off'));
+    const card = el('div', 'ad-share ' + (pm.applicantId ? 'ad-share-live' : 'ad-share-todo'));
     const head = el('div', 'ad-share-head');
     head.append(
       el('div', 'ad-share-name', pm.applicantName || 'Sin identificar'),
@@ -1424,16 +1462,47 @@ $('adPaymentsOpen').addEventListener('click', async () => {
       el('div', 'ad-share-sub', [pm.event ? eventLabel(pm.event) : '', fmtDate(pm.createdAt)].filter(Boolean).join(' · ')),
       el('div', 'ad-share-sub', 'Pagó: ' + [pm.payerName, pm.payerEmail].filter(Boolean).join(' · ')),
     );
+    const actions = el('div', 'ad-share-actions');
     if (pm.applicantId && find(pm.applicantId)) {
       const open = el('button', 'btn btn-secondary btn-sm', 'Ver jugador');
       open.type = 'button';
       open.addEventListener('click', () => { closeModal('adPayments'); openPanel(pm.applicantId); });
-      const actions = el('div', 'ad-share-actions');
       actions.append(open);
-      card.append(actions);
     }
+    if (pm.applicantId && pm.byHand) {
+      // Only a payment he tied himself can be untied: Stripe's own matches stay.
+      card.append(el('div', 'ad-share-sub', 'Asignado a mano'));
+      const undo = el('button', 'btn btn-secondary btn-sm', 'Quitar de este jugador');
+      undo.type = 'button';
+      undo.addEventListener('click', () => {
+        if (confirm('¿Quitar este pago de ' + (pm.applicantName || 'este jugador') + '? Volverá a "Sin identificar".')) assignPayment(pm, null);
+      });
+      actions.append(undo);
+    }
+    if (!pm.applicantId) {
+      const pick = paymentChoices(pm);
+      const go = el('button', 'btn btn-primary btn-sm', 'Asignar');
+      go.type = 'button';
+      go.addEventListener('click', () => {
+        const id = Number(pick.value);
+        if (!id) return flash($('adPmError'), 'Elige al jugador de este pago.');
+        const a = find(id);
+        if (confirm('¿Este pago de ' + (pm.amount || '') + ' es de ' + (a ? a.name : 'ese jugador') + '?\n\nQuedará marcado como pagado.')) assignPayment(pm, id);
+      });
+      actions.append(pick, go);
+    }
+    if (actions.childNodes.length) card.append(actions);
     return card;
   }));
+}
+
+$('adPaymentsOpen').addEventListener('click', async () => {
+  openModal('adPayments');
+  flash($('adPmError'), '');
+  let list = [];
+  try { list = (await api('GET', '/api/settings?payments=1')).payments; }
+  catch (err) { return flash($('adPmError'), err.message); }
+  drawPayments(list);
 });
 
 /* ---------- share links ---------- */

@@ -281,6 +281,14 @@ a.ad-chip-video:hover { background: rgba(0,212,255,0.1); }
 .ad-share-expired .ad-share-state, .ad-share-off .ad-share-state { color: var(--gray); border-color: rgba(255,255,255,0.12); }
 .ad-share-sub { font-size: 0.8rem; color: var(--gray-light); margin-top: 3px; }
 .ad-share-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.75rem; }
+.ad-share-todo { border-left-color: var(--orange, #FF6B1A); }
+.ad-pm-pick {
+  flex: 1 1 220px; min-width: 0; max-width: 100%;
+  background: rgba(255,255,255,0.06); color: #F5F7FB;
+  border: 1px solid rgba(255,255,255,0.18); border-radius: 12px;
+  padding: 0.65rem 0.9rem; font: inherit; font-size: 0.9rem;
+}
+.ad-pm-pick:focus { outline: 2px solid rgba(255,107,26,0.6); outline-offset: 1px; }
 
 @media (max-width: 600px) {
   /* Three buttons and Salir do not fit beside the logo on a phone: they wrap
