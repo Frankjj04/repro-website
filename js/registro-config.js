@@ -87,10 +87,10 @@ export const EVENTS = [
     open: true,
   },
 
-  /* Coach, 2026-11-26: "Liga MX Femenil", 9 y 10 de diciembre, Ed Fountain
+  /* Coach, 2026-11-26: "Liga MX Femenil", 8 y 9 de diciembre (coach corrected it the same day; first said 9 y 10), Ed Fountain
      Park, born 2005–2008 (18–21 counted in 2026). Girls only: the coach picks
      who is invited, so the form needs no new question. */
-  ev('2026-12-femenil', '2026-12-09', '2026-12-10', 'Liga MX Femenil', [18, 21], 'Liga MX Femenil', true),
+  ev('2026-12-femenil', '2026-12-08', '2026-12-09', 'Liga MX Femenil', [18, 21], 'Liga MX Femenil', true),
 
   // 2027 — open for sign-ups
   ev('2027-01-colegio',   '2027-01-19', '2027-01-20', { es: 'Colegio USA', en: 'College USA' }, [16, 20], 'High School / NCAA', true),
