@@ -845,6 +845,9 @@ await test('security: a cheaper payment carrying another player\'s reference doe
   assert.equal(priceCents('$1.250,50'), null, 'not US style → not checked');
   assert.equal(coversEvent({ amount_total: 32850, amount_subtotal: 36500, currency: 'usd' }, invitee().event, { logistics: { [invitee().event]: { price: '$365' } } }), true,
     'a coupon the coach gave still matches');
+  assert.equal(coversEvent({ amount_total: 270000, amount_subtotal: 270000, currency: 'mxn',
+    currency_conversion: { source_currency: 'usd', amount_subtotal: 36500, amount_total: 36500, fx_rate: '0.054' } },
+    invitee().event, { logistics: { [invitee().event]: { price: '$365' } } }), true, 'a family paying in pesos (Adaptive Pricing) still matches');
   const prices = { logistics: { [invitee().event]: { price: '$365' } } };
   assert.equal(coversEvent({ amount_total: 36500, currency: 'usd' }, invitee().event, prices), true);
   assert.equal(coversEvent({ amount_total: 9500, currency: 'usd' }, invitee().event, prices), false);
